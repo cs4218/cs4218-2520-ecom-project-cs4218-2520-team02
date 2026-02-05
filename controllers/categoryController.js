@@ -87,16 +87,16 @@ export const updateCategoryController = async (req, res) => {
     category.slug = slugify(name);
     await category.save();
     // Sends success response
-    res.status(200).send({
+    return res.status(200).send({
       success: true,
-      category,
       message: "Category updated successfully.",
+      category,
     });
   
   // Misc errors
   } catch (error) {
-    console.log(error);
-    res.status(500).send({
+    console.log("Error updating category: ", error);
+    return res.status(500).send({
       success: false,
       error: error.message,
       message: "Internal server error while updating category",
