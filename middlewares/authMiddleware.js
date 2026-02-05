@@ -61,7 +61,7 @@ export const isAdmin = async (req, res, next) => {
         res.status(500).send({
             success: false,
             error,
-            message: "Error in admin middleware",
+            message: "Internal server error",
         });
     }
 };
