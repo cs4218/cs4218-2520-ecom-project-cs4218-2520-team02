@@ -1,7 +1,7 @@
 import express from "express";
 import { isAdmin, requireSignIn } from "./../middlewares/authMiddleware.js";
 import {
-  categoryControlller,
+  getAllCategoriesController,
   createCategoryController,
   deleteCategoryCOntroller,
   singleCategoryController,
@@ -28,7 +28,7 @@ router.put(
 );
 
 //getALl category
-router.get("/get-category", categoryControlller);
+router.get("/get-category", getAllCategoriesController);
 
 //single category
 router.get("/single-category/:slug", singleCategoryController);
