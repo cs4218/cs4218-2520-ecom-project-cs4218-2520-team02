@@ -134,8 +134,16 @@ export const getAllCategoriesController = async (req, res) => {
 // single category
 export const singleCategoryController = async (req, res) => {
   try {
-    const category = await categoryModel.findOne({ slug: req.params.slug });
-    res.status(200).send({
+    const { slug } = req.params;
+    if (!slug) {
+      return res.status(400).send({
+        success: false,
+        message: "Category slug is required.",
+      });
+    }
+
+    const category = await categoryModel.findOne({ slug });
+    return res.status(200).send({
       success: true,
       message: "Get SIngle Category SUccessfully",
       category,
