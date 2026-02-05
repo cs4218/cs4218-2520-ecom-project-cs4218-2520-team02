@@ -131,10 +131,13 @@ export const getAllCategoriesController = async (req, res) => {
   }
 };
 
-// single category
+// Get category
 export const getCategoryController = async (req, res) => {
   try {
+
     const { slug } = req.params;
+
+    // Validate that slug is supplied
     if (!slug) {
       return res.status(400).send({
         success: false,
@@ -143,17 +146,23 @@ export const getCategoryController = async (req, res) => {
     }
 
     const category = await categoryModel.findOne({ slug });
+    
+    // Check if category exists
     if (!category) {
       return res.status(404).send({
         success: false,
         message: "Category not found.",
       });
     }
+    
+    // Send success response
     return res.status(200).send({
       success: true,
       message: "Category retrieved successfully.",
       category,
     });
+
+  // Misc errors
   } catch (error) {
     console.log("Error retrieving a category: ", error);
     return res.status(500).send({
