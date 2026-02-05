@@ -199,23 +199,32 @@ export const updateProfileController = async (req, res) => {
   }
 };
 
-//orders
+// Get an user's orders
 export const getOrdersController = async (req, res) => {
   try {
-    const orders = await orderModel
+    if (!req.user || !req.user._id) {
+      return res.status(401).send({
+        success: false,
+        message: "Not signed in",
+      });
+    }
+
+    const userOrders = await orderModel
       .find({ buyer: req.user._id })
       .populate("products", "-photo")
       .populate("buyer", "name");
-    res.json(orders);
+
+    return res.json(userOrders);
   } catch (error) {
     console.log(error);
-    res.status(500).send({
+    return res.status(500).send({
       success: false,
-      message: "Error WHile Geting Orders",
+      message: "Error while getting orders",
       error,
     });
   }
 };
+
 //orders
 export const getAllOrdersController = async (req, res) => {
   try {
