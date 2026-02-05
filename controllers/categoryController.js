@@ -193,14 +193,14 @@ export const deleteCategoryCOntroller = async (req, res) => {
     // Send success response
     return res.status(200).send({
       success: true,
-      message: "Categry Deleted Successfully",
+      message: "Category deleted successfully.",
     });
   } catch (error) {
-    console.log(error);
-    res.status(500).send({
+    console.log("Error deleting category: ", error);
+    return res.status(500).send({
       success: false,
-      message: "error while deleting category",
-      error,
+      error: error.message,
+      message: "Internal server error while deleting category.",
     });
   }
 };
