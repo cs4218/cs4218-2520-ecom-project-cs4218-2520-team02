@@ -131,21 +131,44 @@ export const getAllCategoriesController = async (req, res) => {
   }
 };
 
-// single category
-export const singleCategoryController = async (req, res) => {
+// Get category
+export const getCategoryController = async (req, res) => {
   try {
-    const category = await categoryModel.findOne({ slug: req.params.slug });
-    res.status(200).send({
+
+    const slug = req.params.slug?.trim();
+
+    // Validate that slug is supplied
+    if (!slug) {
+      return res.status(400).send({
+        success: false,
+        message: "Category slug is required.",
+      });
+    }
+
+    const category = await categoryModel.findOne({ slug });
+    
+    // Check if category exists
+    if (!category) {
+      return res.status(404).send({
+        success: false,
+        message: "Category not found.",
+      });
+    }
+    
+    // Send success response
+    return res.status(200).send({
       success: true,
-      message: "Get SIngle Category SUccessfully",
+      message: "Category retrieved successfully.",
       category,
     });
+
+  // Misc errors
   } catch (error) {
-    console.log(error);
-    res.status(500).send({
+    console.log("Error retrieving a category: ", error);
+    return res.status(500).send({
       success: false,
-      error,
-      message: "Error While getting Single Category",
+      error: error.message,
+      message: "Internal server error while retrieving category.",
     });
   }
 };
