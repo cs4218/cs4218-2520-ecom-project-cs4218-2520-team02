@@ -1,33 +1,48 @@
 import categoryModel from "../models/categoryModel.js";
 import slugify from "slugify";
+
+// Create new category
 export const createCategoryController = async (req, res) => {
   try {
-    const { name } = req.body;
+
+    // Validate that name is supplied
+    const name = req.body.name?.trim()
     if (!name) {
-      return res.status(401).send({ message: "Name is required" });
-    }
-    const existingCategory = await categoryModel.findOne({ name });
-    if (existingCategory) {
-      return res.status(200).send({
-        success: true,
-        message: "Category Already Exisits",
+      return res.status(400).send({ 
+        success: false,
+        message: "Category name is required." 
       });
     }
+
+    // Check if the category already exists
+    const existingCategory = await categoryModel.findOne({ name });
+    if (existingCategory) {
+      return res.status(409).send({
+        success: false,
+        message: "Category already exists.",
+      });
+    }
+
+    // Create new category 
     const category = await new categoryModel({
       name,
       slug: slugify(name),
     }).save();
-    res.status(201).send({
+
+    // Send success response
+    return res.status(201).send({
       success: true,
-      message: "new category created",
+      message: "New category created successfully.",
       category,
     });
+
+  // Misc errors 
   } catch (error) {
-    console.log(error);
-    res.status(500).send({
+    console.log("Error creating category: ", error);
+    return res.status(500).send({
       success: false,
-      errro,
-      message: "Errro in Category",
+      error: error.message,
+      message: "Internal server error while creating category.",
     });
   }
 };
