@@ -62,14 +62,9 @@ export const updateCategoryController = async (req, res) => {
 
     const { id } = req.params;
 
-    // Update category by ID
-    const category = await categoryModel.findByIdAndUpdate(
-      id,
-      { name, slug: slugify(name) },
-      { new: true }
-    );
 
     // Check if category exists
+    const category = await categoryModel.findById(id);
     if (!category) {
       return res.status(404).send({
         success: false,
@@ -77,6 +72,20 @@ export const updateCategoryController = async (req, res) => {
       });
     }
 
+    const nameConflict = await categoryModel.findOne({
+      name,
+      _id: { $ne: id },
+    });
+
+    if (nameConflict) {
+      return res.status(409).send({
+        success: false,
+        message: "Category's new name already exists.",
+      });
+    }
+    category.name = name;
+    category.slug = slugify(name);
+    await category.save();
     // Sends success response
     res.status(200).send({
       success: true,
