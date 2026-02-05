@@ -72,16 +72,20 @@ export const updateCategoryController = async (req, res) => {
   }
 };
 
-// get all cat
+// Get all categories
 export const getAllCategoriesController = async (req, res) => {
   try {
 
     const categories = await categoryModel.find({});
+
+    // Send success response
     return res.status(200).send({
       success: true,
       message: "All categories retrieved successfully.",
       categories,
     });
+  
+  // Misc errors
   } catch (error) {
     console.log("Error getting all categories: ", error);
     res.status(500).send({

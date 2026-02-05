@@ -11,7 +11,7 @@ import {
 const router = express.Router();
 
 //routes
-// create category
+// Create category
 router.post(
   "/create-category",
   requireSignIn,
@@ -19,7 +19,7 @@ router.post(
   createCategoryController
 );
 
-//update category
+// Update category
 router.put(
   "/update-category/:id",
   requireSignIn,
@@ -27,7 +27,7 @@ router.put(
   updateCategoryController
 );
 
-//getALl category
+// Get all categories
 router.get("/get-category", getAllCategoriesController);
 
 //single category
