@@ -252,20 +252,43 @@ export const getAllOrdersController = async (req, res) => {
   }
 };
 
-// Get order status using orderId
+// Update order status using orderId
 export const updateOrderStatusController = async (req, res) => {
   try {
     const { orderId } = req.params;
     const { status } = req.body;
-    const orders = await orderModel.findByIdAndUpdate(
+
+    if (!orderId) {
+      return res.status(400).send({
+        success: false,
+        message: "Order ID is required",
+      });
+    }
+
+    if (!status) {
+      return res.status(400).send({
+        success: false,
+        message: "Status is required",
+      });
+    }
+
+    const updatedOrder = await orderModel.findByIdAndUpdate(
       orderId,
       { status },
       { new: true }
     );
+
+    if (!updatedOrder) {
+      return res.status(404).send({
+        success: false,
+        message: "Order not found",
+      });
+    }
+
     return res.status(200).send({
       success: true,
       message: "Order status updated",
-      orders: orders,
+      order: updatedOrder,
     });
   } catch (error) {
     console.log(error);
