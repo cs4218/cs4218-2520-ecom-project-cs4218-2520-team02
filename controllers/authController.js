@@ -252,8 +252,8 @@ export const getAllOrdersController = async (req, res) => {
   }
 };
 
-//order status
-export const orderStatusController = async (req, res) => {
+// Get order status using orderId
+export const updateOrderStatusController = async (req, res) => {
   try {
     const { orderId } = req.params;
     const { status } = req.body;
@@ -262,13 +262,17 @@ export const orderStatusController = async (req, res) => {
       { status },
       { new: true }
     );
-    res.json(orders);
+    return res.status(200).send({
+      success: true,
+      message: "Order status updated",
+      orders: orders,
+    });
   } catch (error) {
     console.log(error);
-    res.status(500).send({
+    return res.status(500).send({
       success: false,
-      message: "Error While Updateing Order",
-      error,
+      message: "Error while updating order status",
+      error: error.message || "Unknown error",
     });
   }
 };
