@@ -228,7 +228,7 @@ export const getOrdersController = async (req, res) => {
   }
 };
 
-//orders
+// Get all users orders
 export const getAllOrdersController = async (req, res) => {
   try {
     const orders = await orderModel
@@ -236,13 +236,18 @@ export const getAllOrdersController = async (req, res) => {
       .populate("products", "-photo")
       .populate("buyer", "name")
       .sort({ createdAt: -1 });
-    res.json(orders);
+
+    return res.status(200).send({
+      success: true,
+      orders: orders,
+    });
+
   } catch (error) {
     console.log(error);
-    res.status(500).send({
+    return res.status(500).send({
       success: false,
-      message: "Error WHile Geting Orders",
-      error,
+      message: "Error while getting orders",
+      error: error.message || "Unknown error",
     });
   }
 };
