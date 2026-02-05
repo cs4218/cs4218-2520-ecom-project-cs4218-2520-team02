@@ -33,7 +33,7 @@ router.get("/get-category", getAllCategoriesController);
 // Get category
 router.get("/get-category/:slug", getCategoryController);
 
-//delete category
+// Delete category
 router.delete(
   "/delete-category/:id",
   requireSignIn,

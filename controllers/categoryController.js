@@ -173,7 +173,7 @@ export const getCategoryController = async (req, res) => {
   }
 };
 
-//delete category
+// Delete category
 export const deleteCategoryController = async (req, res) => {
   try {
     const { id } = req.params;
@@ -195,6 +195,8 @@ export const deleteCategoryController = async (req, res) => {
       success: true,
       message: "Category deleted successfully.",
     });
+
+  // Misc errors
   } catch (error) {
     console.log("Error deleting category: ", error);
     return res.status(500).send({
