@@ -50,7 +50,13 @@ export const createCategoryController = async (req, res) => {
 //update category
 export const updateCategoryController = async (req, res) => {
   try {
-    const { name } = req.body;
+    const name = req.body.name?.trim()
+    if (!name) {
+      return res.status(400).send({ 
+        success: false,
+        message: "Category name is required." 
+      });
+    }
     const { id } = req.params;
     const category = await categoryModel.findByIdAndUpdate(
       id,
