@@ -157,10 +157,17 @@ export const forgotPasswordController = async (req, res) => {
 //test controller
 export const testController = (req, res) => {
   try {
-    res.send("Protected Routes");
+    return res.status(200).send({
+      success: true,
+      message: "Protected Routes",
+    });
   } catch (error) {
     console.log(error);
-    res.send({ error });
+    return res.status(500).send({
+      success: false,
+      message: "Error in test route",
+      error: error.message || "Unknown error",
+    });
   }
 };
 
@@ -199,7 +206,7 @@ export const updateProfileController = async (req, res) => {
   }
 };
 
-// Get an user's orders
+// Get a user's orders
 export const getOrdersController = async (req, res) => {
   try {
     if (!req.user || !req.user._id) {
@@ -209,14 +216,14 @@ export const getOrdersController = async (req, res) => {
       });
     }
 
-    const userOrders = await orderModel
+    const userOrder = await orderModel
       .find({ buyer: req.user._id })
       .populate("products", "-photo")
       .populate("buyer", "name");
 
     return res.status(200).send({
       success: true,
-      orders: userOrders,
+      orders: userOrder,
     });
   } catch (error) {
     console.log(error);
