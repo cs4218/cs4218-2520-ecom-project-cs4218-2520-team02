@@ -214,13 +214,16 @@ export const getOrdersController = async (req, res) => {
       .populate("products", "-photo")
       .populate("buyer", "name");
 
-    return res.json(userOrders);
+    return res.status(200).send({
+      success: true,
+      orders: userOrders,
+    });
   } catch (error) {
     console.log(error);
     return res.status(500).send({
       success: false,
       message: "Error while getting orders",
-      error,
+      error: error.message || "Unknown error",
     });
   }
 };

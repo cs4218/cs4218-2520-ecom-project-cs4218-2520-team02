@@ -11,7 +11,11 @@ const Orders = () => {
   const getOrders = async () => {
     try {
       const { data } = await axios.get("/api/v1/auth/orders");
-      setOrders(data);
+      if (data?.success) {
+        setOrders(data.orders);
+      } else {
+        console.log("Failed to fetch orders:", data.message || "Unknown error");
+      }
     } catch (error) {
       console.log(error);
     }
