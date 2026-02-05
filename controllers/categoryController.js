@@ -47,9 +47,11 @@ export const createCategoryController = async (req, res) => {
   }
 };
 
-//update category
+// Update category
 export const updateCategoryController = async (req, res) => {
   try {
+
+    // Validate that name is supplied
     const name = req.body.name?.trim()
     if (!name) {
       return res.status(400).send({ 
@@ -57,23 +59,32 @@ export const updateCategoryController = async (req, res) => {
         message: "Category name is required." 
       });
     }
+
     const { id } = req.params;
+
+    // Update category by ID
     const category = await categoryModel.findByIdAndUpdate(
       id,
       { name, slug: slugify(name) },
       { new: true }
     );
+
+    // Check if category exists
     if (!category) {
       return res.status(404).send({
         success: false,
         message: "Category not found.",
       });
     }
+
+    // Sends success response
     res.status(200).send({
       success: true,
       messsage: "Category updated successfully.",
       category,
     });
+  
+  // Misc errors
   } catch (error) {
     console.log(error);
     res.status(500).send({
