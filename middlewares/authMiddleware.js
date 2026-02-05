@@ -25,7 +25,7 @@ export const requireSignIn = async (req, res, next) => {
         res.status(401).send({
             success: false,
             error,
-            message: "Unauthorized access",
+            message: "Invalid token",
         });
     }
 };
@@ -36,19 +36,26 @@ export const isAdmin = async (req, res, next) => {
         if (!req.user || !req.user._id) {
             return res.status(401).send({
                 success: false,
-                message: "Unauthorized",
+                message: "Not signed in",
             });
         }
 
         const user = await userModel.findById(req.user._id);
-        if(user.role !== 1) {
+        if (!user) {
             return res.status(401).send({
                 success: false,
-                message: "Unauthorized access",
+                message: "User not found",
             });
-        } else {
-            next();
         }
+
+        if (user.role !== 1) {
+            return res.status(403).send({
+                success: false,
+                message: "Admin access required",
+            });
+        } 
+        
+        next();
     } catch (error) {
         console.log(error);
         res.status(500).send({
