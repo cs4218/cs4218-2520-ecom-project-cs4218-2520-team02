@@ -80,8 +80,8 @@ export const updateCategoryController = async (req, res) => {
     // Sends success response
     res.status(200).send({
       success: true,
-      messsage: "Category updated successfully.",
       category,
+      message: "Category updated successfully.",
     });
   
   // Misc errors
