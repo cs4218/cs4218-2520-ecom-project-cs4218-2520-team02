@@ -177,8 +177,21 @@ export const getCategoryController = async (req, res) => {
 export const deleteCategoryCOntroller = async (req, res) => {
   try {
     const { id } = req.params;
-    await categoryModel.findByIdAndDelete(id);
-    res.status(200).send({
+    
+    // Check if category exists
+    const category = await categoryModel.findById(id);
+    if (!category) {
+      return res.status(404).send({
+        success: false,
+        message: "Category not found.",
+      });
+    }
+    
+    // Delete category
+    await category.deleteOne();
+
+    // Send success response
+    return res.status(200).send({
       success: true,
       message: "Categry Deleted Successfully",
     });
