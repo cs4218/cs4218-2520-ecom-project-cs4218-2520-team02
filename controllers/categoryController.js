@@ -47,27 +47,62 @@ export const createCategoryController = async (req, res) => {
   }
 };
 
-//update category
+// Update category
 export const updateCategoryController = async (req, res) => {
   try {
-    const { name } = req.body;
+
+    // Validate that name is supplied
+    const name = req.body.name?.trim()
+    if (!name) {
+      return res.status(400).send({ 
+        success: false,
+        message: "Category name is required." 
+      });
+    }
+
     const { id } = req.params;
-    const category = await categoryModel.findByIdAndUpdate(
-      id,
-      { name, slug: slugify(name) },
-      { new: true }
-    );
-    res.status(200).send({
+
+    // Check if old category exists
+    const category = await categoryModel.findById(id);
+    if (!category) {
+      return res.status(404).send({
+        success: false,
+        message: "Category not found.",
+      });
+    }
+
+    // Check for name conflicts
+    const nameConflict = await categoryModel.findOne({
+      name,
+      _id: { $ne: id },
+    });
+
+    if (nameConflict) {
+      return res.status(409).send({
+        success: false,
+        message: "Category's new name already exists.",
+      });
+    }
+
+    // Update category
+    category.name = name;
+    category.slug = slugify(name);
+    await category.save();
+
+    // Sends success response
+    return res.status(200).send({
       success: true,
-      messsage: "Category Updated Successfully",
+      message: "Category updated successfully.",
       category,
     });
+  
+  // Misc errors
   } catch (error) {
-    console.log(error);
-    res.status(500).send({
+    console.log("Error updating category: ", error);
+    return res.status(500).send({
       success: false,
-      error,
-      message: "Error while updating category",
+      error: error.message,
+      message: "Internal server error while updating category",
     });
   }
 };
