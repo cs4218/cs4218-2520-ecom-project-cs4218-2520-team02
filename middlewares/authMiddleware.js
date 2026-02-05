@@ -19,10 +19,10 @@ export const requireSignIn = async (req, res, next) => {
             process.env.JWT_SECRET
         );
         req.user = decode;
-        next();
+        return next();
     } catch (error) {
         console.log(error);
-        res.status(401).send({
+        return res.status(401).send({
             success: false,
             error,
             message: "Invalid token",
@@ -30,7 +30,7 @@ export const requireSignIn = async (req, res, next) => {
     }
 };
 
-//admin access
+// Admin access
 export const isAdmin = async (req, res, next) => {
     try {
         if (!req.user || !req.user._id) {
@@ -55,10 +55,10 @@ export const isAdmin = async (req, res, next) => {
             });
         } 
         
-        next();
+        return next();
     } catch (error) {
         console.log(error);
-        res.status(500).send({
+        return res.status(500).send({
             success: false,
             error,
             message: "Internal server error",
