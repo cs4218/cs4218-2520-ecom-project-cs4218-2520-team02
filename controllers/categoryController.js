@@ -151,15 +151,15 @@ export const singleCategoryController = async (req, res) => {
     }
     return res.status(200).send({
       success: true,
-      message: "Get SIngle Category SUccessfully",
+      message: "Category retrieved successfully.",
       category,
     });
   } catch (error) {
-    console.log(error);
-    res.status(500).send({
+    console.log("Error retrieving a category: ", error);
+    return res.status(500).send({
       success: false,
-      error,
-      message: "Error While getting Single Category",
+      error: error.message,
+      message: "Internal server error while retrieving category.",
     });
   }
 };
