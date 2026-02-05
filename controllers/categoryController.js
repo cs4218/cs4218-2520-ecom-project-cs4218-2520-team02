@@ -63,6 +63,12 @@ export const updateCategoryController = async (req, res) => {
       { name, slug: slugify(name) },
       { new: true }
     );
+    if (!category) {
+      return res.status(404).send({
+        success: false,
+        message: "Category not found.",
+      });
+    }
     res.status(200).send({
       success: true,
       messsage: "Category Updated Successfully",
