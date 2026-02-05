@@ -173,21 +173,36 @@ export const getCategoryController = async (req, res) => {
   }
 };
 
-//delete category
-export const deleteCategoryCOntroller = async (req, res) => {
+// Delete category
+export const deleteCategoryController = async (req, res) => {
   try {
     const { id } = req.params;
-    await categoryModel.findByIdAndDelete(id);
-    res.status(200).send({
+    
+    // Check if category exists
+    const category = await categoryModel.findById(id);
+    if (!category) {
+      return res.status(404).send({
+        success: false,
+        message: "Category not found.",
+      });
+    }
+    
+    // Delete category
+    await category.deleteOne();
+
+    // Send success response
+    return res.status(200).send({
       success: true,
-      message: "Categry Deleted Successfully",
+      message: "Category deleted successfully.",
     });
+
+  // Misc errors
   } catch (error) {
-    console.log(error);
-    res.status(500).send({
+    console.log("Error deleting category: ", error);
+    return res.status(500).send({
       success: false,
-      message: "error while deleting category",
-      error,
+      error: error.message,
+      message: "Internal server error while deleting category.",
     });
   }
 };
