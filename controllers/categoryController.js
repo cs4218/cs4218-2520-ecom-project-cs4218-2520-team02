@@ -79,15 +79,15 @@ export const getAllCategoriesController = async (req, res) => {
     const categories = await categoryModel.find({});
     return res.status(200).send({
       success: true,
-      message: "All Categories List",
+      message: "All categories retrieved successfully.",
       categories,
     });
   } catch (error) {
-    console.log(error);
+    console.log("Error getting all categories: ", error);
     res.status(500).send({
       success: false,
-      error,
-      message: "Error while getting all categories",
+      error: error.message,
+      message: "Internal server error while retrieving all categories",
     });
   }
 };
