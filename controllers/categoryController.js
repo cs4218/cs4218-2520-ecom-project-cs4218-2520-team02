@@ -132,7 +132,7 @@ export const getAllCategoriesController = async (req, res) => {
 };
 
 // single category
-export const singleCategoryController = async (req, res) => {
+export const getCategoryController = async (req, res) => {
   try {
     const { slug } = req.params;
     if (!slug) {

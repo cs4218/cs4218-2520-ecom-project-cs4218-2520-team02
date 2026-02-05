@@ -4,7 +4,7 @@ import {
   getAllCategoriesController,
   createCategoryController,
   deleteCategoryCOntroller,
-  singleCategoryController,
+  getCategoryController,
   updateCategoryController,
 } from "./../controllers/categoryController.js";
 
@@ -31,7 +31,7 @@ router.put(
 router.get("/get-category", getAllCategoriesController);
 
 //single category
-router.get("/single-category/:slug", singleCategoryController);
+router.get("/get-category/:slug", getCategoryController);
 
 //delete category
 router.delete(
