@@ -1,6 +1,7 @@
 {
   "name": "ecom",
   "version": "1.0.0",
+  "type": "module",
   "description": "ecommerce rest api",
   "main": "server.js",
   "scripts": {
