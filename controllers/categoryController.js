@@ -135,7 +135,7 @@ export const getAllCategoriesController = async (req, res) => {
 export const getCategoryController = async (req, res) => {
   try {
 
-    const slug = req.params.slug?.trim();
+    const slug = req.params.slug;
 
     // Validate that slug is supplied
     if (!slug) {
