@@ -152,7 +152,7 @@ describe("Category Controller Unit Tests", () => {
                 expect(res.send).toHaveBeenCalledWith(
                     expect.objectContaining({
                         success: false,
-                        message: "Internal server error while retrieving all categories",
+                        message: "Internal server error while retrieving all categories.",
                     })
                 );
             });
