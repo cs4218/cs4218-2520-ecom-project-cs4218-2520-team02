@@ -126,7 +126,7 @@ export const getAllCategoriesController = async (req, res) => {
     res.status(500).send({
       success: false,
       error: error.message,
-      message: "Internal server error while retrieving all categories",
+      message: "Internal server error while retrieving all categories.",
     });
   }
 };

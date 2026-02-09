@@ -67,6 +67,98 @@ describe("Category Controller Unit Tests", () => {
     });
 
     
+    describe("getAllCategoriesController", () => {
+
+        // Boundary for array: size 0 and size 1
+        // Not required to be tested: arrays with a lot of items 
+        describe("Category Count (BVA)", () => {
+
+            it("should retrieve an empty array if no categories exist (Boundary: 0 categories)", async () => {
+                
+                // Arrange
+                categoryModel.find.mockResolvedValue([]);
+
+                // Act
+                await getAllCategoriesController(req, res);
+
+                // Assert
+                expect(categoryModel.find).toHaveBeenCalledTimes(1);
+                expect(categoryModel.find).toHaveBeenCalledWith({});
+                expect(res.status).toHaveBeenCalledWith(200);
+                expect(res.send).toHaveBeenCalledWith({
+                    success: true,
+                    message: "All categories retrieved successfully.",
+                    categories: [],
+                });
+            });
+
+            it("should retrieve an array with one category (Boundary: 1 category)", async () => {
+                // Arrange
+                const mockCategories = [{ _id: "001", name: "Category A", slug: "category-a" }];
+                categoryModel.find.mockResolvedValue(mockCategories);
+
+                // Act
+                await getAllCategoriesController(req, res);
+
+                // Assert
+                expect(categoryModel.find).toHaveBeenCalledTimes(1);
+                expect(categoryModel.find).toHaveBeenCalledWith({});
+                expect(res.status).toHaveBeenCalledWith(200);
+                expect(res.send).toHaveBeenCalledWith({
+                    success: true,
+                    message: "All categories retrieved successfully.",
+                    categories: mockCategories,
+                });
+            });
+        });
+
+        describe("Database State (EP)", () => {
+
+            it("should return 200 with multiple categories (EP: no DB failure)", async () => {
+                
+                // Arrange
+                const mockCategories = [
+                    { _id: "001", name: "Category A", slug: "category-a" },
+                    { _id: "002", name: "Category B", slug: "category-b" },
+                ];
+                categoryModel.find.mockResolvedValue(mockCategories);
+
+                // Act
+                await getAllCategoriesController(req, res);
+
+                // Assert
+                expect(categoryModel.find).toHaveBeenCalledTimes(1);
+                expect(categoryModel.find).toHaveBeenCalledWith({});
+                expect(res.status).toHaveBeenCalledWith(200);
+                expect(res.send).toHaveBeenCalledWith({
+                    success: true,
+                    message: "All categories retrieved successfully.",
+                    categories: mockCategories,
+                });
+            });
+
+            it("should return 500 if database throws an error (EP: find DB failure)", async () => {
+                
+                // Arrange
+                categoryModel.find.mockRejectedValue(new Error("Failed to query database."));
+
+                // Act
+                await getAllCategoriesController(req, res);
+
+                // Assert
+                expect(categoryModel.find).toHaveBeenCalledTimes(1);
+                expect(categoryModel.find).toHaveBeenCalledWith({});
+                expect(res.status).toHaveBeenCalledWith(500);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        success: false,
+                        message: "Internal server error while retrieving all categories.",
+                    })
+                );
+            });
+        });
+    });
+
     describe("getCategoryController", () => {
 
         // Boundary for slugs: length 0 and length 1 after slugify
