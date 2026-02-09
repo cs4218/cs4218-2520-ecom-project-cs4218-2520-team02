@@ -6,7 +6,12 @@ export default {
   testEnvironment: "node",
 
   // which test to run
-  testMatch: ["<rootDir>/controllers/*.test.js"],
+  testMatch: [
+    "<rootDir>/**/__tests__/**/*.test.js",
+    "<rootDir>/controllers/*.test.js",
+  ],
+
+  setupFilesAfterEnv: ["<rootDir>/__mocks__/jest.mocks.js"],
 
   // jest code coverage
   collectCoverage: true,
