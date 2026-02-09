@@ -25,7 +25,7 @@ await jest.unstable_mockModule("braintree", () => {
 });
 
 const { default: productModel } = await import("../models/productModel.js");
-const { productFiltersController } =
+const { productFiltersController, productCountController } =
   await import("../controllers/productController.js");
 
 // Mock DB
@@ -84,31 +84,32 @@ const mockRes = () => ({
   send: jest.fn(),
 });
 
-const expect200 = (res, expectedProducts) => {
-  expect(res.status).toHaveBeenCalledWith(200);
-  expect(res.send).toHaveBeenCalledWith({
-    success: true,
-    products: expectedProducts,
-  });
-};
-
-const expect400 = (res) => {
-  expect(res.status).toHaveBeenCalledWith(400);
-  expect(res.send).toHaveBeenCalledWith(
-    expect.objectContaining({
-      success: false,
-      message: "Error While Filtering Products",
-      error: expect.anything(),
-    }),
-  );
-};
-
 describe("productController", () => {
   describe("productFiltersController", () => {
     beforeEach(() => {
       jest.clearAllMocks();
       productModel.find.mockImplementation(async (args) => applyFind(args));
+      jest.spyOn(console, "log").mockImplementation(() => {});
     });
+
+    const expect200 = (res, expectedProducts) => {
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith({
+        success: true,
+        products: expectedProducts,
+      });
+    };
+
+    const expect400 = (res) => {
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: false,
+          message: "Error While Filtering Products",
+          error: expect.anything(),
+        }),
+      );
+    };
 
     describe("Baseline behavior (happy paths)", () => {
       test("returns all products when no filters are selected", async () => {
@@ -396,6 +397,85 @@ describe("productController", () => {
           MOCK_PRODUCTS.filter((p) => p.price >= 100 && p.price <= 500),
         );
       });
+    });
+  });
+
+  describe("productCountController", () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      jest.spyOn(console, "log").mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      console.log.mockRestore?.();
+    });
+
+    const expect200 = (res, expectedTotal) => {
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith({
+        success: true,
+        total: expectedTotal,
+      });
+    };
+
+    const expect400 = (res) => {
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith({
+        message: "Error in product count",
+        error: expect.any(Error),
+        success: false,
+      });
+    };
+
+    test("returns the total product count", async () => {
+      const req = {};
+      const res = mockRes();
+
+      const query = {
+        estimatedDocumentCount: jest.fn().mockResolvedValue(123),
+      };
+      productModel.find.mockReturnValue(query);
+
+      await productCountController(req, res);
+
+      expect(productModel.find).toHaveBeenCalledWith({});
+      expect(query.estimatedDocumentCount).toHaveBeenCalled();
+
+      expect200(res, 123);
+    });
+
+    test("returns 400 when estimatedDocumentCount rejects", async () => {
+      const req = {};
+      const res = mockRes();
+
+      const query = {
+        estimatedDocumentCount: jest
+          .fn()
+          .mockRejectedValue(new Error("DB fail")),
+      };
+      productModel.find.mockReturnValue(query);
+
+      await productCountController(req, res);
+
+      expect(productModel.find).toHaveBeenCalledWith({});
+      expect(query.estimatedDocumentCount).toHaveBeenCalled();
+
+      expect400(res);
+    });
+
+    test("returns 400 when productModel.find throws synchronously", async () => {
+      const req = {};
+      const res = mockRes();
+
+      productModel.find.mockImplementation(() => {
+        throw new Error("Find crashed");
+      });
+
+      await productCountController(req, res);
+
+      expect(productModel.find).toHaveBeenCalledWith({});
+
+      expect400(res);
     });
   });
 });
