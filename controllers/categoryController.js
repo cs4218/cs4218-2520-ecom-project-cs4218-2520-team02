@@ -178,6 +178,14 @@ export const deleteCategoryController = async (req, res) => {
   try {
     const { id } = req.params;
     
+    // Validate that id is supplied
+    if (!id) {
+      return res.status(400).send({
+        success: false,
+        message: "Category id is required.",
+      });
+    }
+
     // Check if category exists
     const category = await categoryModel.findById(id);
     if (!category) {
