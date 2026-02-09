@@ -49,7 +49,7 @@ const HomePage = () => {
     }
   };
 
-  //getTOtal COunt
+  //getTotal COunt
   const getTotal = async () => {
     try {
       const { data } = await axios.get("/api/v1/product/product-count");
@@ -102,6 +102,8 @@ const HomePage = () => {
         radio,
       });
       setProducts(data?.products);
+      setTotal(data?.products.length);
+
     } catch (error) {
       console.log(error);
     }
