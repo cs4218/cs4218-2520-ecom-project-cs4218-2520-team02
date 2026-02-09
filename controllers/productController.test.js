@@ -89,6 +89,7 @@ describe("productController", () => {
     beforeEach(() => {
       jest.clearAllMocks();
       productModel.find.mockImplementation(async (args) => applyFind(args));
+      jest.spyOn(console, "log").mockImplementation(() => {});
     });
 
     const expect200 = (res, expectedProducts) => {
