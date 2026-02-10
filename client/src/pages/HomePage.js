@@ -25,7 +25,7 @@ const HomePage = () => {
     try {
       const { data } = await axios.get("/api/v1/category/get-category");
       if (data?.success) {
-        setCategories(data?.category);
+        setCategories(data?.categories);
       }
     } catch (error) {
       console.log(error);
