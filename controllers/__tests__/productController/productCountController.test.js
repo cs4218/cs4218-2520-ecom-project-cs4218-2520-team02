@@ -1,8 +1,8 @@
 import { jest } from "@jest/globals";
 
-const { default: productModel } = await import("../../models/productModel.js");
+const { default: productModel } = await import("../../../models/productModel.js");
 const { productCountController } =
-  await import("../../controllers/productController.js");
+  await import("../../productController.js");
 
 // =============== Helpers ===============
 const mockRes = () => ({ status: jest.fn().mockReturnThis(), send: jest.fn() });
