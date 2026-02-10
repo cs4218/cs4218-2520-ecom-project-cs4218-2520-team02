@@ -1,4 +1,5 @@
 import { jest } from "@jest/globals";
+import { describe } from "node:test";
 
 const orderModel = (await import("../../../models/orderModel.js")).default;
 const { getOrdersController } = await import("../../authController.js");
@@ -70,6 +71,61 @@ describe("getOrdersController", () => {
     expect(orderModel.find).toHaveBeenCalledWith({ buyer: "user-id" });
     expect(query.populate).toHaveBeenCalledWith("products", "-photo");
     expect(query.populate).toHaveBeenCalledWith("buyer", "name");
+
+    expect500(res);
+  });
+});
+
+describe("getAllOrdersController", () => {
+  let restoreConsole;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    restoreConsole = silenceConsole();
+  });
+
+  afterEach(() => restoreConsole());
+
+  test("returns all orders", async () => {
+    const req = {};
+    const res = mockRes();
+
+    const query = {
+      populate: jest.fn().mockReturnThis(),
+      sort: jest.fn().mockReturnThis(),
+      then: function(resolve) { resolve([{ orderId: 1 }, { orderId: 2 }]); },
+    };
+    jest.spyOn(orderModel, 'find').mockReturnValue(query);
+
+    const { getAllOrdersController } = await import("../../authController.js");
+    await getAllOrdersController(req, res);
+
+    expect(orderModel.find).toHaveBeenCalledWith({});
+    expect(query.populate).toHaveBeenCalledWith("products", "-photo");
+    expect(query.populate).toHaveBeenCalledWith("buyer", "name");
+    expect(query.sort).toHaveBeenCalledWith({ createdAt: -1 });
+
+    expect200(res, [{ orderId: 1 }, { orderId: 2 }]);
+  });
+
+  test("returns 500 when find rejects", async () => {
+    const req = {};
+    const res = mockRes();
+
+    const query = {
+      populate: jest.fn().mockReturnThis(),
+      sort: jest.fn().mockReturnThis(),
+      then: function(resolve, reject) { reject(new Error("DB error")); },
+    };
+    jest.spyOn(orderModel, 'find').mockReturnValue(query);
+
+    const { getAllOrdersController } = await import("../../authController.js");
+    await getAllOrdersController(req, res);
+
+    expect(orderModel.find).toHaveBeenCalledWith({});
+    expect(query.populate).toHaveBeenCalledWith("products", "-photo");
+    expect(query.populate).toHaveBeenCalledWith("buyer", "name");
+    expect(query.sort).toHaveBeenCalledWith({ createdAt: -1 });
 
     expect500(res);
   });
