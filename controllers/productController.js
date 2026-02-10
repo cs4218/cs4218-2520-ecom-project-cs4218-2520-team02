@@ -339,8 +339,8 @@ export const productCategoryController = async (req, res) => {
   }
 };
 
-//payment gateway api
-//token
+// --- Payment Gateway API ---
+// Generate Token
 export const braintreeTokenController = async (req, res) => {
   try {
     gateway.clientToken.generate({}, (error, response) => {
@@ -357,6 +357,9 @@ export const braintreeTokenController = async (req, res) => {
         token: response.clientToken,
       });
     });
+  
+  // Misc errors
+  // Note: likely to be configuration errors rather than braintree issues 
   } catch (error) {
     console.log("Error generating Braintree token: ", error);
     return res.status(500).send({
