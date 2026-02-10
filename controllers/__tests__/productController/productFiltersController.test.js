@@ -1,8 +1,8 @@
 import { jest } from "@jest/globals";
 
-const { default: productModel } = await import("../../models/productModel.js");
+const { default: productModel } = await import("../../../models/productModel.js");
 const { productFiltersController } =
-  await import("../../controllers/productController.js");
+  await import("../../productController.js");
 
 // =============== Mock Data ===============
 const MOCK_PRODUCTS = [
