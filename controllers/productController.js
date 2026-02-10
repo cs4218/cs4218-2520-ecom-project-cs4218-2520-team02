@@ -343,15 +343,26 @@ export const productCategoryController = async (req, res) => {
 //token
 export const braintreeTokenController = async (req, res) => {
   try {
-    gateway.clientToken.generate({}, function (err, response) {
-      if (err) {
-        res.status(500).send(err);
-      } else {
-        res.send(response);
+    gateway.clientToken.generate({}, (error, response) => {
+      if (error) {
+        console.log("Failed to generate Braintree token: ", error);
+        return res.status(500).send({
+          success: false,
+          message: "Failed to generate payment token.",
+        });
       }
+
+      return res.status(200).send({
+        success: true,
+        token: response.clientToken,
+      });
     });
   } catch (error) {
-    console.log(error);
+    console.log("Error generating Braintree token: ", error);
+    return res.status(500).send({
+      success: false,
+      message: "Internal server error while generating token.",
+    });
   }
 };
 
