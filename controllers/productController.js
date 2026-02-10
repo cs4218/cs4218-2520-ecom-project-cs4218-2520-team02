@@ -319,7 +319,7 @@ export const relatedProductController = async (req, res) => {
   }
 };
 
-// get prdocyst by catgory
+// get product by category
 export const productCategoryController = async (req, res) => {
   try {
     const category = await categoryModel.findOne({ slug: req.params.slug });
@@ -334,7 +334,7 @@ export const productCategoryController = async (req, res) => {
     res.status(400).send({
       success: false,
       error,
-      message: "Error While Getting products",
+      message: "Error while getting products",
     });
   }
 };
