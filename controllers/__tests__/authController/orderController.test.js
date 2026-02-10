@@ -1,5 +1,4 @@
 import { jest } from "@jest/globals";
-import { describe } from "node:test";
 
 const orderModel = (await import("../../../models/orderModel.js")).default;
 const { getOrdersController } = await import("../../authController.js");
@@ -54,6 +53,19 @@ describe("getOrdersController", () => {
     expect(query.populate).toHaveBeenCalledWith("buyer", "name");
 
     expect200(res, [{ orderId: 1 }, { orderId: 2 }]);
+  });
+
+  test("returns 401 if user is not signed in", async () => {
+    const req = { user: null };
+    const res = mockRes();
+
+    await getOrdersController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(res.send).toHaveBeenCalledWith({
+      success: false,
+      message: "Not signed in",
+    });
   });
 
   test("returns 500 when find rejects", async () => {
@@ -130,3 +142,5 @@ describe("getAllOrdersController", () => {
     expect500(res);
   });
 });
+
+
