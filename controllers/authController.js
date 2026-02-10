@@ -162,7 +162,7 @@ export const testController = (req, res) => {
       message: "Protected Routes",
     });
   } catch (error) {
-    console.log(error);
+    console.log("Error in testController: ", error);
     return res.status(500).send({
       success: false,
       message: "Error in test route",
@@ -226,7 +226,7 @@ export const getOrdersController = async (req, res) => {
       orders: userOrder,
     });
   } catch (error) {
-    console.log(error);
+    console.log("Error in retrieving user orders: ", error);
     return res.status(500).send({
       success: false,
       message: "Error while getting orders",
@@ -250,7 +250,7 @@ export const getAllOrdersController = async (req, res) => {
     });
 
   } catch (error) {
-    console.log(error);
+    console.log("Error in retrieving all orders: ", error);
     return res.status(500).send({
       success: false,
       message: "Error while getting orders",
@@ -298,7 +298,7 @@ export const updateOrderStatusController = async (req, res) => {
       order: updatedOrder,
     });
   } catch (error) {
-    console.log(error);
+    console.log("Error in updating order status: ", error);
     return res.status(500).send({
       success: false,
       message: "Error while updating order status",

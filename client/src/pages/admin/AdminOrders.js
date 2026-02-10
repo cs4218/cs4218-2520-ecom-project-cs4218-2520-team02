@@ -25,7 +25,7 @@ const AdminOrders = () => {
       if (data?.success) {
         setOrders(data.orders);
       } else {
-        console.log("Failed to fetch orders:", data.message || "Unknown error");
+        console.log("Failed to fetch orders: ", data.message || "Unknown error");
       }
     } catch (error) {
       console.log(error);
