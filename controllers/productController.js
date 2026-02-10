@@ -273,7 +273,18 @@ export const productListController = async (req, res) => {
 // search product
 export const searchProductController = async (req, res) => {
   try {
-    const { keyword } = req.params;
+    const raw = req?.params?.keyword;
+
+    if (typeof raw !== "string" || raw.trim().length === 0) {
+      return res.status(400).send({
+        success: false,
+        message: "Keyword is required",
+      });
+    }
+
+    //Escapes Regex to allow searching via symbols
+    const keyword = raw.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    
     const results = await productModel
       .find({
         $or: [
