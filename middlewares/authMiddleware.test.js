@@ -50,4 +50,18 @@ describe("requireSignIn middleware", () => {
             message: "Invalid token",
         });
     });
+
+    test("should return 401 if no token is provided", async () => {
+        req.headers.authorization = "";
+
+        await requireSignIn(req, res, next);
+
+        expect(req.user).toBeUndefined();
+        expect(next).not.toHaveBeenCalled();
+        expect(res.status).toHaveBeenCalledWith(401);
+        expect(res.send).toHaveBeenCalledWith({
+            success: false,
+            message: "No token provided",
+        });
+    });
 });
