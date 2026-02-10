@@ -37,6 +37,17 @@ describe("requireSignIn middleware", () => {
         expect(next).toHaveBeenCalledTimes(1);
     });
 
+    test("should verify JWT without Bearer prefix, attach user to req, and call next()", async () => {
+        const decodedUser = { id: "123", email: "test@test.com" };
+        const token = JWT.sign(decodedUser, "12345");
+        req.headers.authorization = token;
+
+        await requireSignIn(req, res, next);
+
+        expect(req.user).toMatchObject(decodedUser);
+        expect(next).toHaveBeenCalledTimes(1);
+    });
+
     test("should return 401 if JWT verification fails", async () => {
         req.headers.authorization = "Bearer invalid";
 
