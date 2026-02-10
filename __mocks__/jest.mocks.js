@@ -11,6 +11,12 @@ await jest.unstable_mockModule("../models/productModel.js", () => {
   return { default: constructor };
 });
 
+await jest.unstable_mockModule("../models/categoryModel.js", () => ({
+  default: {
+    findOne: jest.fn(),
+  },
+}));
+
 await jest.unstable_mockModule("braintree", () => ({
   default: {
     BraintreeGateway: jest.fn(function () {
