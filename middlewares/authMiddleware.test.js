@@ -1,7 +1,8 @@
 import { jest } from "@jest/globals";
 
 import JWT from "jsonwebtoken";
-import { requireSignIn } from "../middlewares/authMiddleware.js";
+import { requireSignIn, isAdmin } from "../middlewares/authMiddleware.js";
+import userModel from "../models/userModel.js";
 
 describe("requireSignIn middleware", () => {
     let req, res, next;
@@ -63,5 +64,36 @@ describe("requireSignIn middleware", () => {
             success: false,
             message: "No token provided",
         });
+    });
+});
+
+describe("isAdmin middleware", () => {
+    let req, res, next;
+
+    beforeEach(() => {
+        req = {
+            user: { _id: "admin-id" },
+        };
+        res = {
+            status: jest.fn().mockReturnThis(),
+            send: jest.fn(),
+        };
+        next = jest.fn();
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    test("should allow access if user is admin", async () => {
+        jest.spyOn(userModel, "findById").mockResolvedValue({
+            _id: "admin-id",
+            role: 1, // admin
+        });
+
+        await isAdmin(req, res, next);
+
+        expect(userModel.findById).toHaveBeenCalledWith("admin-id");
+        expect(next).toHaveBeenCalledTimes(1);
     });
 });
