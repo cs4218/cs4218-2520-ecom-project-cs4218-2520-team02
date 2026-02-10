@@ -1,0 +1,32 @@
+name: Run Tests
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  test:
+    name: Run tests and collect coverage
+    runs-on: ubuntu-latest
+
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+
+      - name: Install Dependencies
+        run: npm install && cd client && npm install && cd ..
+
+
+      - name: Run Frontend Tests
+        run: npm run test:frontend
+
+      - name: Run Backend Tests
+        run: npm run test:backend
