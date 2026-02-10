@@ -37,6 +37,7 @@ const {
   deleteCategoryController,
 } = await import("../controllers/categoryController.js");
 
+// dummy commit to fix github being down bug
 describe("Category Controller Unit Tests", () => {
     let req, res;
 
