@@ -66,7 +66,554 @@ describe("Category Controller Unit Tests", () => {
         console.log.mockRestore()
     });
 
-    
+    describe("createCategoryController", () => {
+
+        // Boundary for name: length 0 and length 1 after trimming
+        // Special cases: name is null, name is undefined (missing input)
+        // Not required to be tested: very long strings 
+        describe("Name Validation (BVA)", () => {
+
+            it("should return 400 if name is not supplied (Boundary: missing input)", async () => {
+                
+                // Arrange
+                req.body = {};
+
+                // Act
+                await createCategoryController(req, res);
+
+                // Assert
+                expect(res.status).toHaveBeenCalledWith(400);
+                expect(res.send).toHaveBeenCalledWith({
+                    success: false,
+                    message: "Category name is required.",
+                });
+
+            });
+
+            it("should return 400 if name is null (Boundary: null)", async () => {
+
+                // Arrange
+                req.body = { name: null };
+
+                // Act
+                await createCategoryController(req, res);
+
+                // Assert
+                expect(res.status).toHaveBeenCalledWith(400);
+                expect(res.send).toHaveBeenCalledWith({
+                    success: false,
+                    message: "Category name is required.",
+                });
+            });
+
+            it("should return 400 if name is empty string (Boundary: \"\") ", async () => {
+                
+                // Arrange
+                req.body.name = "";
+
+                // Act
+                await createCategoryController(req, res);
+
+                // Assert
+                expect(res.status).toHaveBeenCalledWith(400);
+                expect(res.send).toHaveBeenCalledWith({
+                    success: false,
+                    message: "Category name is required.",
+                });
+            });
+
+            it("should return 400 if name contains only whitespace (Boundary: \" \")", async () => {
+                
+                // Arrange
+                req.body.name = " ";
+
+                // Act
+                await createCategoryController(req, res);
+
+                // Assert
+                expect(res.status).toHaveBeenCalledWith(400);
+                expect(res.send).toHaveBeenCalledWith({
+                    success: false,
+                    message: "Category name is required.",
+                });
+            });
+
+            it("should create category if name is a single character (Boundary: 1 character)", async () => {
+               
+                // Arrange
+                req.body.name = "A";
+                categoryModel.findOne.mockResolvedValue(null);
+                slugify.mockReturnValue("a");
+
+                // Mock constructor
+                const MockCategory = jest.fn(function (doc) {
+                    Object.assign(this, doc);
+                    this._id = "001";
+                    this.save = jest.fn().mockResolvedValue(this); // resolves to the instance itself
+                });
+
+                categoryModel.mockImplementation(MockCategory);
+
+                // Act
+                await createCategoryController(req, res);
+
+                // Assert
+                expect(categoryModel.findOne).toHaveBeenCalledTimes(1);
+                expect(categoryModel.findOne).toHaveBeenCalledWith({ name: "A" });
+                expect(MockCategory).toHaveBeenCalledWith({ name: "A", slug: "a" });
+                const instance = MockCategory.mock.instances[0];
+                expect(instance.save).toHaveBeenCalledTimes(1);
+                expect(res.status).toHaveBeenCalledWith(201);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        success: true,
+                        message: "New category created successfully.",
+                        category: expect.objectContaining({
+                            name: "A",
+                            slug: "a",
+                        }),
+                    })
+                );
+            });
+        });
+
+        describe("Duplicate Category (EP)", () => {
+
+            it("should return 409 if new category's name is a duplicate (EP: duplicate name)", async () => {
+
+                // Arrange
+                req.body = { name: "Existing Category" };
+
+                const mockExistingCategory = {
+                    _id: "002",
+                    name: "Existing Category",
+                    slug: "existing-category",
+                    save: jest.fn().mockResolvedValue(true),
+                };
+
+                categoryModel.findOne.mockResolvedValue(mockExistingCategory);
+
+                // Act
+                await createCategoryController(req, res);
+
+                // Assert
+                expect(categoryModel.findOne).toHaveBeenCalledTimes(1);
+                expect(categoryModel.findOne).toHaveBeenCalledWith({ name: "Existing Category" });
+                expect(res.status).toHaveBeenCalledWith(409);
+                expect(res.send).toHaveBeenCalledWith({
+                    success: false,
+                    message: "Category already exists.",
+                });
+            });
+
+            it("should create a new category if name is unique (EP: unique name)", async () => {
+                
+                // Arrange
+                req.body = { name: "New Category" };
+                
+                categoryModel.findOne.mockResolvedValue(null);
+                slugify.mockReturnValue("new-category");
+
+                // Mock constructor
+                const MockCategory = jest.fn(function (doc) {
+                    Object.assign(this, doc);
+                    this._id = "001";
+                    this.save = jest.fn().mockResolvedValue(this); // resolves to the instance itself
+                });
+
+                categoryModel.mockImplementation(MockCategory);
+
+                // Act
+                await createCategoryController(req, res);
+
+                // Assert
+                expect(categoryModel.findOne).toHaveBeenCalledTimes(1);
+                expect(categoryModel.findOne).toHaveBeenCalledWith({ name: "New Category" });
+                expect(MockCategory).toHaveBeenCalledWith({ name: "New Category", slug: "new-category" });
+                const instance = MockCategory.mock.instances[0];
+                expect(instance.save).toHaveBeenCalledTimes(1);
+                expect(res.status).toHaveBeenCalledWith(201);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        success: true,
+                        message: "New category created successfully.",
+                        category: expect.objectContaining({
+                            name: "New Category",
+                            slug: "new-category",
+                        }),
+                    })
+                );
+            });
+        });
+
+        describe("Database Error (EP)", () => {
+
+            it("should return 500 if findOne throws an error (EP: findOne DB failure)", async () => {
+
+                // Arrange
+                req.body = { name: "New Category" };
+                categoryModel.findOne.mockRejectedValue(new Error("Failed to query database."));
+
+                // Act
+                await createCategoryController(req, res);
+
+                // Assert
+                expect(categoryModel.findOne).toHaveBeenCalledTimes(1);
+                expect(categoryModel.findOne).toHaveBeenCalledWith({ name: "New Category" });
+                expect(res.status).toHaveBeenCalledWith(500);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        success: false,
+                        message: "Internal server error while creating category.",
+                    })
+                );
+            });
+
+            it("should return 500 if save throws an error (EP: save DB failure)", async () => {
+
+                // Arrange
+                req.body = { name: "New Category" };
+                categoryModel.findOne.mockResolvedValue(null);
+                slugify.mockReturnValue("new-category");
+
+                 // Mock constructor
+                const MockCategory = jest.fn(function (doc) {
+                    Object.assign(this, doc);
+                    this._id = "001";
+                    this.save = jest.fn().mockRejectedValue(new Error("Failed to save category to database."));
+                });
+
+                categoryModel.mockImplementation(MockCategory);
+
+                // Act
+                await createCategoryController(req, res);
+
+                // Assert
+                expect(categoryModel.findOne).toHaveBeenCalledTimes(1);
+                expect(categoryModel.findOne).toHaveBeenCalledWith({ name: "New Category" });
+                expect(MockCategory).toHaveBeenCalledWith({ name: "New Category", slug: "new-category" });
+                const instance = MockCategory.mock.instances[0];
+                expect(instance.save).toHaveBeenCalledTimes(1);
+                expect(res.status).toHaveBeenCalledWith(500);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        success: false,
+                        message: "Internal server error while creating category.",
+                    })
+                );
+            });
+        });
+    });
+
+    describe("updateCategoryController", () => {
+
+        // Boundary for name: length 0 and length 1 after trimming
+        // Special cases: name is null, name is undefined (missing input)
+        // Not required to be tested: very long strings
+        describe("Name Validation (BVA)", () => {
+
+            it("should return 400 if name is not supplied (Boundary: missing input)", async () => {
+
+                // Arrange
+                req.params.id = "001";
+                req.body = {};
+
+                // Act
+                await updateCategoryController(req, res);
+
+                // Assert
+                expect(res.status).toHaveBeenCalledWith(400);
+                expect(res.send).toHaveBeenCalledWith({
+                    success: false,
+                    message: "Category name is required.",
+                });
+            });
+
+            it("should return 400 if name is null (Boundary: null)", async () => {
+
+                // Arrange
+                req.params.id = "001";
+                req.body = { name: null };
+
+                // Act
+                await updateCategoryController(req, res);
+
+                // Assert
+                expect(res.status).toHaveBeenCalledWith(400);
+                expect(res.send).toHaveBeenCalledWith({
+                    success: false,
+                    message: "Category name is required.",
+                });
+            });
+
+            it("should return 400 if name is empty string (Boundary: \"\")", async () => {
+
+                // Arrange
+                req.params.id = "001";
+                req.body.name = "";
+
+                // Act
+                await updateCategoryController(req, res);
+
+                // Assert
+                expect(res.status).toHaveBeenCalledWith(400);
+                expect(res.send).toHaveBeenCalledWith({
+                    success: false,
+                    message: "Category name is required.",
+                });
+            });
+
+            it("should return 400 if name contains only whitespace (Boundary: \" \")", async () => {
+
+                // Arrange
+                req.params.id = "001";
+                req.body.name = " ";
+
+                // Act
+                await updateCategoryController(req, res);
+
+                // Assert
+                expect(res.status).toHaveBeenCalledWith(400);
+                expect(res.send).toHaveBeenCalledWith({
+                    success: false,
+                    message: "Category name is required.",
+                });
+            });
+
+            it("should update category if name is a single character (Boundary: 1 character)", async () => {
+
+                // Arrange
+                req.params.id = "001";
+                req.body.name = "A";
+
+                const mockCategory = {
+                    _id: "001",
+                    name: "Old Category",
+                    slug: "old-category",
+                    save: jest.fn().mockResolvedValue(true),
+                };
+
+                categoryModel.findById.mockResolvedValue(mockCategory);
+                categoryModel.findOne.mockResolvedValue(null);
+                slugify.mockReturnValue("a");
+
+                // Act
+                await updateCategoryController(req, res);
+
+                // Assert
+                expect(categoryModel.findById).toHaveBeenCalledTimes(1);
+                expect(categoryModel.findById).toHaveBeenCalledWith("001");
+                expect(categoryModel.findOne).toHaveBeenCalledTimes(1);
+                expect(categoryModel.findOne).toHaveBeenCalledWith({ name: "A", _id: { $ne: "001" } });
+                expect(mockCategory.save).toHaveBeenCalledTimes(1); 
+                expect(res.status).toHaveBeenCalledWith(200);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        success: true,
+                        message: "Category updated successfully.",
+                        category: expect.objectContaining({
+                            name: "A",
+                            slug: "a",
+                        }),
+                    })
+                );
+            });
+
+        });
+
+        describe("Category Existence + Duplicate Category (EP)", () => {
+
+            it("should return 404 if category does not exist (EP: category does not exist)", async () => {
+                
+                // Arrange
+                req.params.id = "001";
+                req.body = { name: "New Category" };
+
+                categoryModel.findById.mockResolvedValue(null);
+
+                // Act
+                await updateCategoryController(req, res);
+
+                // Assert
+                expect(categoryModel.findById).toHaveBeenCalledWith("001");
+                expect(res.status).toHaveBeenCalledWith(404);
+                expect(res.send).toHaveBeenCalledWith({
+                    success: false,
+                    message: "Category not found.",
+                });
+            });
+
+            it("should return 409 if category exists but new name is not unique (EP: category exists + duplicate name)", async () => {
+                
+                // Arrange
+                req.params.id = "001";
+                req.body.name = "Existing Category";
+
+                const mockCategory = {
+                    _id: "001",
+                    name: "Old Category",
+                    slug: "old-category",
+                    save: jest.fn().mockResolvedValue(true),
+                };
+
+                const mockExistingCategory = {
+                    _id: "002",
+                    name: "Existing Category",
+                    slug: "existing-category",
+                };
+
+                categoryModel.findById.mockResolvedValue(mockCategory);
+                categoryModel.findOne.mockResolvedValue(mockExistingCategory);
+
+                // Act
+                await updateCategoryController(req, res);
+
+                // Assert
+                expect(categoryModel.findById).toHaveBeenCalledTimes(1);
+                expect(categoryModel.findById).toHaveBeenCalledWith("001");
+                expect(categoryModel.findOne).toHaveBeenCalledTimes(1);
+                expect(categoryModel.findOne).toHaveBeenCalledWith({ name: "Existing Category", _id: { $ne: "001" } });
+                expect(res.status).toHaveBeenCalledWith(409);
+                expect(res.send).toHaveBeenCalledWith({
+                    success: false,
+                    message: "Category's new name already exists.",
+                });
+            });
+
+            it("should update category if category exists and new name is unique (EP: category exists + unique name)", async () => {
+                
+                // Arrange
+                req.params.id = "001";
+                req.body.name = "New Category";
+
+                const mockCategory = {
+                    _id: "001",
+                    name: "Old Category",
+                    slug: "old-category",
+                    save: jest.fn().mockResolvedValue(true),
+                };
+
+                categoryModel.findById.mockResolvedValue(mockCategory);
+                categoryModel.findOne.mockResolvedValue(null);
+                slugify.mockReturnValue("new-category");
+
+                // Act
+                await updateCategoryController(req, res);
+
+                // Assert
+                expect(categoryModel.findById).toHaveBeenCalledTimes(1);
+                expect(categoryModel.findById).toHaveBeenCalledWith("001");
+                expect(categoryModel.findOne).toHaveBeenCalledTimes(1);
+                expect(categoryModel.findOne).toHaveBeenCalledWith({ name: "New Category", _id: { $ne: "001" } });
+                expect(mockCategory.save).toHaveBeenCalledTimes(1); 
+                expect(res.status).toHaveBeenCalledWith(200);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        success: true,
+                        message: "Category updated successfully.",
+                        category: expect.objectContaining({
+                            name: "New Category",
+                            slug: "new-category",
+                        }),
+                    })
+                );
+            });
+        });
+
+        describe("Database Errors (EP)", () => {
+
+            it("should return 500 if findById throws an error (EP: findById DB failure)", async () => {
+                
+                // Arrange
+                req.params.id = "001";
+                req.body.name = "New Category";
+                categoryModel.findById.mockRejectedValue(new Error("Failed to query database."));
+
+                // Act
+                await updateCategoryController(req, res);
+
+                // Assert
+                expect(categoryModel.findById).toHaveBeenCalledTimes(1);
+                expect(categoryModel.findById).toHaveBeenCalledWith("001");
+                expect(res.status).toHaveBeenCalledWith(500);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        success: false,
+                        message: "Internal server error while updating category",
+                    })
+                );
+            });
+
+            it("should return 500 if findOne throws an error (EP: findOne DB failure)", async () => {
+                
+                // Arrange
+                req.params.id = "001";
+                req.body.name = "New Category";
+
+                const mockCategory = {
+                    _id: "001",
+                    name: "Old Category",
+                    slug: "old-category",
+                    save: jest.fn().mockResolvedValue(true),
+                };
+
+                categoryModel.findById.mockResolvedValue(mockCategory);
+                categoryModel.findOne.mockRejectedValue(new Error("Failed to query database."));
+
+                // Act
+                await updateCategoryController(req, res);
+
+                // Assert
+                expect(categoryModel.findById).toHaveBeenCalledTimes(1);
+                expect(categoryModel.findById).toHaveBeenCalledWith("001");
+                expect(categoryModel.findOne).toHaveBeenCalledTimes(1);
+                expect(categoryModel.findOne).toHaveBeenCalledWith({ name: "New Category", _id: { $ne: "001" } });
+                expect(res.status).toHaveBeenCalledWith(500);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        success: false,
+                        message: "Internal server error while updating category",
+                    })
+                );
+            });
+
+            it("should return 500 if save throws an error (EP: save DB failure)", async () => {
+               
+                // Arrange
+                req.params.id = "001";
+                req.body.name = "New Category";
+
+                const mockCategory = {
+                    _id: "001",
+                    name: "Old Category",
+                    slug: "old-category",
+                    save: jest.fn().mockRejectedValue(new Error("Failed to save category to database.")),
+                };
+
+                categoryModel.findById.mockResolvedValue(mockCategory);
+                categoryModel.findOne.mockResolvedValue(null);
+                slugify.mockReturnValue("new-category");
+
+                // Act
+                await updateCategoryController(req, res);
+
+                // Assert
+                expect(categoryModel.findById).toHaveBeenCalledTimes(1);
+                expect(categoryModel.findById).toHaveBeenCalledWith("001");
+                expect(categoryModel.findOne).toHaveBeenCalledTimes(1);
+                expect(categoryModel.findOne).toHaveBeenCalledWith({ name: "New Category", _id: { $ne: "001" } });
+                expect(mockCategory.save).toHaveBeenCalledTimes(1);
+                expect(res.status).toHaveBeenCalledWith(500);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        success: false,
+                        message: "Internal server error while updating category",
+                    })
+                );
+            });
+        });
+    });
+
     describe("getAllCategoriesController", () => {
 
         // Boundary for array: size 0 and size 1
