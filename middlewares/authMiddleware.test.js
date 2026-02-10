@@ -96,4 +96,21 @@ describe("isAdmin middleware", () => {
         expect(userModel.findById).toHaveBeenCalledWith("admin-id");
         expect(next).toHaveBeenCalledTimes(1);
     });
+
+    test("should return 403 if user is not admin", async () => {
+        jest.spyOn(userModel, "findById").mockResolvedValue({
+            _id: "user-id",
+            role: 0, // not admin
+        });
+
+        await isAdmin(req, res, next);
+
+        expect(userModel.findById).toHaveBeenCalledWith("admin-id");
+        expect(next).not.toHaveBeenCalled();
+        expect(res.status).toHaveBeenCalledWith(403);
+        expect(res.send).toHaveBeenCalledWith({
+            success: false,
+            message: "Admin access required",
+        });
+    });
 });
