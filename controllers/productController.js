@@ -170,7 +170,7 @@ export const updateProductController = async (req, res) => {
     const products = await productModel.findByIdAndUpdate(
       req.params.pid,
       { ...req.fields, slug: slugify(name) },
-      { new: true }
+      { new: true },
     );
     if (photo) {
       products.photo.data = fs.readFileSync(photo.path);
@@ -274,7 +274,7 @@ export const productListController = async (req, res) => {
 export const searchProductController = async (req, res) => {
   try {
     const { keyword } = req.params;
-    const resutls = await productModel
+    const results = await productModel
       .find({
         $or: [
           { name: { $regex: keyword, $options: "i" } },
@@ -282,7 +282,10 @@ export const searchProductController = async (req, res) => {
         ],
       })
       .select("-photo");
-    res.json(resutls);
+    return res.status(200).json({
+      success: true,
+      results: results,
+    });
   } catch (error) {
     console.log(error);
     res.status(400).send({
@@ -382,7 +385,7 @@ export const brainTreePaymentController = async (req, res) => {
         } else {
           res.status(500).send(error);
         }
-      }
+      },
     );
   } catch (error) {
     console.log(error);
