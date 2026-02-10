@@ -113,4 +113,46 @@ describe("isAdmin middleware", () => {
             message: "Admin access required",
         });
     });
+
+    test("should return 401 if user is not found", async () => {
+        jest.spyOn(userModel, "findById").mockResolvedValue(null);
+
+        await isAdmin(req, res, next);
+
+        expect(userModel.findById).toHaveBeenCalledWith("admin-id");
+        expect(next).not.toHaveBeenCalled();
+        expect(res.status).toHaveBeenCalledWith(401);
+        expect(res.send).toHaveBeenCalledWith({
+            success: false,
+            message: "User not found",
+        });
+    });
+
+    test("should return 401 if user is not signed in", async () => {
+        req.user = null;
+
+        await isAdmin(req, res, next);
+
+        expect(next).not.toHaveBeenCalled();
+        expect(res.status).toHaveBeenCalledWith(401);
+        expect(res.send).toHaveBeenCalledWith({
+            success: false,
+            message: "Not signed in",
+        });
+    });
+
+    test("should return 500 if there is a server error", async () => {
+        jest.spyOn(userModel, "findById").mockRejectedValue(new Error("DB error"));
+
+        await isAdmin(req, res, next);
+
+        expect(userModel.findById).toHaveBeenCalledWith("admin-id");
+        expect(next).not.toHaveBeenCalled();
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.send).toHaveBeenCalledWith({
+            success: false,
+            error: expect.any(Error),
+            message: "Internal server error",
+        });
+    });
 });
