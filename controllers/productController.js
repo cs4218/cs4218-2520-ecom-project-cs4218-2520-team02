@@ -9,13 +9,20 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-//payment gateway
-var gateway = new braintree.BraintreeGateway({
-  environment: braintree.Environment.Sandbox,
-  merchantId: process.env.BRAINTREE_MERCHANT_ID,
-  publicKey: process.env.BRAINTREE_PUBLIC_KEY,
-  privateKey: process.env.BRAINTREE_PRIVATE_KEY,
-});
+// Payment gateway
+let gateway;
+
+const getGateway = () => {
+  if (!gateway) {
+    gateway = new braintree.BraintreeGateway({
+      environment: braintree.Environment.Sandbox,
+      merchantId: process.env.BRAINTREE_MERCHANT_ID,
+      publicKey: process.env.BRAINTREE_PUBLIC_KEY,
+      privateKey: process.env.BRAINTREE_PRIVATE_KEY,
+    });
+  }
+  return gateway;
+};
 
 export const createProductController = async (req, res) => {
   try {
@@ -170,7 +177,7 @@ export const updateProductController = async (req, res) => {
     const products = await productModel.findByIdAndUpdate(
       req.params.pid,
       { ...req.fields, slug: slugify(name) },
-      { new: true }
+      { new: true },
     );
     if (photo) {
       products.photo.data = fs.readFileSync(photo.path);
@@ -273,8 +280,19 @@ export const productListController = async (req, res) => {
 // search product
 export const searchProductController = async (req, res) => {
   try {
-    const { keyword } = req.params;
-    const resutls = await productModel
+    const raw = req?.params?.keyword;
+
+    if (typeof raw !== "string" || raw.trim().length === 0) {
+      return res.status(400).send({
+        success: false,
+        message: "Keyword is required",
+      });
+    }
+
+    //Escapes Regex to allow searching via symbols
+    const keyword = raw.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    
+    const results = await productModel
       .find({
         $or: [
           { name: { $regex: keyword, $options: "i" } },
@@ -282,7 +300,10 @@ export const searchProductController = async (req, res) => {
         ],
       })
       .select("-photo");
-    res.json(resutls);
+    return res.status(200).json({
+      success: true,
+      results: results,
+    });
   } catch (error) {
     console.log(error);
     res.status(400).send({
@@ -343,12 +364,13 @@ export const productCategoryController = async (req, res) => {
 // Generate Token
 export const braintreeTokenController = async (req, res) => {
   try {
+    const gateway = getGateway();
     gateway.clientToken.generate({}, (error, response) => {
       if (error) {
         console.log("Failed to generate Braintree token: ", error);
         return res.status(500).send({
           success: false,
-          message: "Failed to generate payment token.",
+          message: "Internal server error while generating token.",
         });
       }
 
@@ -365,40 +387,85 @@ export const braintreeTokenController = async (req, res) => {
     return res.status(500).send({
       success: false,
       message: "Internal server error while generating token.",
+      error: error.message,
     });
   }
 };
 
-//payment
-export const brainTreePaymentController = async (req, res) => {
+// Payment
+export const braintreePaymentController = async (req, res) => {
   try {
     const { nonce, cart } = req.body;
-    let total = 0;
-    cart.map((i) => {
-      total += i.price;
-    });
-    let newTransaction = gateway.transaction.sale(
+
+    // Basic validation
+    if (!nonce || !cart || !Array.isArray(cart) || cart.length === 0) {
+      return res.status(400).send({
+        success: false,
+        message: "Payment nonce and cart are required.",
+      });
+    }
+
+    // Sum cart
+    const total = cart.reduce((acc, item) => acc + Number(item.price || 0), 0);
+
+    if (Number.isNaN(total)) {
+      return res.status(400).send({
+        success: false,
+        message: "Invalid cart total.",
+      });
+    }
+
+    const gateway = getGateway();
+    gateway.transaction.sale(
       {
-        amount: total,
+        amount: total.toFixed(2), // Braintree expects string with 2 decimals
         paymentMethodNonce: nonce,
-        options: {
-          submitForSettlement: true,
-        },
+        options: { submitForSettlement: true },
       },
-      function (error, result) {
-        if (result) {
-          const order = new orderModel({
+      async function (error, result) {
+        if (error) {
+          console.log("Error processing transaction:", error || result);
+          return res.status(500).send({
+            success: false,
+            message: "Internal server error while processing transaction.",
+          });
+        }
+
+        try {
+          const order = await new orderModel({
             products: cart,
             payment: result,
             buyer: req.user._id,
           }).save();
-          res.json({ ok: true });
-        } else {
-          res.status(500).send(error);
+
+          return res.status(200).send({
+            success: true,
+            message: "Payment completed successfully.",
+            transaction: result,
+            orderId: order._id,
+          });
+        
+        // Misc errors
+        // Note: likely to be saving errors
+        } catch (error) {
+          console.log("Error saving order:", error);
+          return res.status(500).send({
+            success: false,
+            message: "Internal server error while saving order after transaction.",
+            error: error.message,
+          });
         }
-      }
+      },
     );
+  
+  // Misc errors
+  // Note: likely to be configuration errors rather than braintree issues 
   } catch (error) {
-    console.log(error);
+    console.log("Error processing payment: ", error);
+    return res.status(500).send({
+      success: false,
+      message: "Internal server error while starting transaction.",
+      error: error.message,
+    });
   }
 };
