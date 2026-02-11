@@ -9,13 +9,20 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-//payment gateway
-var gateway = new braintree.BraintreeGateway({
-  environment: braintree.Environment.Sandbox,
-  merchantId: process.env.BRAINTREE_MERCHANT_ID,
-  publicKey: process.env.BRAINTREE_PUBLIC_KEY,
-  privateKey: process.env.BRAINTREE_PRIVATE_KEY,
-});
+// Payment gateway
+let gateway;
+
+const getGateway = () => {
+  if (!gateway) {
+    gateway = new braintree.BraintreeGateway({
+      environment: braintree.Environment.Sandbox,
+      merchantId: process.env.BRAINTREE_MERCHANT_ID,
+      publicKey: process.env.BRAINTREE_PUBLIC_KEY,
+      privateKey: process.env.BRAINTREE_PRIVATE_KEY,
+    });
+  }
+  return gateway;
+};
 
 export const createProductController = async (req, res) => {
   try {
@@ -343,6 +350,7 @@ export const productCategoryController = async (req, res) => {
 // Generate Token
 export const braintreeTokenController = async (req, res) => {
   try {
+    const gateway = getGateway();
     gateway.clientToken.generate({}, (error, response) => {
       if (error) {
         console.log("Failed to generate Braintree token: ", error);
@@ -386,6 +394,7 @@ export const braintreePaymentController = async (req, res) => {
     // Sum cart
     const total = cart.reduce((acc, item) => acc + item.price, 0);
 
+    const gateway = getGateway();
     gateway.transaction.sale(
       {
         amount: total.toFixed(2), // Braintree expects string with 2 decimals
