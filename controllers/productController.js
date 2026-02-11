@@ -356,7 +356,7 @@ export const braintreeTokenController = async (req, res) => {
         console.log("Failed to generate Braintree token: ", error);
         return res.status(500).send({
           success: false,
-          message: "Failed to generate payment token.",
+          message: "Internal server error while generating token.",
         });
       }
 
@@ -385,14 +385,21 @@ export const braintreePaymentController = async (req, res) => {
 
     // Basic validation
     if (!nonce || !cart || !Array.isArray(cart) || cart.length === 0) {
-      return res.status(400).json({
+      return res.status(400).send({
         success: false,
         message: "Payment nonce and cart are required.",
       });
     }
 
     // Sum cart
-    const total = cart.reduce((acc, item) => acc + item.price, 0);
+    const total = cart.reduce((acc, item) => acc + Number(item.price || 0), 0);
+
+    if (Number.isNaN(total)) {
+      return res.status(400).send({
+        success: false,
+        message: "Invalid cart total.",
+      });
+    }
 
     const gateway = getGateway();
     gateway.transaction.sale(
@@ -402,9 +409,9 @@ export const braintreePaymentController = async (req, res) => {
         options: { submitForSettlement: true },
       },
       async function (error, result) {
-        if (error || !result?.success) {
-          console.error("Error processing transaction:", error || result);
-          return res.status(500).json({
+        if (error) {
+          console.log("Error processing transaction:", error || result);
+          return res.status(500).send({
             success: false,
             message: "Internal server error while processing transaction.",
           });
@@ -417,7 +424,7 @@ export const braintreePaymentController = async (req, res) => {
             buyer: req.user._id,
           }).save();
 
-          return res.status(200).json({
+          return res.status(200).send({
             success: true,
             message: "Payment completed successfully.",
             transaction: result,
@@ -427,10 +434,10 @@ export const braintreePaymentController = async (req, res) => {
         // Misc errors
         // Note: likely to be saving errors
         } catch (error) {
-          console.error("Error saving order:", error);
-          return res.status(500).json({
+          console.log("Error saving order:", error);
+          return res.status(500).send({
             success: false,
-            message: "Internal server error while saving order after payment.",
+            message: "Internal server error while saving order after transaction.",
             error: error.message,
           });
         }
@@ -440,10 +447,10 @@ export const braintreePaymentController = async (req, res) => {
   // Misc errors
   // Note: likely to be configuration errors rather than braintree issues 
   } catch (error) {
-    console.error("Error processing payment: ", error);
-    return res.status(500).json({
+    console.log("Error processing payment: ", error);
+    return res.status(500).send({
       success: false,
-      message: "Internal server error while starting payment.",
+      message: "Internal server error while starting transaction.",
       error: error.message,
     });
   }

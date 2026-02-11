@@ -1,5 +1,6 @@
 import { jest } from "@jest/globals";
 
+// productModel mock
 await jest.unstable_mockModule("../models/productModel.js", () => {
   const productModel = { find: jest.fn() };
 
@@ -9,6 +10,16 @@ await jest.unstable_mockModule("../models/productModel.js", () => {
 
   Object.assign(constructor, productModel);
   return { default: constructor };
+});
+
+// orderModel mock
+await jest.unstable_mockModule("../models/orderModel.js", () => {
+  const Model = jest.fn(function (doc) {
+    Object.assign(this, doc);
+    this.save = jest.fn();
+  });
+
+  return { default: Model };
 });
 
 await jest.unstable_mockModule("braintree", () => ({
