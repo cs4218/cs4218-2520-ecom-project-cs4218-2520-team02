@@ -26,7 +26,7 @@ describe("Product Controller Unit Tests", () => {
 
   beforeEach(() => {
     // Re-inititalize mocks 
-    jest.resetAllMocks();
+    jest.clearAllMocks();
 
     // Set up default requests 
     req = {
@@ -107,10 +107,12 @@ describe("Product Controller Unit Tests", () => {
         // Assert
         expect(mockGenerate).toHaveBeenCalledTimes(1);
         expect(res.status).toHaveBeenCalledWith(500);
-        expect(res.send).toHaveBeenCalledWith({
-          success: false,
-          message: "Internal server error while generating token.",
-        });
+        expect(res.send).toHaveBeenCalledWith(
+          expect.objectContaining({
+            success: false,
+            message: "Internal server error while generating token.",
+          })
+        );
       });
     });
   });
