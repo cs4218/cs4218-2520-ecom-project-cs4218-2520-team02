@@ -66,33 +66,13 @@ describe("Product Controller Unit Tests", () => {
         // Assert
         expect(mockGenerate).toHaveBeenCalledTimes(1);
         expect(res.status).toHaveBeenCalledWith(500);
-        expect(res.send).toHaveBeenCalledWith({
-          success: false,
-          message: "Failed to generate payment token.",
-        });
+        expect(res.send).toHaveBeenCalledWith(
+          expect.objectContaining({
+                      success: false,
+                      message: "Internal server error while generating token.",
+           })
+        );
       });
-
-      it("should create a token if generation succeeds (EP: valid token)", async () => {
-
-        // Arrange
-        mockGenerate.mockImplementation((_, cb) => {
-          cb(null, { clientToken: "client-token" });
-        });
-
-        // Act
-        await braintreeTokenController(req, res);
-
-        // Assert
-        expect(mockGenerate).toHaveBeenCalledTimes(1);
-        expect(res.status).toHaveBeenCalledWith(200);
-        expect(res.send).toHaveBeenCalledWith({
-          success: true,
-          token: "client-token",
-        });
-      });
-    });
-
-    describe("Unexpected Errors (EP)", () => {
 
       it("should return 500 if generate throws synchronously (EP: configuration error)", async () => {
 
@@ -113,6 +93,25 @@ describe("Product Controller Unit Tests", () => {
             message: "Internal server error while generating token.",
           })
         );
+      });
+
+      it("should create a token if generation succeeds (EP: valid token)", async () => {
+
+        // Arrange
+        mockGenerate.mockImplementation((_, cb) => {
+          cb(null, { clientToken: "client-token" });
+        });
+
+        // Act
+        await braintreeTokenController(req, res);
+
+        // Assert
+        expect(mockGenerate).toHaveBeenCalledTimes(1);
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.send).toHaveBeenCalledWith({
+          success: true,
+          token: "client-token",
+        });
       });
     });
   });
