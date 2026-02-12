@@ -10,15 +10,16 @@ const ProductDetails = () => {
   const [product, setProduct] = useState({});
   const [relatedProducts, setRelatedProducts] = useState([]);
 
-  //initalp details
+  // initial details
   useEffect(() => {
     if (params?.slug) getProduct();
   }, [params?.slug]);
-  //getProduct
+
+  // getProduct
   const getProduct = async () => {
     try {
       const { data } = await axios.get(
-        `/api/v1/product/get-product/${params.slug}`
+        `/api/v1/product/get-product/${params.slug}`,
       );
       setProduct(data?.product);
       getSimilarProduct(data?.product._id, data?.product.category._id);
@@ -26,11 +27,12 @@ const ProductDetails = () => {
       console.log(error);
     }
   };
-  //get similar product
+
+  // get similar product
   const getSimilarProduct = async (pid, cid) => {
     try {
       const { data } = await axios.get(
-        `/api/v1/product/related-product/${pid}/${cid}`
+        `/api/v1/product/related-product/${pid}/${cid}`,
       );
       setRelatedProducts(data?.products);
     } catch (error) {

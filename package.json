@@ -9,7 +9,7 @@
     "server": "nodemon server.js",
     "client": "npm start --prefix ./client",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "sonarqube": "sonarqube-scanner",
+    "sonarqube": "sonar-scanner",
     "test": "npm run test:backend && npm run test:frontend",
     "test:frontend": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.frontend.config.js",
     "test:backend": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.backend.config.js"
@@ -45,6 +45,6 @@
     "identity-obj-proxy": "^3.0.0",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
-    "sonarqube-scanner": "^3.3.0"
+    "sonarqube-scanner": "^4.3.4"
   }
 }
