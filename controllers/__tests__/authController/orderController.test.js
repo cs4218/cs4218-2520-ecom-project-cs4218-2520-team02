@@ -50,6 +50,19 @@ const expect500 = (res, message) => {
   });
 };
 
+function mockMongooseQuery(result) {
+  const chain = {
+    populate: jest.fn().mockReturnThis(),
+  };
+
+  chain.populate
+    .mockReturnValueOnce(chain) 
+    .mockReturnValueOnce(Promise.resolve(result)); 
+
+  return chain;
+}
+
+
 // =============== Tests ===============
 describe("getOrdersController", () => {
   let restoreConsole;
@@ -65,17 +78,16 @@ describe("getOrdersController", () => {
     const req = { user: { _id: "user-id" } };
     const res = mockRes();
 
-    const query = {
-      populate: jest.fn().mockReturnThis(),
-      then: function(resolve) { resolve([{ orderId: 1 }, { orderId: 2 }]); },
-    };
-    jest.spyOn(orderModel, 'find').mockReturnValue(query);
+    const orders = [{ orderId: 1 }, { orderId: 2 }];
+    const mockQuery = mockMongooseQuery(orders);
+
+    jest.spyOn(orderModel, 'find').mockReturnValue(mockQuery);
 
     await getOrdersController(req, res);
 
     expect(orderModel.find).toHaveBeenCalledWith({ buyer: "user-id" });
-    expect(query.populate).toHaveBeenCalledWith("products", "-photo");
-    expect(query.populate).toHaveBeenCalledWith("buyer", "name");
+    expect(mockQuery.populate).toHaveBeenCalledWith("products", "-photo");
+    expect(mockQuery.populate).toHaveBeenCalledWith("buyer", "name");
 
     expect200(res, [{ orderId: 1 }, { orderId: 2 }]);
   });
@@ -93,11 +105,9 @@ describe("getOrdersController", () => {
     const req = { user: { _id: "user-id" } };
     const res = mockRes();
 
-    const query = {
-      populate: jest.fn().mockReturnThis(),
-      then: function(resolve, reject) { reject(new Error("DB error")); },
-    };
-    jest.spyOn(orderModel, 'find').mockReturnValue(query);
+    jest.spyOn(orderModel, 'find').mockImplementation(() => { {
+      throw new Error("DB error");
+    }});
 
     await getOrdersController(req, res);
 
@@ -123,19 +133,16 @@ describe("getAllOrdersController", () => {
     const req = {};
     const res = mockRes();
 
-    const query = {
-      populate: jest.fn().mockReturnThis(),
-      sort: jest.fn().mockReturnThis(),
-      then: function(resolve) { resolve([{ orderId: 1 }, { orderId: 2 }]); },
-    };
-    jest.spyOn(orderModel, 'find').mockReturnValue(query);
+    const orders = [{ orderId: 1 }, { orderId: 2 }];
+    const mockQuery = mockMongooseQuery(orders);
+    jest.spyOn(orderModel, 'find').mockReturnValue(mockQuery);
 
     await getAllOrdersController(req, res);
 
     expect(orderModel.find).toHaveBeenCalledWith({});
-    expect(query.populate).toHaveBeenCalledWith("products", "-photo");
-    expect(query.populate).toHaveBeenCalledWith("buyer", "name");
-    expect(query.sort).toHaveBeenCalledWith({ createdAt: -1 });
+    expect(mockQuery.populate).toHaveBeenCalledWith("products", "-photo");
+    expect(mockQuery.populate).toHaveBeenCalledWith("buyer", "name");
+    expect(mockQuery.sort).toHaveBeenCalledWith({ createdAt: -1 });
 
     expect200(res, [{ orderId: 1 }, { orderId: 2 }]);
   });
