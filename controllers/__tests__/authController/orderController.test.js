@@ -1,8 +1,8 @@
 import { describe, jest } from "@jest/globals";
 
 const { default: orderModel } = (await import("../../../models/orderModel.js"));
-const { getOrdersController, getAllOrdersController, 
-  testController, updateOrderStatusController } = await import("../../authController.js");
+const { getOrdersController, getAllOrdersController, updateOrderStatusController } = 
+  await import("../../authController.js");
 
 // =============== Helpers ===============
 const mockRes = () => ({ status: jest.fn().mockReturnThis(), send: jest.fn() });
