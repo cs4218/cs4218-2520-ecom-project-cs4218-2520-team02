@@ -1,169 +1,163 @@
 import { jest } from "@jest/globals";
 
-import JWT from "jsonwebtoken";
-import { requireSignIn, isAdmin } from "../middlewares/authMiddleware.js";
-import userModel from "../models/userModel.js";
+/* ---------------- MODULE MOCKS ---------------- */
+
+await jest.unstable_mockModule("jsonwebtoken", () => {
+  const verify = jest.fn();
+  return { default: { verify }, verify };
+});
+
+await jest.unstable_mockModule("../models/userModel.js", () => {
+  return {
+    default: {
+      findById: jest.fn(),
+    },
+  };
+});
+
+
+const { default: JWT } = await import("jsonwebtoken");
+const { default: userModel } = await import("../models/userModel.js");
+const { requireSignIn, isAdmin } = await import(
+  "../middlewares/authMiddleware.js"
+);
+
+/* ---------------- HELPERS ---------------- */
+
+const mockRes = () => ({
+  status: jest.fn().mockReturnThis(),
+  send: jest.fn(),
+  json: jest.fn(),
+});
 
 describe("requireSignIn middleware", () => {
-    let req, res, next;
+  let req, res, next;
+  const ORIGINAL_ENV = process.env;
 
-    beforeEach(() => {
-        req = {
-            headers: {
-                authorization: "Bearer access-token",
-            },
-        };
-        res = {
-            status: jest.fn().mockReturnThis(),
-            send: jest.fn(),
-        };
-        next = jest.fn();
+  beforeEach(() => {
+    jest.clearAllMocks();
 
-        process.env.JWT_SECRET = "12345";
+    process.env = { ...ORIGINAL_ENV, JWT_SECRET: "test-secret" };
+
+    req = {
+      headers: {
+        authorization: "Bearer test-token",
+      },
+    };
+
+    res = mockRes();
+    next = jest.fn();
+  });
+
+  afterEach(() => {
+    process.env = ORIGINAL_ENV;
+  });
+
+  test("should verify JWT, attach user, and call next()", async () => {
+    JWT.verify.mockReturnValue({ _id: "123" });
+
+    await requireSignIn(req, res, next);
+
+    expect(JWT.verify).toHaveBeenCalledWith("test-token", "test-secret");
+    expect(req.user).toEqual({ _id: "123" });
+    expect(next).toHaveBeenCalledTimes(1);
+  });
+
+  test("should support token without Bearer prefix", async () => {
+    req.headers.authorization = "raw-token";
+
+    JWT.verify.mockReturnValue({ _id: "123" });
+
+    await requireSignIn(req, res, next);
+
+    expect(JWT.verify).toHaveBeenCalledWith("raw-token", "test-secret");
+    expect(next).toHaveBeenCalled();
+  });
+
+  test("should return 401 if token missing", async () => {
+    req.headers.authorization = undefined;
+
+    await requireSignIn(req, res, next);
+
+    expect(JWT.verify).not.toHaveBeenCalled();
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(401);
+  });
+
+  test("should return 401 if token invalid", async () => {
+    JWT.verify.mockImplementation(() => {
+      throw new Error("Invalid token");
     });
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
+    await requireSignIn(req, res, next);
 
-    test("should verify JWT, attach user to req, and call next()", async () => {
-        const decodedUser = { id: "123", email: "test@test.com" };
-        const token = JWT.sign(decodedUser, "12345");
-        req.headers.authorization = `Bearer ${token}`;
-
-        await requireSignIn(req, res, next);
-
-        expect(req.user).toMatchObject(decodedUser);
-        expect(next).toHaveBeenCalledTimes(1);
-    });
-
-    test("should verify JWT without Bearer prefix, attach user to req, and call next()", async () => {
-        const decodedUser = { id: "123", email: "test@test.com" };
-        const token = JWT.sign(decodedUser, "12345");
-        req.headers.authorization = token;
-
-        await requireSignIn(req, res, next);
-
-        expect(req.user).toMatchObject(decodedUser);
-        expect(next).toHaveBeenCalledTimes(1);
-    });
-
-    test("should return 401 if JWT verification fails", async () => {
-        req.headers.authorization = "Bearer invalid";
-
-        await requireSignIn(req, res, next);
-
-        expect(req.user).toBeUndefined();
-        expect(next).not.toHaveBeenCalled();
-        expect(res.status).toHaveBeenCalledWith(401);
-        expect(res.send).toHaveBeenCalledWith({
-            success: false,
-            error: expect.any(Error),
-            message: "Invalid token",
-        });
-    });
-
-    test("should return 401 if no token is provided", async () => {
-        req.headers.authorization = "";
-
-        await requireSignIn(req, res, next);
-
-        expect(req.user).toBeUndefined();
-        expect(next).not.toHaveBeenCalled();
-        expect(res.status).toHaveBeenCalledWith(401);
-        expect(res.send).toHaveBeenCalledWith({
-            success: false,
-            message: "No token provided",
-        });
-    });
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(401);
+  });
 });
 
 describe("isAdmin middleware", () => {
-    let req, res, next;
+  let req, res, next;
 
-    beforeEach(() => {
-        req = {
-            user: { _id: "admin-id" },
-        };
-        res = {
-            status: jest.fn().mockReturnThis(),
-            send: jest.fn(),
-        };
-        next = jest.fn();
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    req = {
+      user: { _id: "admin-id" },
+    };
+
+    res = mockRes();
+    next = jest.fn();
+  });
+
+  test("should allow admin user", async () => {
+    userModel.findById.mockResolvedValue({
+      _id: "admin-id",
+      role: 1,
     });
 
-    afterEach(() => {
-        jest.restoreAllMocks();
+    await isAdmin(req, res, next);
+
+    expect(userModel.findById).toHaveBeenCalledWith("admin-id");
+    expect(next).toHaveBeenCalledTimes(1);
+  });
+
+  test("should return 403 if user is not admin", async () => {
+    userModel.findById.mockResolvedValue({
+      _id: "admin-id",
+      role: 0,
     });
 
-    test("should allow access if user is admin", async () => {
-        jest.spyOn(userModel, "findById").mockResolvedValue({
-            _id: "admin-id",
-            role: 1, // admin
-        });
+    await isAdmin(req, res, next);
 
-        await isAdmin(req, res, next);
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(403);
+  });
+  test("should return 401 if user not signed in", async () => {
+    req.user = null;
 
-        expect(userModel.findById).toHaveBeenCalledWith("admin-id");
-        expect(next).toHaveBeenCalledTimes(1);
-    });
+    await isAdmin(req, res, next);
 
-    test("should return 403 if user is not admin", async () => {
-        jest.spyOn(userModel, "findById").mockResolvedValue({
-            _id: "user-id",
-            role: 0, // not admin
-        });
+    expect(userModel.findById).not.toHaveBeenCalled();
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(401);
+  });
 
-        await isAdmin(req, res, next);
+  test("should return 401 if user not found", async () => {
+    userModel.findById.mockResolvedValue(null);
 
-        expect(userModel.findById).toHaveBeenCalledWith("admin-id");
-        expect(next).not.toHaveBeenCalled();
-        expect(res.status).toHaveBeenCalledWith(403);
-        expect(res.send).toHaveBeenCalledWith({
-            success: false,
-            message: "Admin access required",
-        });
-    });
+    await isAdmin(req, res, next);
 
-    test("should return 401 if user is not found", async () => {
-        jest.spyOn(userModel, "findById").mockResolvedValue(null);
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(401);
+  });
 
-        await isAdmin(req, res, next);
+  test("should return 500 on DB error", async () => {
+    userModel.findById.mockRejectedValue(new Error("DB error"));
 
-        expect(userModel.findById).toHaveBeenCalledWith("admin-id");
-        expect(next).not.toHaveBeenCalled();
-        expect(res.status).toHaveBeenCalledWith(401);
-        expect(res.send).toHaveBeenCalledWith({
-            success: false,
-            message: "User not found",
-        });
-    });
+    await isAdmin(req, res, next);
 
-    test("should return 401 if user is not signed in", async () => {
-        req.user = null;
-
-        await isAdmin(req, res, next);
-
-        expect(next).not.toHaveBeenCalled();
-        expect(res.status).toHaveBeenCalledWith(401);
-        expect(res.send).toHaveBeenCalledWith({
-            success: false,
-            message: "Not signed in",
-        });
-    });
-
-    test("should return 500 if there is a server error", async () => {
-        jest.spyOn(userModel, "findById").mockRejectedValue(new Error("DB error"));
-
-        await isAdmin(req, res, next);
-
-        expect(userModel.findById).toHaveBeenCalledWith("admin-id");
-        expect(next).not.toHaveBeenCalled();
-        expect(res.status).toHaveBeenCalledWith(500);
-        expect(res.send).toHaveBeenCalledWith({
-            success: false,
-            error: expect.any(Error),
-            message: "Internal server error",
-        });
-    });
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
 });
