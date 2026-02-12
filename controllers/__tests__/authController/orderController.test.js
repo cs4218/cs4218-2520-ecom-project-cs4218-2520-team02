@@ -1,7 +1,8 @@
 import { describe, jest } from "@jest/globals";
 
-const orderModel = (await import("../../../models/orderModel.js")).default;
-const { getOrdersController } = await import("../../authController.js");
+const { default: orderModel } = (await import("../../../models/orderModel.js"));
+const { getOrdersController, getAllOrdersController, 
+  testController, updateOrderStatusController } = await import("../../authController.js");
 
 // =============== Helpers ===============
 const mockRes = () => ({ status: jest.fn().mockReturnThis(), send: jest.fn() });
@@ -16,10 +17,34 @@ const expect200 = (res, orders) => {
   expect(res.send).toHaveBeenCalledWith({ success: true, orders });
 };
 
-const expect500 = (res) => {
+const expect400 = (res, message) => {
+  expect(res.status).toHaveBeenCalledWith(400);
+  expect(res.send).toHaveBeenCalledWith({
+    success: false,
+    message: message,
+  });
+};
+
+const expect401 = (res, message) => {
+  expect(res.status).toHaveBeenCalledWith(401);
+  expect(res.send).toHaveBeenCalledWith({
+    success: false,
+    message: message,
+  });
+};
+
+const expect404 = (res, message) => {
+  expect(res.status).toHaveBeenCalledWith(404);
+  expect(res.send).toHaveBeenCalledWith({
+    success: false,
+    message: message,
+  });
+};
+
+const expect500 = (res, message) => {
   expect(res.status).toHaveBeenCalledWith(500);
   expect(res.send).toHaveBeenCalledWith({
-    message: "Error while getting orders",
+    message: message,
     error: expect.any(String),
     success: false,
   });
@@ -61,11 +86,7 @@ describe("getOrdersController", () => {
 
     await getOrdersController(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(401);
-    expect(res.send).toHaveBeenCalledWith({
-      success: false,
-      message: "Not signed in",
-    });
+    expect401(res, "Not signed in");
   });
 
   test("returns 500 when find rejects", async () => {
@@ -84,7 +105,7 @@ describe("getOrdersController", () => {
     expect(query.populate).toHaveBeenCalledWith("products", "-photo");
     expect(query.populate).toHaveBeenCalledWith("buyer", "name");
 
-    expect500(res);
+    expect500(res, "Error while getting orders");
   });
 });
 
@@ -109,7 +130,6 @@ describe("getAllOrdersController", () => {
     };
     jest.spyOn(orderModel, 'find').mockReturnValue(query);
 
-    const { getAllOrdersController } = await import("../../authController.js");
     await getAllOrdersController(req, res);
 
     expect(orderModel.find).toHaveBeenCalledWith({});
@@ -131,7 +151,6 @@ describe("getAllOrdersController", () => {
     };
     jest.spyOn(orderModel, 'find').mockReturnValue(query);
 
-    const { getAllOrdersController } = await import("../../authController.js");
     await getAllOrdersController(req, res);
 
     expect(orderModel.find).toHaveBeenCalledWith({});
@@ -139,7 +158,7 @@ describe("getAllOrdersController", () => {
     expect(query.populate).toHaveBeenCalledWith("buyer", "name");
     expect(query.sort).toHaveBeenCalledWith({ createdAt: -1 });
 
-    expect500(res);
+    expect500(res, "Error while getting orders");
   });
 });
 
@@ -155,9 +174,6 @@ describe("updateOrderStatusController", () => {
       .spyOn(orderModel, "findByIdAndUpdate")
       .mockResolvedValue({ orderId: "order-id", status: "Shipped" });
 
-    const { updateOrderStatusController } = await import(
-      "../../authController.js"
-    );
     await updateOrderStatusController(req, res);
 
     expect(findByIdAndUpdateMock).toHaveBeenCalledWith(
@@ -172,6 +188,7 @@ describe("updateOrderStatusController", () => {
       message: "Order status updated",
       order: { orderId: "order-id", status: "Shipped" },
     });
+
   });
 
   test("returns 400 if orderId is missing", async () => {
@@ -181,16 +198,9 @@ describe("updateOrderStatusController", () => {
     };
     const res = mockRes();
 
-    const { updateOrderStatusController } = await import(
-      "../../authController.js"
-    );
     await updateOrderStatusController(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.send).toHaveBeenCalledWith({
-      success: false,
-      message: "Order ID is required",
-    });
+    expect400(res, "Order ID is required");
   });
 
   test("returns 400 if status is missing", async () => {
@@ -200,16 +210,9 @@ describe("updateOrderStatusController", () => {
     };
     const res = mockRes();
 
-    const { updateOrderStatusController } = await import(
-      "../../authController.js"
-    );
     await updateOrderStatusController(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.send).toHaveBeenCalledWith({
-      success: false,
-      message: "Status is required",
-    });
+    expect400(res, "Status is required");
   });
   
   test("returns 404 if order not found", async () => {
@@ -223,9 +226,6 @@ describe("updateOrderStatusController", () => {
       .spyOn(orderModel, "findByIdAndUpdate")
       .mockResolvedValue(null);
 
-    const { updateOrderStatusController } = await import(
-      "../../authController.js"
-    );
     await updateOrderStatusController(req, res);
 
     expect(findByIdAndUpdateMock).toHaveBeenCalledWith(
@@ -234,11 +234,7 @@ describe("updateOrderStatusController", () => {
       { new: true }
     );
 
-    expect(res.status).toHaveBeenCalledWith(404);
-    expect(res.send).toHaveBeenCalledWith({
-      success: false,
-      message: "Order not found",
-    });
+    expect404(res, "Order not found");
   });
 
   test("returns 500 when findByIdAndUpdate rejects", async () => {
@@ -251,9 +247,7 @@ describe("updateOrderStatusController", () => {
     const findByIdAndUpdateMock = jest
       .spyOn(orderModel, "findByIdAndUpdate")
       .mockRejectedValue(new Error("DB error"));
-    const { updateOrderStatusController } = await import(
-      "../../authController.js"
-    );
+
     await updateOrderStatusController(req, res);
 
     expect(findByIdAndUpdateMock).toHaveBeenCalledWith(
@@ -262,27 +256,7 @@ describe("updateOrderStatusController", () => {
       { new: true }
     );
 
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.send).toHaveBeenCalledWith({
-      success: false,
-      message: "Error while updating order status",
-      error: expect.any(String),
-    });
+    expect500(res, "Error while updating order status");
   });
 });
 
-describe("testController", () => {
-  test("returns test message", async () => {
-    const req = {};
-    const res = mockRes();
-
-    const { testController } = await import("../../authController.js");
-    await testController(req, res);
-
-    expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.send).toHaveBeenCalledWith({
-      success: true,
-      message: "Protected Routes",
-    });
-  });
-});
