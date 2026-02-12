@@ -1,4 +1,4 @@
-import { jest } from "@jest/globals";
+import { describe, jest } from "@jest/globals";
 
 const orderModel = (await import("../../../models/orderModel.js")).default;
 const { getOrdersController } = await import("../../authController.js");
@@ -140,6 +140,57 @@ describe("getAllOrdersController", () => {
     expect(query.sort).toHaveBeenCalledWith({ createdAt: -1 });
 
     expect500(res);
+  });
+});
+
+describe("updateOrderStatusController", () => {
+  test("updating order status", async () => {
+    const req = {
+      params: { orderId: "order-id" },
+      body: { status: "Shipped" },
+    };
+    const res = mockRes();
+
+    const findByIdAndUpdateMock = jest
+      .spyOn(orderModel, "findByIdAndUpdate")
+      .mockResolvedValue({ orderId: "order-id", status: "Shipped" });
+
+    const { updateOrderStatusController } = await import(
+      "../../authController.js"
+    );
+    await updateOrderStatusController(req, res);
+
+    expect(findByIdAndUpdateMock).toHaveBeenCalledWith(
+      "order-id",
+      { status: "Shipped" },
+      { new: true }
+    );
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.send).toHaveBeenCalledWith({
+      success: true,
+      message: "Order status updated",
+      order: { orderId: "order-id", status: "Shipped" },
+    });
+  });
+
+  test("returns 400 if orderId is missing", async () => {
+    const req = {
+      params: {},
+      body: { status: "Shipped" },
+    };
+    const res = mockRes();
+
+    const { updateOrderStatusController } = await import(
+      "../../authController.js"
+    );
+    await updateOrderStatusController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.send).toHaveBeenCalledWith({
+      success: false,
+      message: "Order ID is required",
+    });
   });
 });
 
