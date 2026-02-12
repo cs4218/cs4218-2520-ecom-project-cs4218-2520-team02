@@ -216,16 +216,22 @@ describe("getAllOrdersController", () => {
 });
 
 describe("updateOrderStatusController", () => {
-  test("updating order status", async () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test("updates order status successfully", async () => {
     const req = {
       params: { orderId: "order-id" },
       body: { status: "Shipped" },
     };
     const res = mockRes();
 
+    const updatedOrder = { orderId: "order-id", status: "Shipped" };
+
     const findByIdAndUpdateMock = jest
       .spyOn(orderModel, "findByIdAndUpdate")
-      .mockResolvedValue({ orderId: "order-id", status: "Shipped" });
+      .mockResolvedValue(updatedOrder);
 
     await updateOrderStatusController(req, res);
 
@@ -239,9 +245,8 @@ describe("updateOrderStatusController", () => {
     expect(res.send).toHaveBeenCalledWith({
       success: true,
       message: "Order status updated",
-      order: { orderId: "order-id", status: "Shipped" },
+      order: updatedOrder,
     });
-
   });
 
   test("returns 400 if orderId is missing", async () => {
@@ -253,6 +258,7 @@ describe("updateOrderStatusController", () => {
 
     await updateOrderStatusController(req, res);
 
+    expect(orderModel.findByIdAndUpdate).not.toHaveBeenCalled();
     expect400(res, "Order ID is required");
   });
 
@@ -265,9 +271,10 @@ describe("updateOrderStatusController", () => {
 
     await updateOrderStatusController(req, res);
 
+    expect(orderModel.findByIdAndUpdate).not.toHaveBeenCalled();
     expect400(res, "Status is required");
   });
-  
+
   test("returns 404 if order not found", async () => {
     const req = {
       params: { orderId: "nonexistent-order-id" },
@@ -290,13 +297,13 @@ describe("updateOrderStatusController", () => {
     expect404(res, "Order not found");
   });
 
-  test("returns 500 when findByIdAndUpdate rejects", async () => {
+  test("returns 500 when database throws", async () => {
     const req = {
       params: { orderId: "order-id" },
       body: { status: "Shipped" },
     };
     const res = mockRes();
-    
+
     const findByIdAndUpdateMock = jest
       .spyOn(orderModel, "findByIdAndUpdate")
       .mockRejectedValue(new Error("DB error"));
@@ -312,4 +319,3 @@ describe("updateOrderStatusController", () => {
     expect500(res, "Error while updating order status");
   });
 });
-
