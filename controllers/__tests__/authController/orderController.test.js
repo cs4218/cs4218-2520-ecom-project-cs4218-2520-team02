@@ -192,6 +192,83 @@ describe("updateOrderStatusController", () => {
       message: "Order ID is required",
     });
   });
+
+  test("returns 400 if status is missing", async () => {
+    const req = {
+      params: { orderId: "order-id" },
+      body: {},
+    };
+    const res = mockRes();
+
+    const { updateOrderStatusController } = await import(
+      "../../authController.js"
+    );
+    await updateOrderStatusController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.send).toHaveBeenCalledWith({
+      success: false,
+      message: "Status is required",
+    });
+  });
+  
+  test("returns 404 if order not found", async () => {
+    const req = {
+      params: { orderId: "nonexistent-order-id" },
+      body: { status: "Shipped" },
+    };
+    const res = mockRes();
+
+    const findByIdAndUpdateMock = jest
+      .spyOn(orderModel, "findByIdAndUpdate")
+      .mockResolvedValue(null);
+
+    const { updateOrderStatusController } = await import(
+      "../../authController.js"
+    );
+    await updateOrderStatusController(req, res);
+
+    expect(findByIdAndUpdateMock).toHaveBeenCalledWith(
+      "nonexistent-order-id",
+      { status: "Shipped" },
+      { new: true }
+    );
+
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.send).toHaveBeenCalledWith({
+      success: false,
+      message: "Order not found",
+    });
+  });
+
+  test("returns 500 when findByIdAndUpdate rejects", async () => {
+    const req = {
+      params: { orderId: "order-id" },
+      body: { status: "Shipped" },
+    };
+    const res = mockRes();
+    
+    const findByIdAndUpdateMock = jest
+      .spyOn(orderModel, "findByIdAndUpdate")
+      .mockRejectedValue(new Error("DB error"));
+    const { updateOrderStatusController } = await import(
+      "../../authController.js"
+    );
+    await updateOrderStatusController(req, res);
+
+    expect(findByIdAndUpdateMock).toHaveBeenCalledWith(
+      "order-id",
+      { status: "Shipped" },
+      { new: true }
+    );
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.send).toHaveBeenCalledWith({
+      success: false,
+      message: "Error while updating order status",
+      error: expect.any(String),
+    });
+  });
 });
 
 
