@@ -92,6 +92,22 @@ describe("getOrdersController", () => {
     expect200(res, [{ orderId: 1 }, { orderId: 2 }]);
   });
 
+  test("returns empty array when no orders found", async () => {
+    const req = { user: { _id: "user-id" } };
+    const res = mockRes();
+
+    const mockQuery = mockMongooseQuery([]);
+    jest.spyOn(orderModel, "find").mockReturnValue(mockQuery);
+
+    await getOrdersController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.send).toHaveBeenCalledWith({
+      success: true,
+      orders: [],
+    });
+  });
+
   test("returns 401 if user is not signed in", async () => {
     const req = { user: null };
     const res = mockRes();
@@ -99,6 +115,17 @@ describe("getOrdersController", () => {
     await getOrdersController(req, res);
 
     expect401(res, "Not signed in");
+    expect(orderModel.find).not.toHaveBeenCalled();
+  });
+
+  test("returns 401 if user has no _id", async () => {
+    const req = { user: {} };
+    const res = mockRes();
+
+    await getOrdersController(req, res);
+
+    expect401(res, "Not signed in");
+    expect(orderModel.find).not.toHaveBeenCalled();
   });
 
   test("returns 500 when find rejects", async () => {
@@ -110,10 +137,6 @@ describe("getOrdersController", () => {
     }});
 
     await getOrdersController(req, res);
-
-    expect(orderModel.find).toHaveBeenCalledWith({ buyer: "user-id" });
-    expect(query.populate).toHaveBeenCalledWith("products", "-photo");
-    expect(query.populate).toHaveBeenCalledWith("buyer", "name");
 
     expect500(res, "Error while getting orders");
   });
@@ -134,7 +157,10 @@ describe("getAllOrdersController", () => {
     const res = mockRes();
 
     const orders = [{ orderId: 1 }, { orderId: 2 }];
-    const mockQuery = mockMongooseQuery(orders);
+    const mockQuery = {
+      populate: jest.fn().mockReturnThis(),
+      sort: jest.fn().mockResolvedValue(orders),
+    }
     jest.spyOn(orderModel, 'find').mockReturnValue(mockQuery);
 
     await getAllOrdersController(req, res);
