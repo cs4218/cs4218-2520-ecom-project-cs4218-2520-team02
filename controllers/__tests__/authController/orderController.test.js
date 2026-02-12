@@ -271,4 +271,18 @@ describe("updateOrderStatusController", () => {
   });
 });
 
+describe("testController", () => {
+  test("returns test message", async () => {
+    const req = {};
+    const res = mockRes();
 
+    const { testController } = await import("../../authController.js");
+    await testController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.send).toHaveBeenCalledWith({
+      success: true,
+      message: "Protected Routes",
+    });
+  });
+});
