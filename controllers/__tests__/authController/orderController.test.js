@@ -173,14 +173,34 @@ describe("getAllOrdersController", () => {
     expect200(res, [{ orderId: 1 }, { orderId: 2 }]);
   });
 
+  test("returns empty array when no orders found", async () => {
+    const req = {};
+    const res = mockRes();
+
+    const orders = [];
+    const mockQuery = {
+      populate: jest.fn().mockReturnThis(),
+      sort: jest.fn().mockResolvedValue(orders),
+    }
+    jest.spyOn(orderModel, 'find').mockReturnValue(mockQuery);
+
+    await getAllOrdersController(req, res);
+
+    expect(orderModel.find).toHaveBeenCalledWith({});
+    expect(mockQuery.populate).toHaveBeenCalledWith("products", "-photo");
+    expect(mockQuery.populate).toHaveBeenCalledWith("buyer", "name");
+    expect(mockQuery.sort).toHaveBeenCalledWith({ createdAt: -1 });
+
+    expect200(res, []);
+  });
+
   test("returns 500 when find rejects", async () => {
     const req = {};
     const res = mockRes();
 
     const query = {
       populate: jest.fn().mockReturnThis(),
-      sort: jest.fn().mockReturnThis(),
-      then: function(resolve, reject) { reject(new Error("DB error")); },
+      sort: jest.fn().mockRejectedValue(new Error("DB error")),
     };
     jest.spyOn(orderModel, 'find').mockReturnValue(query);
 
