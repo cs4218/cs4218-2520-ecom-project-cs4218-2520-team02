@@ -156,19 +156,10 @@ export const forgotPasswordController = async (req, res) => {
 
 //test controller
 export const testController = (req, res) => {
-  try {
-    return res.status(200).send({
-      success: true,
-      message: "Protected Routes",
-    });
-  } catch (error) {
-    console.log("Error in testController: ", error);
-    return res.status(500).send({
-      success: false,
-      message: "Error in test route",
-      error: error.message || "Unknown error",
-    });
-  }
+  return res.status(200).send({
+    success: true,
+    message: "Protected Routes",
+  });
 };
 
 //update prfole
