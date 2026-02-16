@@ -1,4 +1,19 @@
 import { describe, jest } from "@jest/globals";
+import { model } from "mongoose";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const modelPath = path.resolve(__dirname, "../../../models/orderModel.js");
+
+await jest.unstable_mockModule(modelPath, () => ({
+  default: {
+    find: jest.fn(),
+    findByIdAndUpdate: jest.fn(),
+  },
+}));
 
 const { default: orderModel } = (await import("../../../models/orderModel.js"));
 const { getOrdersController, getAllOrdersController, updateOrderStatusController } = 
