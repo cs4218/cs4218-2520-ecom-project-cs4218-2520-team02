@@ -36,7 +36,7 @@ describe("Spinner Component Unit Tests", () => {
     jest.useRealTimers();
   });
 
-  it("should render with correct count", () => {
+  it("should render with all elements and correct count", () => {
 
     // Arrange & Act
     renderSpinner();
@@ -44,6 +44,7 @@ describe("Spinner Component Unit Tests", () => {
     // Assert
     expect(screen.getByText(/redirecting to you in 3 second/i)).toBeInTheDocument();
     expect(screen.getByRole("status")).toBeInTheDocument();
+    expect(screen.getByText("Loading...")).toBeInTheDocument();
   });
 
   it("should decrease count every second", () => {
