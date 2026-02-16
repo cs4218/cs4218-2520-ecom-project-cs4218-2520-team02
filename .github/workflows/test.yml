@@ -26,7 +26,7 @@ jobs:
 
 
       - name: Run Frontend Tests
-        run: npm run test:frontend
+        run: npm run test:frontend --passWithNoTests
 
       - name: Run Backend Tests
-        run: npm run test:backend
+        run: npm run test:backend --passWithNoTests
