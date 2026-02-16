@@ -28,6 +28,7 @@
     "express": "^4.18.2",
     "express-formidable": "^1.2.0",
     "jsonwebtoken": "^9.0.2",
+    "mockingoose": "^2.16.2",
     "mongodb": "^6.3.0",
     "mongoose": "^8.1.2",
     "morgan": "^1.10.0",
