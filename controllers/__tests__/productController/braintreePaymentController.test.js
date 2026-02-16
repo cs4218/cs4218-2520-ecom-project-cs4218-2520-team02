@@ -71,10 +71,14 @@ describe("Product Controller Unit Tests", () => {
     // Not required to be tested: very long nonce string
     describe("Nonce Validation (EP)", () => {
       it("should return 400 if nonce is missing (EP: missing nonce)", async () => {
+
+        // Arrange
         req.body = { cart: [{ price: 10 }] };
 
+        // Act
         await braintreePaymentController(req, res);
 
+        // Assert
         expect(mockSale).toHaveBeenCalledTimes(0);
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.send).toHaveBeenCalledWith({
@@ -84,10 +88,14 @@ describe("Product Controller Unit Tests", () => {
       });
 
       it("should return 400 if nonce is an empty string (EP: \"\" nonce)", async () => {
+        
+        // Arrange
         req.body = { nonce: "", cart: [{ price: 10 }] };
 
+        // Act
         await braintreePaymentController(req, res);
 
+        // Assert
         expect(mockSale).toHaveBeenCalledTimes(0);
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.send).toHaveBeenCalledWith({
@@ -97,10 +105,14 @@ describe("Product Controller Unit Tests", () => {
       });
 
       it("should return 400 if nonce is null (EP: null nonce)", async () => {
+        
+        // Arrange
         req.body = { nonce: null, cart: [{ price: 10 }] };
 
+        // Act
         await braintreePaymentController(req, res);
 
+        // Assert
         expect(mockSale).toHaveBeenCalledTimes(0);
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.send).toHaveBeenCalledWith({
@@ -116,10 +128,14 @@ describe("Product Controller Unit Tests", () => {
     describe("Cart Validation (BVA)", () => {
 
       it("should return 400 if cart is not supplied (Boundary: missing input)", async () => {
+        
+        // Arrange
         req.body = { nonce: "nonce" };
 
+        // Act
         await braintreePaymentController(req, res);
 
+        // Assert
         expect(mockSale).toHaveBeenCalledTimes(0);
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.send).toHaveBeenCalledWith({
@@ -129,10 +145,14 @@ describe("Product Controller Unit Tests", () => {
       });
 
       it("should return 400 if cart is null (Boundary: null)", async () => {
+        
+        // Arrange
         req.body = { nonce: "nonce123", cart: null };
 
+        // Act
         await braintreePaymentController(req, res);
 
+        // Assert
         expect(mockSale).toHaveBeenCalledTimes(0);
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.send).toHaveBeenCalledWith({
@@ -142,10 +162,14 @@ describe("Product Controller Unit Tests", () => {
       });
 
       it("should return 400 if cart is not an array (Boundary: not an array)", async () => {
+        
+        // Arrange
         req.body = { nonce: "nonce123", cart: 3 };
 
+        // Act
         await braintreePaymentController(req, res);
 
+        // Assert
         expect(mockSale).toHaveBeenCalledTimes(0);
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.send).toHaveBeenCalledWith({
@@ -154,11 +178,15 @@ describe("Product Controller Unit Tests", () => {
         });
       });
 
-      it("should return 400 if cart is empty (Lower Boundary: empty array)", async () => {
+      it("should return 400 if cart is empty (Below Boundary: empty array)", async () => {
+        
+        // Arrange
         req.body = { nonce: "nonce123", cart: [] };
 
+        // Act
         await braintreePaymentController(req, res);
 
+        // Assert
         expect(mockSale).toHaveBeenCalledTimes(0);
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.send).toHaveBeenCalledWith({
@@ -168,6 +196,8 @@ describe("Product Controller Unit Tests", () => {
       });
 
       it("should processes payment for single-item cart (On Boundary: 1 item)", async () => {
+        
+        // Arrange
         req.body = { nonce: "nonce123", cart: [{ price: 10 }] };
 
         saleImplementation = (opts, cb) =>
@@ -178,8 +208,10 @@ describe("Product Controller Unit Tests", () => {
           this.save = jest.fn().mockResolvedValue({ _id: "order001" });
         });
 
+        // Act
         await braintreePaymentController(req, res);
 
+        // Assert
         expect(mockSale).toHaveBeenCalledTimes(1);
         expect(mockSale).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -201,6 +233,8 @@ describe("Product Controller Unit Tests", () => {
       });
 
       it("should processes payment for two-item cart (Above Boundary: 2 item)", async () => {
+        
+        // Arrange
         req.body = { nonce: "nonce123", cart: [{ price: 10 }, { price: 20 }] };
 
         saleImplementation = (opts, cb) =>
@@ -211,8 +245,10 @@ describe("Product Controller Unit Tests", () => {
           this.save = jest.fn().mockResolvedValue({ _id: "order001" });
         });
 
+        // Act
         await braintreePaymentController(req, res);
 
+        // Assert
         expect(mockSale).toHaveBeenCalledTimes(1);
         expect(mockSale).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -237,14 +273,17 @@ describe("Product Controller Unit Tests", () => {
     // Success case already covered in Cart Validation (BVA)
     describe("Total Validation (EP)", () => {
       it("should return 400 if cart total is NaN", async () => {
-        // Cart with an invalid price
+        
+        // Arrange
         req.body = { 
           nonce: "nonce123", 
           cart: [{ price: "invalid" }]
         };
 
+        // Act
         await braintreePaymentController(req, res);
 
+        // Assert
         expect(mockSale).toHaveBeenCalledTimes(0);
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.send).toHaveBeenCalledWith({
@@ -257,14 +296,18 @@ describe("Product Controller Unit Tests", () => {
     // Success case already covered in Cart Validation (BVA)
     describe("Transaction (EP)", () => {
       it("should return 500 if transaction sale fails", async () => {
+        
+        // Arrange
         req.body = { nonce: "nonce123", cart: [{ price: 10 }] };
 
         mockSale.mockImplementation((opts, cb) => {
           cb(new Error("Braintree error"));
         });
 
+        // Act
         await braintreePaymentController(req, res);
 
+        // Assert
         expect(mockSale).toHaveBeenCalledTimes(1);
         expect(res.status).toHaveBeenCalledWith(500);
         expect(res.send).toHaveBeenCalledWith(
@@ -279,6 +322,7 @@ describe("Product Controller Unit Tests", () => {
     // Success case already covered in Cart Validation (BVA)
     describe("Saving (EP)", () => {
       it("should return 500 if saving the order fails", async () => {
+        // Arrange
         req.body = { nonce: "nonce123", cart: [{ price: 10 }] };
 
         // Mock Braintree transaction to succeed
@@ -291,8 +335,10 @@ describe("Product Controller Unit Tests", () => {
           this.save = jest.fn().mockRejectedValue(new Error("Failed to save order to database."));
         });
 
+        // Act
         await braintreePaymentController(req, res);
 
+        // Assert
         expect(mockSale).toHaveBeenCalledTimes(1);
         expect(orderModel).toHaveBeenCalledTimes(1);
         expect(res.status).toHaveBeenCalledWith(500);
@@ -308,14 +354,18 @@ describe("Product Controller Unit Tests", () => {
     // Success case already covered in Cart Validation (BVA)
     describe("Braintree configuration (EP)", () => {
       it("should return 500 if an unexpected error occurs before starting the transaction", async () => {
+        
+        // Arrange
         req.body = { nonce: "nonce123", cart: [{ price: 10 }] };
 
         mockSale.mockImplementationOnce(() => {
           throw new Error("Unexpected transaction error");
         });
 
+        // Act
         await braintreePaymentController(req, res);
 
+        // Assert
         expect(res.status).toHaveBeenCalledWith(500);
         expect(res.send).toHaveBeenCalledWith(
           expect.objectContaining({
