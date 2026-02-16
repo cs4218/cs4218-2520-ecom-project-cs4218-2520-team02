@@ -9,6 +9,7 @@ export default {
   testMatch: [
     "<rootDir>/**/__tests__/**/*.test.js",
     "<rootDir>/controllers/*.test.js",
+    "<rootDir>/models/*.test.js",
   ],
 
   // jest code coverage
