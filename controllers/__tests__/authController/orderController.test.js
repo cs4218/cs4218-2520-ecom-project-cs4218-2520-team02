@@ -2,6 +2,7 @@ import { describe, jest } from "@jest/globals";
 import { model } from "mongoose";
 import path from "path";
 import { fileURLToPath } from "url";
+await import("../../__mocks__/jest.mocks.js");
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

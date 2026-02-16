@@ -1,4 +1,5 @@
 import { jest } from "@jest/globals";
+await import("../../__mocks__/jest.mocks.js");
 
 const { default: categoryModel } =
   await import("../../../models/categoryModel.js");

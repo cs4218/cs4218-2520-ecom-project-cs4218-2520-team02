@@ -1,7 +1,7 @@
 import { jest } from "@jest/globals";
 
 // productModel mock
-await jest.unstable_mockModule("../models/productModel.js", () => {
+await jest.unstable_mockModule("../../../models/productModel.js", () => {
   const productModel = { find: jest.fn() };
 
   const constructor = jest.fn(function (doc) {
@@ -13,14 +13,14 @@ await jest.unstable_mockModule("../models/productModel.js", () => {
 });
 
 // categoryModel mock
-await jest.unstable_mockModule("../models/categoryModel.js", () => ({
+await jest.unstable_mockModule("../../../models/categoryModel.js", () => ({
   default: {
     findOne: jest.fn(),
   },
 }));
 
 // orderModel mock
-await jest.unstable_mockModule("../models/orderModel.js", () => {
+await jest.unstable_mockModule("../../../models/orderModel.js", () => {
   const Model = jest.fn(function (doc) {
     Object.assign(this, doc);
     this.save = jest.fn();
