@@ -1,5 +1,4 @@
 import { jest } from "@jest/globals";
-import {afterEach} from "node:test";
 
 // =============== Mocks ===============
 const testProduct = {
