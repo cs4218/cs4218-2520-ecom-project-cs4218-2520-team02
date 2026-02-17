@@ -1,4 +1,4 @@
-import {describe, jest} from "@jest/globals";
+import { jest } from "@jest/globals";
 
 // =============== Mocks ===============
 const testProducts = [
@@ -40,7 +40,7 @@ const testProducts = [
     }
 ]
 
-jest.unstable_mockModule("../../../models/productModel.js", () => ({
+await jest.unstable_mockModule("../../../models/productModel.js", () => ({
     default: {
         find: jest.fn(),
     },
@@ -131,7 +131,7 @@ describe("getProductController", () => {
                 {
                     success: true,
                     countTotal: 2,
-                    message: "All products retrieved successfully.",
+                    message: "All products retrieved successfully",
                     products: testProducts,
                 }
             );
