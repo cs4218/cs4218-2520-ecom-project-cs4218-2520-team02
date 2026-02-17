@@ -123,7 +123,55 @@ describe("getProductController", () => {
     describe("When no slug is provided", () => {
         test("should return 400", async () => {
             await getSingleProductController({
+                params: {},
+            }, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.send).toHaveBeenCalledWith(
+                {
+                    success: false,
+                    message: "Product slug is required",
+                }
+            );
+        })
+    })
+
+    describe("When slug provided is null", () => {
+        test("should return 400", async () => {
+            await getSingleProductController({
+                params: { slug: null },
+            }, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.send).toHaveBeenCalledWith(
+                {
+                    success: false,
+                    message: "Product slug is required",
+                }
+            );
+        })
+    })
+
+    describe("When slug provided is empty", () => {
+        test("should return 400", async () => {
+            await getSingleProductController({
                 params: { slug: "" },
+            }, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.send).toHaveBeenCalledWith(
+                {
+                    success: false,
+                    message: "Product slug is required",
+                }
+            );
+        })
+    })
+
+    describe("When slug provided contains only whitespaces", () => {
+        test("should return 400", async () => {
+            await getSingleProductController({
+                params: { slug: "      " },
             }, res);
 
             expect(res.status).toHaveBeenCalledWith(400);
