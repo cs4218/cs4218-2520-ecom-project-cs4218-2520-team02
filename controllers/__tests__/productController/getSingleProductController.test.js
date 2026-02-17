@@ -62,7 +62,7 @@ describe("getSingleProductController", () => {
         console.log.mockRestore();
     })
 
-    describe("When product slug provided exist", () => {
+    describe("When provided product slug exists", () => {
         test("should return 200 with product", async () => {
             mockFindOneChain(testProduct);
 
