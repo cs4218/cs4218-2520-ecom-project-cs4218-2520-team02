@@ -137,4 +137,19 @@ describe("getProductController", () => {
             );
         })
     })
+
+    describe("When there is a database error", () => {
+        test("should return 500 with an error message", async () => {
+            mockFindChain(new Error("DB error"), true);
+
+            await getProductController({}, res);
+
+            expect(res.status).toHaveBeenCalledWith(500);
+            expect(res.send).toHaveBeenCalledWith({
+                success: false,
+                message: "Error in getting products",
+                error: "DB error",
+            });
+        })
+    })
 })
