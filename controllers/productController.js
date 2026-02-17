@@ -95,14 +95,16 @@ export const getProductController = async (req, res) => {
 // get single product
 export const getSingleProductController = async (req, res) => {
   try {
-    const slug = req.params.slug?.trim();
+    const raw = req.params?.slug;
 
-    if (!slug) {
+    if (typeof raw !== "string" || raw.trim().length === 0) {
       return res.status(400).send({
         success: false,
         message: "Product slug is required",
       });
     }
+
+    const slug = raw.trim();
 
     const product = await productModel
       .findOne({ slug: slug })

@@ -184,6 +184,22 @@ describe("getSingleProductController", () => {
         })
     })
 
+    describe("When slug provided is not string", () => {
+        test("should return 400", async () => {
+            await getSingleProductController({
+                params: { slug: 999 },
+            }, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.send).toHaveBeenCalledWith(
+                {
+                    success: false,
+                    message: "Product slug is required",
+                }
+            );
+        })
+    })
+
     describe("When there is a database error", () => {
         test("should return 500 with an error message", async () => {
             mockFindOneChain(new Error("DB error"), true);
