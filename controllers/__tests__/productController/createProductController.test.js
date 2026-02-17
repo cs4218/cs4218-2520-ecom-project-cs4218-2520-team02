@@ -214,7 +214,7 @@ describe("createProductController", () => {
     })
 
     describe("when creating a product with photo above 1MB", () => {
-        test("should return 500", async () => {
+        test("should return 400", async () => {
             const req = baseReq();
             req.files.photo = {
                 size: 1000001,
@@ -224,23 +224,23 @@ describe("createProductController", () => {
 
             await createProductController(req, res);
 
-            expect(res.status).toHaveBeenCalledWith(500);
+            expect(res.status).toHaveBeenCalledWith(400);
             expect(res.send).toHaveBeenCalledWith(
                 {
-                    error: "photo should be 1MB or less",
+                    error: "Photo size should be 1MB or less",
                 }
             );
         });
     })
 
     describe("when creating product without name", () => {
-        test("should return 500", async () => {
+        test("should return 400", async () => {
             const req = baseReq();
             delete req.fields.name;
 
             await createProductController(req, res);
 
-            expect(res.status).toHaveBeenCalledWith(500);
+            expect(res.status).toHaveBeenCalledWith(400);
             expect(res.send).toHaveBeenCalledWith(
                 {
                     error: "Name is Required",
@@ -250,13 +250,13 @@ describe("createProductController", () => {
     })
 
     describe("when creating product with null name", () => {
-        test("should return 500", async () => {
+        test("should return 400", async () => {
             const req = baseReq();
             req.fields.name = null;
 
             await createProductController(req, res);
 
-            expect(res.status).toHaveBeenCalledWith(500);
+            expect(res.status).toHaveBeenCalledWith(400);
             expect(res.send).toHaveBeenCalledWith(
                 {
                     error: "Name is Required",
@@ -266,13 +266,13 @@ describe("createProductController", () => {
     })
 
     describe("when creating product with empty name", () => {
-        test("should return 500", async () => {
+        test("should return 400", async () => {
             const req = baseReq();
             req.fields.name = "";
 
             await createProductController(req, res);
 
-            expect(res.status).toHaveBeenCalledWith(500);
+            expect(res.status).toHaveBeenCalledWith(400);
             expect(res.send).toHaveBeenCalledWith(
                 {
                     error: "Name is Required",
@@ -282,13 +282,13 @@ describe("createProductController", () => {
     })
 
     describe("when creating product with name containing only whitespaces", () => {
-        test("should return 500", async () => {
+        test("should return 400", async () => {
             const req = baseReq();
             req.fields.name = " ";
 
             await createProductController(req, res);
 
-            expect(res.status).toHaveBeenCalledWith(500);
+            expect(res.status).toHaveBeenCalledWith(400);
             expect(res.send).toHaveBeenCalledWith(
                 {
                     error: "Name is Required",
@@ -298,13 +298,13 @@ describe("createProductController", () => {
     })
 
     describe("when creating product without description", () => {
-        test("should return 500", async () => {
+        test("should return 400", async () => {
             const req = baseReq();
             delete req.fields.description;
 
             await createProductController(req, res);
 
-            expect(res.status).toHaveBeenCalledWith(500);
+            expect(res.status).toHaveBeenCalledWith(400);
             expect(res.send).toHaveBeenCalledWith(
                 {
                     error: "Description is Required",
@@ -314,13 +314,13 @@ describe("createProductController", () => {
     })
 
     describe("when creating product without price", () => {
-        test("should return 500", async () => {
+        test("should return 400", async () => {
             const req = baseReq();
             delete req.fields.price;
 
             await createProductController(req, res);
 
-            expect(res.status).toHaveBeenCalledWith(500);
+            expect(res.status).toHaveBeenCalledWith(400);
             expect(res.send).toHaveBeenCalledWith(
                 {
                     error: "Price is Required",
@@ -330,13 +330,13 @@ describe("createProductController", () => {
     })
 
     describe("when creating product without category", () => {
-        test("should return 500", async () => {
+        test("should return 400", async () => {
             const req = baseReq();
             delete req.fields.category;
 
             await createProductController(req, res);
 
-            expect(res.status).toHaveBeenCalledWith(500);
+            expect(res.status).toHaveBeenCalledWith(400);
             expect(res.send).toHaveBeenCalledWith(
                 {
                     error: "Category is Required",
@@ -346,13 +346,13 @@ describe("createProductController", () => {
     })
 
     describe("when creating product without quantity", () => {
-        test("should return 500", async () => {
+        test("should return 400", async () => {
             const req = baseReq();
             delete req.fields.quantity;
 
             await createProductController(req, res);
 
-            expect(res.status).toHaveBeenCalledWith(500);
+            expect(res.status).toHaveBeenCalledWith(400);
             expect(res.send).toHaveBeenCalledWith(
                 {
                     error: "Quantity is Required",
