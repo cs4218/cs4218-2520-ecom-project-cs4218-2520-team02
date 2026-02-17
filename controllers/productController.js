@@ -29,22 +29,28 @@ export const createProductController = async (req, res) => {
     let { name, description, price, category, quantity, shipping } =
       req.fields;
     const { photo } = req.files;
+
+    // Normalize strings
+    name = name?.trim();
+    description = description?.trim();
+    category = category?.trim();
+
     // Validation
     switch (true) {
-      case !name || !name.trim():
-        return res.status(500).send({ error: "Name is Required" });
-      case !description || !description.trim():
-        return res.status(500).send({ error: "Description is Required" });
+      case !name:
+        return res.status(400).send({ error: "Name is Required" });
+      case !description:
+        return res.status(400).send({ error: "Description is Required" });
       case !price:
-        return res.status(500).send({ error: "Price is Required" });
-      case !category || !category.trim():
-        return res.status(500).send({ error: "Category is Required" });
+        return res.status(400).send({ error: "Price is Required" });
+      case !category:
+        return res.status(400).send({ error: "Category is Required" });
       case !quantity:
-        return res.status(500).send({ error: "Quantity is Required" });
+        return res.status(400).send({ error: "Quantity is Required" });
       case photo && photo.size > 1000000:
         return res
-          .status(500)
-          .send({ error: "photo should be 1MB or less" });
+          .status(400)
+          .send({ error: "Photo size should be 1MB or less" });
     }
 
     const products = new productModel({ ...req.fields, slug: slugify(name) });
