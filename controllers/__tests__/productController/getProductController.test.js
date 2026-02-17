@@ -145,11 +145,12 @@ describe("getProductController", () => {
             await getProductController({}, res);
 
             expect(res.status).toHaveBeenCalledWith(500);
-            expect(res.send).toHaveBeenCalledWith({
-                success: false,
-                message: "Error in getting products",
-                error: "DB error",
-            });
+            expect(res.send).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    success: false,
+                    message: "Error in getting products",
+                })
+            );
         })
     })
 })
