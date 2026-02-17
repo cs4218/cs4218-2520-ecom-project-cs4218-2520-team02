@@ -24,17 +24,17 @@ const productModelMock = jest.fn(function (data) {
     return this;
 });
 
-jest.unstable_mockModule("../../../models/productModel.js", () => ({
+await jest.unstable_mockModule("../../../models/productModel.js", () => ({
     default: productModelMock,
 }));
 
-jest.unstable_mockModule("fs", () => ({
+await jest.unstable_mockModule("fs", () => ({
     default: {
         readFileSync: jest.fn(() => testPhotoBytes),
     },
 }));
 
-jest.unstable_mockModule("slugify", () => ({
+await jest.unstable_mockModule("slugify", () => ({
     default: jest.fn(() => "test-product"),
 }));
 
