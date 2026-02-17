@@ -47,7 +47,7 @@ const mockFindOneChain = (resolvedValue, shouldReject = false) => {
 };
 
 // =============== Tests ===============
-describe("getProductController", () => {
+describe("getSingleProductController", () => {
     let res;
 
     beforeEach(() => {
@@ -104,7 +104,7 @@ describe("getProductController", () => {
 
     describe("When product slug provided does not exist", () => {
         test("should return 404", async () => {
-            mockFindOneChain(null, );
+            mockFindOneChain(null);
 
             await getSingleProductController({
                 params: { slug: "non-existent-product" },
@@ -188,7 +188,9 @@ describe("getProductController", () => {
         test("should return 500 with an error message", async () => {
             mockFindOneChain(new Error("DB error"), true);
 
-            await getSingleProductController({}, res);
+            await getSingleProductController({
+                params: { slug: "test-product" },
+            }, res);
 
             expect(res.status).toHaveBeenCalledWith(500);
             expect(res.send).toHaveBeenCalledWith(
