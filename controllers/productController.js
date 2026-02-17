@@ -95,10 +95,27 @@ export const getProductController = async (req, res) => {
 // get single product
 export const getSingleProductController = async (req, res) => {
   try {
+    const slug = req.params.slug?.trim();
+
+    if (!slug) {
+      return res.status(400).send({
+        success: false,
+        message: "Product slug is required",
+      });
+    }
+
     const product = await productModel
-      .findOne({ slug: req.params.slug })
+      .findOne({ slug: slug })
       .select("-photo")
       .populate("category");
+
+    if (!product) {
+      return res.status(404).send({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
     res.status(200).send({
       success: true,
       message: "Single Product Fetched",
