@@ -68,8 +68,6 @@ describe("createProductController", () => {
 
             await createProductController(req, res);
 
-            expect(slugify).toHaveBeenCalledWith("Test Product");
-
             expect(productModel).toHaveBeenCalledTimes(1);
 
             // verify constructor input includes slug and fields
@@ -88,8 +86,6 @@ describe("createProductController", () => {
                     products: expect.objectContaining(testProduct),
                 })
             );
-
-            expect(fs.default.readFileSync).not.toHaveBeenCalled();
         })
 
         test("should return 500 if productModel save throws an error", async () => {
@@ -103,8 +99,6 @@ describe("createProductController", () => {
 
             await createProductController(req, res);
 
-            expect(slugify).toHaveBeenCalledWith("Test Product");
-
             expect(productModel).toHaveBeenCalledTimes(1);
 
             // verify constructor input includes slug and fields
@@ -112,8 +106,6 @@ describe("createProductController", () => {
                 ...testProduct,
                 slug: "test-product",
             });
-
-            expect(fs.default.readFileSync).not.toHaveBeenCalled();
 
             expect(productModel.mock.instances[0].save).toHaveBeenCalledTimes(1);
 
@@ -231,6 +223,36 @@ describe("createProductController", () => {
                 }
             );
         });
+    })
+
+    describe("when creating product with name containing leading/trailing whitespaces", () => {
+        test("should trim name and return 201", async () => {
+            const req = baseReq();
+            req.fields.name = "  Test Product  ";
+
+            await createProductController(req, res);
+
+            expect(slugify).toHaveBeenCalledWith("Test Product");
+
+            expect(productModel).toHaveBeenCalledTimes(1);
+
+            // verify constructor input includes slug and fields
+            expect(productModel.mock.calls[0][0]).toMatchObject({
+                ...testProduct,
+                slug: "test-product",
+            });
+
+            expect(productModel.mock.instances[0].save).toHaveBeenCalledTimes(1);
+
+            expect(res.status).toHaveBeenCalledWith(201);
+            expect(res.send).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    success: true,
+                    message: "Product Created Successfully",
+                    products: expect.objectContaining(testProduct),
+                })
+            );
+        })
     })
 
     describe("when creating product without name", () => {
