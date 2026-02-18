@@ -95,6 +95,7 @@ const HomePage = () => {
   }, [checked.length, page, radio.length]);
 
   useEffect(() => {
+    // Get filtered products
     const filterProduct = async () => {
       try {
         const { data } = await axios.post("/api/v1/product/product-filters", {
@@ -111,7 +112,11 @@ const HomePage = () => {
     if (checked.length || radio.length) filterProduct();
   }, [checked, radio]);
 
-  //get filterd product
+  const resetFilters = async () => {
+    setChecked([]);
+    setRadio([]);
+    setPage(1);
+  };
 
   return (
     <Layout title={"ALL Products - Best offers "}>
@@ -130,6 +135,7 @@ const HomePage = () => {
             {categories?.map((c) => (
               <Checkbox
                 key={c._id}
+                checked={checked.includes(c._id)}
                 onChange={(e) => handleFilter(e.target.checked, c._id)}
               >
                 {c.name}
@@ -139,7 +145,7 @@ const HomePage = () => {
           {/* price filter */}
           <h4 className="text-center mt-4">Filter By Price</h4>
           <div className="d-flex flex-column">
-            <Radio.Group onChange={(e) => setRadio(e.target.value)}>
+            <Radio.Group value={radio} onChange={(e) => setRadio(e.target.value)}>
               {Prices?.map((p) => (
                 <div key={p._id}>
                   <Radio value={p.array}>{p.name}</Radio>
@@ -150,7 +156,7 @@ const HomePage = () => {
           <div className="d-flex flex-column">
             <button
               className="btn btn-danger"
-              onClick={() => window.location.reload()}
+              onClick={resetFilters}
             >
               RESET FILTERS
             </button>
