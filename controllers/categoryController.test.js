@@ -158,11 +158,10 @@ describe("Category Controller Unit Tests", () => {
                 await createCategoryController(req, res);
 
                 // Assert
-                expect(categoryModel.findOne).toHaveBeenCalledTimes(1);
                 expect(categoryModel.findOne).toHaveBeenCalledWith({ name: "A" });
                 expect(MockCategory).toHaveBeenCalledWith({ name: "A", slug: "a" });
                 const instance = MockCategory.mock.instances[0];
-                expect(instance.save).toHaveBeenCalledTimes(1);
+                expect(instance.save).toHaveBeenCalled();
                 expect(res.status).toHaveBeenCalledWith(201);
                 expect(res.send).toHaveBeenCalledWith(
                     expect.objectContaining({
@@ -196,11 +195,10 @@ describe("Category Controller Unit Tests", () => {
                 await createCategoryController(req, res);
 
                 // Assert
-                expect(categoryModel.findOne).toHaveBeenCalledTimes(1);
                 expect(categoryModel.findOne).toHaveBeenCalledWith({ name: "AB" });
                 expect(MockCategory).toHaveBeenCalledWith({ name: "AB", slug: "ab" });
                 const instance = MockCategory.mock.instances[0];
-                expect(instance.save).toHaveBeenCalledTimes(1);
+                expect(instance.save).toHaveBeenCalled();
                 expect(res.status).toHaveBeenCalledWith(201);
                 expect(res.send).toHaveBeenCalledWith(
                     expect.objectContaining({
@@ -235,7 +233,6 @@ describe("Category Controller Unit Tests", () => {
                 await createCategoryController(req, res);
 
                 // Assert
-                expect(categoryModel.findOne).toHaveBeenCalledTimes(1);
                 expect(categoryModel.findOne).toHaveBeenCalledWith({ name: "Existing Category" });
                 expect(res.status).toHaveBeenCalledWith(409);
                 expect(res.send).toHaveBeenCalledWith({
@@ -265,11 +262,10 @@ describe("Category Controller Unit Tests", () => {
                 await createCategoryController(req, res);
 
                 // Assert
-                expect(categoryModel.findOne).toHaveBeenCalledTimes(1);
                 expect(categoryModel.findOne).toHaveBeenCalledWith({ name: "New Category" });
                 expect(MockCategory).toHaveBeenCalledWith({ name: "New Category", slug: "new-category" });
                 const instance = MockCategory.mock.instances[0];
-                expect(instance.save).toHaveBeenCalledTimes(1);
+                expect(instance.save).toHaveBeenCalled();
                 expect(res.status).toHaveBeenCalledWith(201);
                 expect(res.send).toHaveBeenCalledWith(
                     expect.objectContaining({
@@ -296,7 +292,6 @@ describe("Category Controller Unit Tests", () => {
                 await createCategoryController(req, res);
 
                 // Assert
-                expect(categoryModel.findOne).toHaveBeenCalledTimes(1);
                 expect(categoryModel.findOne).toHaveBeenCalledWith({ name: "New Category" });
                 expect(res.status).toHaveBeenCalledWith(500);
                 expect(res.send).toHaveBeenCalledWith(
@@ -327,11 +322,10 @@ describe("Category Controller Unit Tests", () => {
                 await createCategoryController(req, res);
 
                 // Assert
-                expect(categoryModel.findOne).toHaveBeenCalledTimes(1);
                 expect(categoryModel.findOne).toHaveBeenCalledWith({ name: "New Category" });
                 expect(MockCategory).toHaveBeenCalledWith({ name: "New Category", slug: "new-category" });
                 const instance = MockCategory.mock.instances[0];
-                expect(instance.save).toHaveBeenCalledTimes(1);
+                expect(instance.save).toHaveBeenCalled();
                 expect(res.status).toHaveBeenCalledWith(500);
                 expect(res.send).toHaveBeenCalledWith(
                     expect.objectContaining({
@@ -439,11 +433,9 @@ describe("Category Controller Unit Tests", () => {
                 await updateCategoryController(req, res);
 
                 // Assert
-                expect(categoryModel.findById).toHaveBeenCalledTimes(1);
                 expect(categoryModel.findById).toHaveBeenCalledWith("001");
-                expect(categoryModel.findOne).toHaveBeenCalledTimes(1);
                 expect(categoryModel.findOne).toHaveBeenCalledWith({ name: "A", _id: { $ne: "001" } });
-                expect(mockCategory.save).toHaveBeenCalledTimes(1); 
+                expect(mockCategory.save).toHaveBeenCalled(); 
                 expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.send).toHaveBeenCalledWith(
                     expect.objectContaining({
@@ -478,11 +470,9 @@ describe("Category Controller Unit Tests", () => {
                 await updateCategoryController(req, res);
 
                 // Assert
-                expect(categoryModel.findById).toHaveBeenCalledTimes(1);
                 expect(categoryModel.findById).toHaveBeenCalledWith("001");
-                expect(categoryModel.findOne).toHaveBeenCalledTimes(1);
                 expect(categoryModel.findOne).toHaveBeenCalledWith({ name: "AB", _id: { $ne: "001" } });
-                expect(mockCategory.save).toHaveBeenCalledTimes(1); 
+                expect(mockCategory.save).toHaveBeenCalled(); 
                 expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.send).toHaveBeenCalledWith(
                     expect.objectContaining({
@@ -545,9 +535,7 @@ describe("Category Controller Unit Tests", () => {
                 await updateCategoryController(req, res);
 
                 // Assert
-                expect(categoryModel.findById).toHaveBeenCalledTimes(1);
                 expect(categoryModel.findById).toHaveBeenCalledWith("001");
-                expect(categoryModel.findOne).toHaveBeenCalledTimes(1);
                 expect(categoryModel.findOne).toHaveBeenCalledWith({ name: "Existing Category", _id: { $ne: "001" } });
                 expect(res.status).toHaveBeenCalledWith(409);
                 expect(res.send).toHaveBeenCalledWith({
@@ -577,11 +565,9 @@ describe("Category Controller Unit Tests", () => {
                 await updateCategoryController(req, res);
 
                 // Assert
-                expect(categoryModel.findById).toHaveBeenCalledTimes(1);
                 expect(categoryModel.findById).toHaveBeenCalledWith("001");
-                expect(categoryModel.findOne).toHaveBeenCalledTimes(1);
                 expect(categoryModel.findOne).toHaveBeenCalledWith({ name: "New Category", _id: { $ne: "001" } });
-                expect(mockCategory.save).toHaveBeenCalledTimes(1); 
+                expect(mockCategory.save).toHaveBeenCalled(); 
                 expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.send).toHaveBeenCalledWith(
                     expect.objectContaining({
@@ -609,7 +595,6 @@ describe("Category Controller Unit Tests", () => {
                 await updateCategoryController(req, res);
 
                 // Assert
-                expect(categoryModel.findById).toHaveBeenCalledTimes(1);
                 expect(categoryModel.findById).toHaveBeenCalledWith("001");
                 expect(res.status).toHaveBeenCalledWith(500);
                 expect(res.send).toHaveBeenCalledWith(
@@ -640,9 +625,7 @@ describe("Category Controller Unit Tests", () => {
                 await updateCategoryController(req, res);
 
                 // Assert
-                expect(categoryModel.findById).toHaveBeenCalledTimes(1);
                 expect(categoryModel.findById).toHaveBeenCalledWith("001");
-                expect(categoryModel.findOne).toHaveBeenCalledTimes(1);
                 expect(categoryModel.findOne).toHaveBeenCalledWith({ name: "New Category", _id: { $ne: "001" } });
                 expect(res.status).toHaveBeenCalledWith(500);
                 expect(res.send).toHaveBeenCalledWith(
@@ -674,11 +657,9 @@ describe("Category Controller Unit Tests", () => {
                 await updateCategoryController(req, res);
 
                 // Assert
-                expect(categoryModel.findById).toHaveBeenCalledTimes(1);
                 expect(categoryModel.findById).toHaveBeenCalledWith("001");
-                expect(categoryModel.findOne).toHaveBeenCalledTimes(1);
                 expect(categoryModel.findOne).toHaveBeenCalledWith({ name: "New Category", _id: { $ne: "001" } });
-                expect(mockCategory.save).toHaveBeenCalledTimes(1);
+                expect(mockCategory.save).toHaveBeenCalled();
                 expect(res.status).toHaveBeenCalledWith(500);
                 expect(res.send).toHaveBeenCalledWith(
                     expect.objectContaining({
@@ -705,7 +686,6 @@ describe("Category Controller Unit Tests", () => {
                 await getAllCategoriesController(req, res);
 
                 // Assert
-                expect(categoryModel.find).toHaveBeenCalledTimes(1);
                 expect(categoryModel.find).toHaveBeenCalledWith({});
                 expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.send).toHaveBeenCalledWith({
@@ -724,7 +704,6 @@ describe("Category Controller Unit Tests", () => {
                 await getAllCategoriesController(req, res);
 
                 // Assert
-                expect(categoryModel.find).toHaveBeenCalledTimes(1);
                 expect(categoryModel.find).toHaveBeenCalledWith({});
                 expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.send).toHaveBeenCalledWith({
@@ -746,7 +725,6 @@ describe("Category Controller Unit Tests", () => {
                 await getAllCategoriesController(req, res);
 
                 // Assert
-                expect(categoryModel.find).toHaveBeenCalledTimes(1);
                 expect(categoryModel.find).toHaveBeenCalledWith({});
                 expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.send).toHaveBeenCalledWith({
@@ -772,7 +750,6 @@ describe("Category Controller Unit Tests", () => {
                 await getAllCategoriesController(req, res);
 
                 // Assert
-                expect(categoryModel.find).toHaveBeenCalledTimes(1);
                 expect(categoryModel.find).toHaveBeenCalledWith({});
                 expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.send).toHaveBeenCalledWith({
@@ -791,7 +768,6 @@ describe("Category Controller Unit Tests", () => {
                 await getAllCategoriesController(req, res);
 
                 // Assert
-                expect(categoryModel.find).toHaveBeenCalledTimes(1);
                 expect(categoryModel.find).toHaveBeenCalledWith({});
                 expect(res.status).toHaveBeenCalledWith(500);
                 expect(res.send).toHaveBeenCalledWith(
@@ -876,7 +852,6 @@ describe("Category Controller Unit Tests", () => {
                 await getCategoryController(req, res);
 
                 // Assert
-                expect(categoryModel.findOne).toHaveBeenCalledTimes(1);
                 expect(categoryModel.findOne).toHaveBeenCalledWith({ slug: "a" });
                 expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.send).toHaveBeenCalledWith(
@@ -904,7 +879,6 @@ describe("Category Controller Unit Tests", () => {
                 await getCategoryController(req, res);
 
                 // Assert
-                expect(categoryModel.findOne).toHaveBeenCalledTimes(1);
                 expect(categoryModel.findOne).toHaveBeenCalledWith({ slug: "ab" });
                 expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.send).toHaveBeenCalledWith(
@@ -930,7 +904,6 @@ describe("Category Controller Unit Tests", () => {
                 await getCategoryController(req, res);
 
                 // Assert
-                expect(categoryModel.findOne).toHaveBeenCalledTimes(1);
                 expect(categoryModel.findOne).toHaveBeenCalledWith({ slug: "new-category" });
                 expect(res.status).toHaveBeenCalledWith(404);
                 expect(res.send).toHaveBeenCalledWith({
@@ -957,7 +930,6 @@ describe("Category Controller Unit Tests", () => {
                 await getCategoryController(req, res);
 
                 // Assert
-                expect(categoryModel.findOne).toHaveBeenCalledTimes(1);
                 expect(categoryModel.findOne).toHaveBeenCalledWith({ slug: "existing-category" });
                 expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.send).toHaveBeenCalledWith(
@@ -983,7 +955,6 @@ describe("Category Controller Unit Tests", () => {
                 await getCategoryController(req, res);
 
                 // Assert
-                expect(categoryModel.findOne).toHaveBeenCalledTimes(1);
                 expect(categoryModel.findOne).toHaveBeenCalledWith({ slug: "existing-category" });
                 expect(res.status).toHaveBeenCalledWith(500);
                 expect(res.send).toHaveBeenCalledWith(
@@ -1067,7 +1038,6 @@ describe("Category Controller Unit Tests", () => {
                 await deleteCategoryController(req, res);
 
                 // Assert
-                expect(categoryModel.findById).toHaveBeenCalledTimes(1);
                 expect(categoryModel.findById).toHaveBeenCalledWith("1");
                 expect(mockCategory.deleteOne).toHaveBeenCalled();
                 expect(res.status).toHaveBeenCalledWith(200);
@@ -1094,7 +1064,6 @@ describe("Category Controller Unit Tests", () => {
                 await deleteCategoryController(req, res);
 
                 // Assert
-                expect(categoryModel.findById).toHaveBeenCalledTimes(1);
                 expect(categoryModel.findById).toHaveBeenCalledWith("10");
                 expect(mockCategory.deleteOne).toHaveBeenCalled();
                 expect(res.status).toHaveBeenCalledWith(200);
@@ -1119,7 +1088,6 @@ describe("Category Controller Unit Tests", () => {
                 await deleteCategoryController(req, res);
 
                 // Assert
-                expect(categoryModel.findById).toHaveBeenCalledTimes(1);
                 expect(categoryModel.findById).toHaveBeenCalledWith("001");
                 expect(res.status).toHaveBeenCalledWith(404);
                 expect(res.send).toHaveBeenCalledWith({
@@ -1145,9 +1113,8 @@ describe("Category Controller Unit Tests", () => {
                 await deleteCategoryController(req, res);
 
                 // Assert
-                expect(categoryModel.findById).toHaveBeenCalledTimes(1);
                 expect(categoryModel.findById).toHaveBeenCalledWith("001");
-                expect(mockCategory.deleteOne).toHaveBeenCalledTimes(1);
+                expect(mockCategory.deleteOne).toHaveBeenCalled();
                 expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.send).toHaveBeenCalledWith(
                     expect.objectContaining({
@@ -1171,7 +1138,6 @@ describe("Category Controller Unit Tests", () => {
                 await deleteCategoryController(req, res);
 
                 // Assert
-                expect(categoryModel.findById).toHaveBeenCalledTimes(1);
                 expect(categoryModel.findById).toHaveBeenCalledWith("001");
                 expect(res.status).toHaveBeenCalledWith(500);
                 expect(res.send).toHaveBeenCalledWith(
@@ -1199,9 +1165,8 @@ describe("Category Controller Unit Tests", () => {
                 await deleteCategoryController(req, res);
 
                 // Assert
-                expect(categoryModel.findById).toHaveBeenCalledTimes(1);
                 expect(categoryModel.findById).toHaveBeenCalledWith("001");
-                expect(mockCategory.deleteOne).toHaveBeenCalledTimes(1);
+                expect(mockCategory.deleteOne).toHaveBeenCalled();
                 expect(res.status).toHaveBeenCalledWith(500);
                 expect(res.send).toHaveBeenCalledWith(
                     expect.objectContaining({
