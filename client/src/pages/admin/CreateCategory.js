@@ -11,7 +11,7 @@ const CreateCategory = () => {
   const [visible, setVisible] = useState(false);
   const [selected, setSelected] = useState(null);
   const [updatedName, setUpdatedName] = useState("");
-  //handle Form
+  // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -30,7 +30,7 @@ const CreateCategory = () => {
     }
   };
 
-  //get all cat
+  // Get all categories
   const getAllCategory = async () => {
     try {
       const { data } = await axios.get("/api/v1/category/get-category");
@@ -47,7 +47,7 @@ const CreateCategory = () => {
     getAllCategory();
   }, []);
 
-  //update category
+  // Update category
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
@@ -68,7 +68,8 @@ const CreateCategory = () => {
       toast.error("Somtihing went wrong");
     }
   };
-  //delete category
+
+  // Delete category
   const handleDelete = async (pId) => {
     try {
       const { data } = await axios.delete(
@@ -85,6 +86,7 @@ const CreateCategory = () => {
       toast.error("Somtihing went wrong");
     }
   };
+  
   return (
     <Layout title={"Dashboard - Create Category"}>
       <div className="container-fluid m-3 p-3">
