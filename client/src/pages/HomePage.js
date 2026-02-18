@@ -20,7 +20,7 @@ const HomePage = () => {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  //get all cat
+  // Get all categories
   const getAllCategory = async () => {
     try {
       const { data } = await axios.get("/api/v1/category/get-category");
@@ -36,7 +36,7 @@ const HomePage = () => {
     getAllCategory();
   }, []);
 
-  //load more
+  // Load more products
   const loadMore = async () => {
     try {
       setLoading(true);
@@ -122,14 +122,15 @@ const HomePage = () => {
 
   return (
     <Layout title={"ALL Products - Best offers "}>
-      {/* banner image */}
+      {/* Banner Image */}
       <img
         src="/images/Virtual.png"
         className="banner-img"
         alt="bannerimage"
         width={"100%"}
       />
-      {/* banner image */}
+
+      {/* Products */}
       <div className="container-fluid row mt-3 home-page">
         <div className="col-md-3 filters">
           <h4 className="text-center">Filter By Category</h4>
@@ -226,7 +227,7 @@ const HomePage = () => {
                 ) : (
                   <>
                     {" "}
-                    Loadmore <AiOutlineReload />
+                    Load More <AiOutlineReload />
                   </>
                 )}
               </button>
