@@ -479,6 +479,36 @@ describe("createProductController", () => {
         });
     })
 
+    describe("when creating a product with a non-integer quantity", () => {
+        test("should return 400 when quantity is a float", async () => {
+            const req = baseReq();
+            req.fields.quantity = 10.90;
+
+            await createProductController(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.send).toHaveBeenCalledWith(
+                {
+                    error: "Quantity must be a valid non-negative integer",
+                }
+            );
+        });
+
+        test("should return 400 when quantity is a non-numeric string", async () => {
+            const req = baseReq();
+            req.fields.quantity = "test";
+
+            await createProductController(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.send).toHaveBeenCalledWith(
+                {
+                    error: "Quantity must be a valid non-negative integer",
+                }
+            );
+        });
+    })
+
     describe("when creating product without quantity", () => {
         test("should return 400", async () => {
             const req = baseReq();
