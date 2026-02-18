@@ -26,34 +26,51 @@ const getGateway = () => {
 
 export const createProductController = async (req, res) => {
   try {
-    let { name, description, price, category, quantity, shipping } =
-      req.fields;
+    const raw = req.fields;
     const { photo } = req.files;
 
-    // Normalize strings
-    name = name?.trim();
-    description = description?.trim();
-    category = category?.trim();
+    const name = raw.name?.trim();
+    const description = raw.description?.trim();
+    const category = raw.category?.trim();
+    const price = Number(raw.price);
+    const quantity = Number(raw.quantity);
+    const shipping = raw.shipping;
 
     // Validation
-    switch (true) {
-      case !name:
-        return res.status(400).send({ error: "Name is Required" });
-      case !description:
-        return res.status(400).send({ error: "Description is Required" });
-      case !price:
-        return res.status(400).send({ error: "Price is Required" });
-      case !category:
-        return res.status(400).send({ error: "Category is Required" });
-      case !quantity:
-        return res.status(400).send({ error: "Quantity is Required" });
-      case photo && photo.size > 1000000:
-        return res
-          .status(400)
-          .send({ error: "Photo size should be 1MB or less" });
+    if (!name) {
+      return res.status(400).send({ error: "Name is Required" });
     }
 
-    const products = new productModel({ ...req.fields, slug: slugify(name) });
+    if (!description) {
+      return res.status(400).send({ error: "Description is Required" });
+    }
+
+    if (raw.price === "" || Number.isNaN(price) || price < 0) {
+      return res.status(400).send({ error: "Price must be a valid non-negative number" });
+    }
+
+    if (!category) {
+      return res.status(400).send({ error: "Category is Required" });
+    }
+
+    if (raw.quantity === "" || !Number.isInteger(quantity) || quantity < 0) {
+      return res.status(400).send({ error: "Quantity must be a valid non-negative integer" });
+    }
+
+    if (photo && photo.size > 1000000) {
+      return res.status(400).send({ error: "Photo size should be 1MB or less" });
+    }
+
+    const products = new productModel({
+      name,
+      description,
+      price,
+      category,
+      quantity,
+      shipping,
+      slug: slugify(name),
+    });
+
     if (photo) {
       products.photo.data = fs.readFileSync(photo.path);
       products.photo.contentType = photo.type;
