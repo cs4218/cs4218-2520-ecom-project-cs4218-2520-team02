@@ -26,19 +26,15 @@ const getGateway = () => {
 
 export const createProductController = async (req, res) => {
   try {
-    const {
-      name: rawName,
-      description: rawDescription,
-      price,
-      category: rawCategory,
-      quantity,
-      shipping,
-    } = req.fields;
+    const raw = req.fields;
     const { photo } = req.files;
 
-    const name = rawName?.trim();
-    const description = rawDescription?.trim();
-    const category = rawCategory?.trim();
+    const name = raw.name?.trim();
+    const description = raw.description?.trim();
+    const category = raw.category?.trim();
+    const price = Number(raw.price);
+    const quantity = Number(raw.quantity);
+    const shipping = raw.shipping;
 
     // Validation
     switch (true) {
