@@ -8,16 +8,30 @@ const SearchInput = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const keyword = (values.keyword ?? "").trim();
+    if (!keyword) {
+      return;
+    }
+    
     try {
       const { data } = await axios.get(
-        `/api/v1/product/search/${values.keyword}`
+        `/api/v1/product/search/${values.keyword}`,
       );
-      setValues({ ...values, results: data });
+
+      const results = data?.results ?? [];
+
+      setValues({
+        ...values,
+        results: results,
+      });
+
       navigate("/search");
     } catch (error) {
       console.log(error);
     }
   };
+
   return (
     <div>
       <form className="d-flex" role="search" onSubmit={handleSubmit}>
