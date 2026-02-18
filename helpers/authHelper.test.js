@@ -3,14 +3,13 @@ import { hashPassword, comparePassword } from "./authHelper";
 import { jest, beforeEach } from "@jest/globals";
 
 describe("Auth Helper", () => {
-  // Suppress console log
-  jest.spyOn(console, "log").mockImplementation(() => {});
-
   describe("hashPassword", () => {
     const plainPassword = "password123";
 
     beforeEach(() => {
       jest.restoreAllMocks();
+      // Suppress console log
+      jest.spyOn(console, "log").mockImplementation(() => {});
     });
 
     it("should return hashed password", async () => {
@@ -79,6 +78,12 @@ describe("Auth Helper", () => {
   });
 
   describe("comparePassword", () => {
+    beforeEach(() => {
+      // Suppress console warn, error
+      jest.spyOn(console, "warn").mockImplementation(() => {});
+      jest.spyOn(console, "error").mockImplementation(() => {});
+    });
+
     let plainPassword = "password123";
     let hashedPassword = "hashedPassword";
     it("should return false if passwords not match", async () => {
