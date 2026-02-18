@@ -26,14 +26,19 @@ const getGateway = () => {
 
 export const createProductController = async (req, res) => {
   try {
-    let { name, description, price, category, quantity, shipping } =
-      req.fields;
+    const {
+      name: rawName,
+      description: rawDescription,
+      price,
+      category: rawCategory,
+      quantity,
+      shipping,
+    } = req.fields;
     const { photo } = req.files;
 
-    // Normalize strings
-    name = name?.trim();
-    description = description?.trim();
-    category = category?.trim();
+    const name = rawName?.trim();
+    const description = rawDescription?.trim();
+    const category = rawCategory?.trim();
 
     // Validation
     switch (true) {
@@ -53,7 +58,16 @@ export const createProductController = async (req, res) => {
           .send({ error: "Photo size should be 1MB or less" });
     }
 
-    const products = new productModel({ ...req.fields, slug: slugify(name) });
+    const products = new productModel({
+      name,
+      description,
+      price,
+      category,
+      quantity,
+      shipping,
+      slug: slugify(name),
+    });
+
     if (photo) {
       products.photo.data = fs.readFileSync(photo.path);
       products.photo.contentType = photo.type;

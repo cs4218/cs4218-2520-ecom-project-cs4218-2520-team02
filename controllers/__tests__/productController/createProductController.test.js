@@ -335,6 +335,34 @@ describe("createProductController", () => {
         });
     })
 
+    describe("when creating product with $0 price", () => {
+        test("should return 201", async () => {
+            const req = baseReq();
+            req.fields.price = 0;
+
+            await createProductController(req, res);
+
+            expect(productModel).toHaveBeenCalledTimes(1);
+
+            // verify constructor input includes slug and fields
+            expect(productModel.mock.calls[0][0]).toMatchObject({
+                ...testProduct,
+                slug: "test-product",
+            });
+
+            expect(productModel.mock.instances[0].save).toHaveBeenCalledTimes(1);
+
+            expect(res.status).toHaveBeenCalledWith(201);
+            expect(res.send).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    success: true,
+                    message: "Product Created Successfully",
+                    products: expect.objectContaining(testProduct),
+                })
+            );
+        });
+    })
+
     describe("when creating product without price", () => {
         test("should return 400", async () => {
             const req = baseReq();
@@ -363,6 +391,34 @@ describe("createProductController", () => {
                 {
                     error: "Category is Required",
                 }
+            );
+        });
+    })
+
+    describe("when creating product with 0 quantity", () => {
+        test("should return 201", async () => {
+            const req = baseReq();
+            req.fields.quantity = 0;
+
+            await createProductController(req, res);
+
+            expect(productModel).toHaveBeenCalledTimes(1);
+
+            // verify constructor input includes slug and fields
+            expect(productModel.mock.calls[0][0]).toMatchObject({
+                ...testProduct,
+                slug: "test-product",
+            });
+
+            expect(productModel.mock.instances[0].save).toHaveBeenCalledTimes(1);
+
+            expect(res.status).toHaveBeenCalledWith(201);
+            expect(res.send).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    success: true,
+                    message: "Product Created Successfully",
+                    products: expect.objectContaining(testProduct),
+                })
             );
         });
     })
