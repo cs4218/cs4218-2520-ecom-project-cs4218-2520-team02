@@ -25,7 +25,7 @@ const HomePage = () => {
     try {
       const { data } = await axios.get("/api/v1/category/get-category");
       if (data?.success) {
-        setCategories(data?.category);
+        setCategories(data?.categories);
       }
     } catch (error) {
       console.log(error);
@@ -49,7 +49,7 @@ const HomePage = () => {
     }
   };
 
-  //getTOtal COunt
+  //getTotal Count
   const getTotal = async () => {
     try {
       const { data } = await axios.get("/api/v1/product/product-count");
@@ -102,6 +102,8 @@ const HomePage = () => {
         radio,
       });
       setProducts(data?.products);
+      setTotal(data?.products.length);
+
     } catch (error) {
       console.log(error);
     }

@@ -126,7 +126,7 @@ export const getAllCategoriesController = async (req, res) => {
     res.status(500).send({
       success: false,
       error: error.message,
-      message: "Internal server error while retrieving all categories",
+      message: "Internal server error while retrieving all categories.",
     });
   }
 };
@@ -135,7 +135,7 @@ export const getAllCategoriesController = async (req, res) => {
 export const getCategoryController = async (req, res) => {
   try {
 
-    const slug = req.params.slug?.trim();
+    const slug = req.params.slug;
 
     // Validate that slug is supplied
     if (!slug) {

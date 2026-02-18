@@ -156,12 +156,10 @@ export const forgotPasswordController = async (req, res) => {
 
 //test controller
 export const testController = (req, res) => {
-  try {
-    res.send("Protected Routes");
-  } catch (error) {
-    console.log(error);
-    res.send({ error });
-  }
+  return res.status(200).send({
+    success: true,
+    message: "Protected Routes",
+  });
 };
 
 //update prfole
@@ -199,59 +197,103 @@ export const updateProfileController = async (req, res) => {
   }
 };
 
-//orders
+// Get a user's orders
 export const getOrdersController = async (req, res) => {
   try {
-    const orders = await orderModel
+    if (!req.user || !req.user._id) {
+      return res.status(401).send({
+        success: false,
+        message: "Not signed in",
+      });
+    }
+
+    const userOrder = await orderModel
       .find({ buyer: req.user._id })
       .populate("products", "-photo")
       .populate("buyer", "name");
-    res.json(orders);
+
+    return res.status(200).send({
+      success: true,
+      orders: userOrder,
+    });
   } catch (error) {
-    console.log(error);
-    res.status(500).send({
+    console.log("Error in retrieving user orders: ", error);
+    return res.status(500).send({
       success: false,
-      message: "Error WHile Geting Orders",
-      error,
+      message: "Error while getting orders",
+      error: error.message || "Unknown error",
     });
   }
 };
-//orders
+
+// Get all users orders
 export const getAllOrdersController = async (req, res) => {
   try {
     const orders = await orderModel
       .find({})
       .populate("products", "-photo")
       .populate("buyer", "name")
-      .sort({ createdAt: "-1" });
-    res.json(orders);
+      .sort({ createdAt: -1 });
+
+    return res.status(200).send({
+      success: true,
+      orders: orders,
+    });
+
   } catch (error) {
-    console.log(error);
-    res.status(500).send({
+    console.log("Error in retrieving all orders: ", error);
+    return res.status(500).send({
       success: false,
-      message: "Error WHile Geting Orders",
-      error,
+      message: "Error while getting orders",
+      error: error.message || "Unknown error",
     });
   }
 };
 
-//order status
-export const orderStatusController = async (req, res) => {
+// Update order status using orderId
+export const updateOrderStatusController = async (req, res) => {
   try {
     const { orderId } = req.params;
     const { status } = req.body;
-    const orders = await orderModel.findByIdAndUpdate(
+
+    if (!orderId) {
+      return res.status(400).send({
+        success: false,
+        message: "Order ID is required",
+      });
+    }
+
+    if (!status) {
+      return res.status(400).send({
+        success: false,
+        message: "Status is required",
+      });
+    }
+
+    const updatedOrder = await orderModel.findByIdAndUpdate(
       orderId,
       { status },
       { new: true }
     );
-    res.json(orders);
+
+    if (!updatedOrder) {
+      return res.status(404).send({
+        success: false,
+        message: "Order not found",
+      });
+    }
+
+    return res.status(200).send({
+      success: true,
+      message: "Order status updated",
+      order: updatedOrder,
+    });
   } catch (error) {
-    console.log(error);
-    res.status(500).send({
+    console.log("Error in updating order status: ", error);
+    return res.status(500).send({
       success: false,
-      message: "Error While Updateing Order",
-      error,
+      message: "Error while updating order status",
+      error: error.message || "Unknown error",
     });
   }
 };
