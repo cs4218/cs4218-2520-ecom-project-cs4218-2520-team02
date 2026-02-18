@@ -383,6 +383,22 @@ describe("createProductController", () => {
         });
     })
 
+    describe("when creating a product with a non-numeric price", () => {
+        test("should return 400", async () => {
+            const req = baseReq();
+            req.fields.price = "test";
+
+            await createProductController(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.send).toHaveBeenCalledWith(
+                {
+                    error: "Price must be a valid non-negative number",
+                }
+            );
+        });
+    })
+
     describe("when creating product without price", () => {
         test("should return 400", async () => {
             const req = baseReq();
