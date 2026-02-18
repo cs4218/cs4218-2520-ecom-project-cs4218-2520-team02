@@ -34,18 +34,7 @@ const HomePage = () => {
 
   useEffect(() => {
     getAllCategory();
-    getTotal();
   }, []);
-
-  //getTotal Count
-  const getTotal = async () => {
-    try {
-      const { data } = await axios.get("/api/v1/product/product-count");
-      setTotal(data?.total);
-    } catch (error) {
-      console.log(error);
-    }
-  };
 
   //load more
   const loadMore = async () => {
@@ -76,22 +65,35 @@ const HomePage = () => {
   };
 
   useEffect(() => {
-    // Get all products
+    // Get all products and update count
+    setLoading(true);
+
     const getAllProducts = async () => {
       try {
-        setLoading(true);
         const { data } = await axios.get(
           `/api/v1/product/product-list/${page}`,
         );
-        setLoading(false);
         setProducts(data.products);
       } catch (error) {
-        setLoading(false);
         console.log(error);
       }
     };
 
-    if (!checked.length && !radio.length) getAllProducts();
+    const getTotal = async () => {
+      try {
+        const { data } = await axios.get("/api/v1/product/product-count");
+        setTotal(data?.total);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    if (!checked.length && !radio.length) {
+      getAllProducts();
+      getTotal();
+    }
+
+    setLoading(false);
   }, [checked.length, page, radio.length]);
 
   useEffect(() => {
@@ -108,7 +110,7 @@ const HomePage = () => {
         console.log(error);
       }
     };
-    
+
     if (checked.length || radio.length) filterProduct();
   }, [checked, radio]);
 
@@ -145,7 +147,10 @@ const HomePage = () => {
           {/* price filter */}
           <h4 className="text-center mt-4">Filter By Price</h4>
           <div className="d-flex flex-column">
-            <Radio.Group value={radio} onChange={(e) => setRadio(e.target.value)}>
+            <Radio.Group
+              value={radio}
+              onChange={(e) => setRadio(e.target.value)}
+            >
               {Prices?.map((p) => (
                 <div key={p._id}>
                   <Radio value={p.array}>{p.name}</Radio>
@@ -154,10 +159,7 @@ const HomePage = () => {
             </Radio.Group>
           </div>
           <div className="d-flex flex-column">
-            <button
-              className="btn btn-danger"
-              onClick={resetFilters}
-            >
+            <button className="btn btn-danger" onClick={resetFilters}>
               RESET FILTERS
             </button>
           </div>
