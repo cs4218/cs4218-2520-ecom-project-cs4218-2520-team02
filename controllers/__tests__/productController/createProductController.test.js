@@ -347,6 +347,7 @@ describe("createProductController", () => {
             // verify constructor input includes slug and fields
             expect(productModel.mock.calls[0][0]).toMatchObject({
                 ...testProduct,
+                price: 0,
                 slug: "test-product",
             });
 
@@ -357,8 +358,27 @@ describe("createProductController", () => {
                 expect.objectContaining({
                     success: true,
                     message: "Product Created Successfully",
-                    products: expect.objectContaining(testProduct),
+                    products: expect.objectContaining({
+                        ...testProduct,
+                        price: 0,
+                    }),
                 })
+            );
+        });
+    })
+
+    describe("when creating product with negative price", () => {
+        test("should return 400", async () => {
+            const req = baseReq();
+            req.fields.price = -0.1;
+
+            await createProductController(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.send).toHaveBeenCalledWith(
+                {
+                    error: "Price must be a valid non-negative number",
+                }
             );
         });
     })
@@ -373,7 +393,23 @@ describe("createProductController", () => {
             expect(res.status).toHaveBeenCalledWith(400);
             expect(res.send).toHaveBeenCalledWith(
                 {
-                    error: "Price is Required",
+                    error: "Price must be a valid non-negative number",
+                }
+            );
+        });
+    })
+
+    describe("when creating product with empty price", () => {
+        test("should return 400", async () => {
+            const req = baseReq();
+            req.fields.price = "";
+
+            await createProductController(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.send).toHaveBeenCalledWith(
+                {
+                    error: "Price must be a valid non-negative number",
                 }
             );
         });
@@ -407,6 +443,7 @@ describe("createProductController", () => {
             // verify constructor input includes slug and fields
             expect(productModel.mock.calls[0][0]).toMatchObject({
                 ...testProduct,
+                quantity: 0,
                 slug: "test-product",
             });
 
@@ -417,8 +454,27 @@ describe("createProductController", () => {
                 expect.objectContaining({
                     success: true,
                     message: "Product Created Successfully",
-                    products: expect.objectContaining(testProduct),
+                    products: expect.objectContaining({
+                        ...testProduct,
+                        quantity: 0,
+                    }),
                 })
+            );
+        });
+    })
+
+    describe("when creating product with negative quantity", () => {
+        test("should return 400", async () => {
+            const req = baseReq();
+            req.fields.quantity = -1;
+
+            await createProductController(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.send).toHaveBeenCalledWith(
+                {
+                    error: "Quantity must be a valid non-negative integer",
+                }
             );
         });
     })
@@ -433,7 +489,23 @@ describe("createProductController", () => {
             expect(res.status).toHaveBeenCalledWith(400);
             expect(res.send).toHaveBeenCalledWith(
                 {
-                    error: "Quantity is Required",
+                    error: "Quantity must be a valid non-negative integer",
+                }
+            );
+        });
+    })
+
+    describe("when creating product with empty quantity", () => {
+        test("should return 400", async () => {
+            const req = baseReq();
+            req.fields.quantity = "";
+
+            await createProductController(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.send).toHaveBeenCalledWith(
+                {
+                    error: "Quantity must be a valid non-negative integer",
                 }
             );
         });

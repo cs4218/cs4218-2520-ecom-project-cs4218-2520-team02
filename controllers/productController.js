@@ -37,21 +37,28 @@ export const createProductController = async (req, res) => {
     const shipping = raw.shipping;
 
     // Validation
-    switch (true) {
-      case !name:
-        return res.status(400).send({ error: "Name is Required" });
-      case !description:
-        return res.status(400).send({ error: "Description is Required" });
-      case !price:
-        return res.status(400).send({ error: "Price is Required" });
-      case !category:
-        return res.status(400).send({ error: "Category is Required" });
-      case !quantity:
-        return res.status(400).send({ error: "Quantity is Required" });
-      case photo && photo.size > 1000000:
-        return res
-          .status(400)
-          .send({ error: "Photo size should be 1MB or less" });
+    if (!name) {
+      return res.status(400).send({ error: "Name is Required" });
+    }
+
+    if (!description) {
+      return res.status(400).send({ error: "Description is Required" });
+    }
+
+    if (raw.price === "" || Number.isNaN(price) || price < 0) {
+      return res.status(400).send({ error: "Price must be a valid non-negative number" });
+    }
+
+    if (!category) {
+      return res.status(400).send({ error: "Category is Required" });
+    }
+
+    if (raw.quantity === "" || !Number.isInteger(quantity) || quantity < 0) {
+      return res.status(400).send({ error: "Quantity must be a valid non-negative integer" });
+    }
+
+    if (photo && photo.size > 1000000) {
+      return res.status(400).send({ error: "Photo size should be 1MB or less" });
     }
 
     const products = new productModel({
