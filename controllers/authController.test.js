@@ -49,6 +49,8 @@ describe("Auth Controller", () => {
       send: jest.fn().mockReturnThis(),
       json: jest.fn().mockReturnThis(),
     };
+    // Suppress console log
+    jest.spyOn(console, "log").mockImplementation(() => {});
   });
 
   describe("Register Controller", () => {
@@ -534,6 +536,50 @@ describe("Auth Controller", () => {
         {
           name: "New Name",
           password: "oldHashed", // Ensure password remains unchanged
+          phone: "1",
+          address: "Old Addr",
+        },
+        { new: true },
+      );
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith({
+        success: true,
+        message: "Profile Updated Successfully",
+        updatedUser,
+      });
+    });
+
+    it("should update profile with hashing when password is provided", async () => {
+      // Arrange
+      req = { body: { password: "newHashed" }, user: { _id: "1" } };
+      const existingUser = {
+        _id: "1",
+        name: "Old Name",
+        password: "oldHashed",
+        phone: "1",
+        address: "Old Addr",
+      };
+      const updatedUser = {
+        _id: "1",
+        name: "Old Name",
+        password: "newHashed",
+        phone: "1",
+        address: "Old Addr",
+      };
+      hashPassword.mockResolvedValue("newHashed");
+      userModel.findById.mockResolvedValue(existingUser);
+      userModel.findByIdAndUpdate.mockResolvedValue(updatedUser);
+
+      // Act
+      await updateProfileController(req, res);
+
+      // Assert
+      expect(userModel.findById).toHaveBeenCalledWith("1");
+      expect(userModel.findByIdAndUpdate).toHaveBeenCalledWith(
+        "1",
+        {
+          name: "Old Name",
+          password: "newHashed",
           phone: "1",
           address: "Old Addr",
         },

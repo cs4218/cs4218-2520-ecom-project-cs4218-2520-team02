@@ -106,7 +106,7 @@ describe("Category Controller Unit Tests", () => {
                 });
             });
 
-            it("should return 400 if name is empty string (Boundary: \"\") ", async () => {
+            it("should return 400 if name is empty string (Below Boundary: \"\") ", async () => {
                 
                 // Arrange
                 req.body.name = "";
@@ -122,7 +122,7 @@ describe("Category Controller Unit Tests", () => {
                 });
             });
 
-            it("should return 400 if name contains only whitespace (Boundary: \" \")", async () => {
+            it("should return 400 if name contains only whitespace (Below Boundary: \" \")", async () => {
                 
                 // Arrange
                 req.body.name = " ";
@@ -138,7 +138,7 @@ describe("Category Controller Unit Tests", () => {
                 });
             });
 
-            it("should create category if name is a single character (Boundary: 1 character)", async () => {
+            it("should create category if name is a single character (On Boundary: 1 character)", async () => {
                
                 // Arrange
                 req.body.name = "A";
@@ -171,6 +171,44 @@ describe("Category Controller Unit Tests", () => {
                         category: expect.objectContaining({
                             name: "A",
                             slug: "a",
+                        }),
+                    })
+                );
+            });
+
+            it("should create category if name is a two characters (Above Boundary: 2 character)", async () => {
+               
+                // Arrange
+                req.body.name = "AB";
+                categoryModel.findOne.mockResolvedValue(null);
+                slugify.mockReturnValue("ab");
+
+                // Mock constructor
+                const MockCategory = jest.fn(function (doc) {
+                    Object.assign(this, doc);
+                    this._id = "001";
+                    this.save = jest.fn().mockResolvedValue(this); // resolves to the instance itself
+                });
+
+                categoryModel.mockImplementation(MockCategory);
+
+                // Act
+                await createCategoryController(req, res);
+
+                // Assert
+                expect(categoryModel.findOne).toHaveBeenCalledTimes(1);
+                expect(categoryModel.findOne).toHaveBeenCalledWith({ name: "AB" });
+                expect(MockCategory).toHaveBeenCalledWith({ name: "AB", slug: "ab" });
+                const instance = MockCategory.mock.instances[0];
+                expect(instance.save).toHaveBeenCalledTimes(1);
+                expect(res.status).toHaveBeenCalledWith(201);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        success: true,
+                        message: "New category created successfully.",
+                        category: expect.objectContaining({
+                            name: "AB",
+                            slug: "ab",
                         }),
                     })
                 );
@@ -346,7 +384,7 @@ describe("Category Controller Unit Tests", () => {
                 });
             });
 
-            it("should return 400 if name is empty string (Boundary: \"\")", async () => {
+            it("should return 400 if name is empty string (Below Boundary: \"\")", async () => {
 
                 // Arrange
                 req.params.id = "001";
@@ -363,7 +401,7 @@ describe("Category Controller Unit Tests", () => {
                 });
             });
 
-            it("should return 400 if name contains only whitespace (Boundary: \" \")", async () => {
+            it("should return 400 if name contains only whitespace (Below Boundary: \" \")", async () => {
 
                 // Arrange
                 req.params.id = "001";
@@ -380,7 +418,7 @@ describe("Category Controller Unit Tests", () => {
                 });
             });
 
-            it("should update category if name is a single character (Boundary: 1 character)", async () => {
+            it("should update category if name is a single character (On Boundary: 1 character)", async () => {
 
                 // Arrange
                 req.params.id = "001";
@@ -419,6 +457,44 @@ describe("Category Controller Unit Tests", () => {
                 );
             });
 
+            it("should update category if name is a two characters (Above Boundary: 2 character)", async () => {
+
+                // Arrange
+                req.params.id = "001";
+                req.body.name = "AB";
+
+                const mockCategory = {
+                    _id: "001",
+                    name: "Old Category",
+                    slug: "old-category",
+                    save: jest.fn().mockResolvedValue(true),
+                };
+
+                categoryModel.findById.mockResolvedValue(mockCategory);
+                categoryModel.findOne.mockResolvedValue(null);
+                slugify.mockReturnValue("ab");
+
+                // Act
+                await updateCategoryController(req, res);
+
+                // Assert
+                expect(categoryModel.findById).toHaveBeenCalledTimes(1);
+                expect(categoryModel.findById).toHaveBeenCalledWith("001");
+                expect(categoryModel.findOne).toHaveBeenCalledTimes(1);
+                expect(categoryModel.findOne).toHaveBeenCalledWith({ name: "AB", _id: { $ne: "001" } });
+                expect(mockCategory.save).toHaveBeenCalledTimes(1); 
+                expect(res.status).toHaveBeenCalledWith(200);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        success: true,
+                        message: "Category updated successfully.",
+                        category: expect.objectContaining({
+                            name: "AB",
+                            slug: "ab",
+                        }),
+                    })
+                );
+            });
         });
 
         describe("Category Existence + Duplicate Category (EP)", () => {
@@ -443,7 +519,7 @@ describe("Category Controller Unit Tests", () => {
                 });
             });
 
-            it("should return 409 if category exists but new name is not unique (EP: category exists + duplicate name)", async () => {
+            it("should return 409 if new name is not unique (EP: category exists + duplicate name)", async () => {
                 
                 // Arrange
                 req.params.id = "001";
@@ -620,7 +696,7 @@ describe("Category Controller Unit Tests", () => {
         // Not required to be tested: arrays with a lot of items 
         describe("Category Count (BVA)", () => {
 
-            it("should retrieve an empty array if no categories exist (Boundary: 0 categories)", async () => {
+            it("should retrieve an empty array if no categories exist (Below Boundary: 0 categories)", async () => {
                 
                 // Arrange
                 categoryModel.find.mockResolvedValue([]);
@@ -639,9 +715,31 @@ describe("Category Controller Unit Tests", () => {
                 });
             });
 
-            it("should retrieve an array with one category (Boundary: 1 category)", async () => {
+            it("should retrieve an array with one category (On Boundary: 1 category)", async () => {
                 // Arrange
                 const mockCategories = [{ _id: "001", name: "Category A", slug: "category-a" }];
+                categoryModel.find.mockResolvedValue(mockCategories);
+
+                // Act
+                await getAllCategoriesController(req, res);
+
+                // Assert
+                expect(categoryModel.find).toHaveBeenCalledTimes(1);
+                expect(categoryModel.find).toHaveBeenCalledWith({});
+                expect(res.status).toHaveBeenCalledWith(200);
+                expect(res.send).toHaveBeenCalledWith({
+                    success: true,
+                    message: "All categories retrieved successfully.",
+                    categories: mockCategories,
+                });
+            });
+
+            it("should retrieve an array with two categories (Above Boundary: 2 categories)", async () => {
+                // Arrange
+                const mockCategories = [
+                    { _id: "001", name: "Category A", slug: "category-a" }, 
+                    { _id: "002", name: "Category B", slug: "category-b" }
+                ];
                 categoryModel.find.mockResolvedValue(mockCategories);
 
                 // Act
@@ -746,7 +844,7 @@ describe("Category Controller Unit Tests", () => {
             });
 
 
-            it("should return 400 if slug is empty string (Boundary: \"\")", async () => {
+            it("should return 400 if slug is empty string (Below Boundary: \"\")", async () => {
 
                 // Arrange
                 req.params.slug = "";
@@ -762,7 +860,7 @@ describe("Category Controller Unit Tests", () => {
                 });
             });
 
-            it("should retrieve a category that matches the slug, even if the slug is a single character (Boundary: 1 character)", async () => {
+            it("should retrieve a category that matches the slug, even if the slug is a single character (On Boundary: 1 character)", async () => {
                 
                 // Arrange
                 req.params.slug = "a";
@@ -780,6 +878,34 @@ describe("Category Controller Unit Tests", () => {
                 // Assert
                 expect(categoryModel.findOne).toHaveBeenCalledTimes(1);
                 expect(categoryModel.findOne).toHaveBeenCalledWith({ slug: "a" });
+                expect(res.status).toHaveBeenCalledWith(200);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        success: true,
+                        message: "Category retrieved successfully.",
+                        category: mockCategory,
+                    })
+                );
+            });
+
+            it("should retrieve a category that matches the slug, even if the slug is two characters (Above Boundary: 2 characters)", async () => {
+                
+                // Arrange
+                req.params.slug = "ab";
+
+                const mockCategory = {
+                    _id: "001",
+                    name: "AB",
+                    slug: "ab",
+                };
+                categoryModel.findOne.mockResolvedValue(mockCategory);
+
+                // Act
+                await getCategoryController(req, res);
+
+                // Assert
+                expect(categoryModel.findOne).toHaveBeenCalledTimes(1);
+                expect(categoryModel.findOne).toHaveBeenCalledWith({ slug: "ab" });
                 expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.send).toHaveBeenCalledWith(
                     expect.objectContaining({
@@ -910,7 +1036,7 @@ describe("Category Controller Unit Tests", () => {
                 });
             });
 
-            it("should return 400 if id is empty string (Boundary: \"\")", async () => {
+            it("should return 400 if id is empty string (Below Boundary: \"\")", async () => {
 
                 // Arrange
                 req.params.id = ""
@@ -926,12 +1052,12 @@ describe("Category Controller Unit Tests", () => {
                 });
             });
 
-            it("should delete category if id is valid (Boundary: 1 character)", async () => {
+            it("should delete category if 1 character id is valid (On Boundary: 1 character)", async () => {
                         
                 // Arrange
-                req.params.id = "001";
+                req.params.id = "1";
                 const mockCategory = {
-                    _id: "001",
+                    _id: "1",
                     name: "Existing Category",
                     deleteOne: jest.fn().mockResolvedValue(true),
                 };
@@ -942,7 +1068,34 @@ describe("Category Controller Unit Tests", () => {
 
                 // Assert
                 expect(categoryModel.findById).toHaveBeenCalledTimes(1);
-                expect(categoryModel.findById).toHaveBeenCalledWith("001");
+                expect(categoryModel.findById).toHaveBeenCalledWith("1");
+                expect(mockCategory.deleteOne).toHaveBeenCalled();
+                expect(res.status).toHaveBeenCalledWith(200);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        success: true,
+                        message: "Category deleted successfully.",
+                    })
+                );
+            });
+
+            it("should delete category if 2 character id is valid (Above Boundary: 2 character)", async () => {
+                        
+                // Arrange
+                req.params.id = "10";
+                const mockCategory = {
+                    _id: "10",
+                    name: "Existing Category",
+                    deleteOne: jest.fn().mockResolvedValue(true),
+                };
+                categoryModel.findById.mockResolvedValue(mockCategory);
+
+                // Act
+                await deleteCategoryController(req, res);
+
+                // Assert
+                expect(categoryModel.findById).toHaveBeenCalledTimes(1);
+                expect(categoryModel.findById).toHaveBeenCalledWith("10");
                 expect(mockCategory.deleteOne).toHaveBeenCalled();
                 expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.send).toHaveBeenCalledWith(
