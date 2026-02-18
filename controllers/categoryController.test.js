@@ -461,7 +461,7 @@ describe("Category Controller Unit Tests", () => {
 
                 // Arrange
                 req.params.id = "001";
-                req.body.name = "A";
+                req.body.name = "AB";
 
                 const mockCategory = {
                     _id: "001",
@@ -472,7 +472,7 @@ describe("Category Controller Unit Tests", () => {
 
                 categoryModel.findById.mockResolvedValue(mockCategory);
                 categoryModel.findOne.mockResolvedValue(null);
-                slugify.mockReturnValue("a");
+                slugify.mockReturnValue("ab");
 
                 // Act
                 await updateCategoryController(req, res);
@@ -481,7 +481,7 @@ describe("Category Controller Unit Tests", () => {
                 expect(categoryModel.findById).toHaveBeenCalledTimes(1);
                 expect(categoryModel.findById).toHaveBeenCalledWith("001");
                 expect(categoryModel.findOne).toHaveBeenCalledTimes(1);
-                expect(categoryModel.findOne).toHaveBeenCalledWith({ name: "A", _id: { $ne: "001" } });
+                expect(categoryModel.findOne).toHaveBeenCalledWith({ name: "AB", _id: { $ne: "001" } });
                 expect(mockCategory.save).toHaveBeenCalledTimes(1); 
                 expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.send).toHaveBeenCalledWith(
@@ -489,8 +489,8 @@ describe("Category Controller Unit Tests", () => {
                         success: true,
                         message: "Category updated successfully.",
                         category: expect.objectContaining({
-                            name: "A",
-                            slug: "a",
+                            name: "AB",
+                            slug: "ab",
                         }),
                     })
                 );
@@ -1084,7 +1084,7 @@ describe("Category Controller Unit Tests", () => {
                 // Arrange
                 req.params.id = "10";
                 const mockCategory = {
-                    _id: "100",
+                    _id: "10",
                     name: "Existing Category",
                     deleteOne: jest.fn().mockResolvedValue(true),
                 };
