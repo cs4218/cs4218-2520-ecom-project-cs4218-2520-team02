@@ -91,7 +91,7 @@ describe("Categories Page Unit Tests", () => {
     
     });
 
-    it("should render categories when hook returns 1 item array (Above Boundary: 1 items)", () => {
+    it("should render categories when hook returns 1 item array (On Boundary: 1 items)", () => {
       
       // Arrange
       useCategory.mockReturnValue([
