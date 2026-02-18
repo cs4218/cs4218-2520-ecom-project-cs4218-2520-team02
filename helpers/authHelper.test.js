@@ -32,7 +32,7 @@ describe("Auth Helper", () => {
         throw new Error("Error occurred");
       });
       const result = await hashPassword(plainPassword);
-      expect(result).toBeNull();
+      expect(result).toBeUndefined();
     });
   });
 
