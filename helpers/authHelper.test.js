@@ -3,6 +3,9 @@ import { hashPassword, comparePassword } from "./authHelper";
 import { jest, beforeEach } from "@jest/globals";
 
 describe("Auth Helper", () => {
+  // Suppress console log
+  jest.spyOn(console, "log").mockImplementation(() => {});
+
   describe("hashPassword", () => {
     const plainPassword = "password123";
 
