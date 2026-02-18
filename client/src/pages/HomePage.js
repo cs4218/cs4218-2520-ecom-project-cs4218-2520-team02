@@ -37,19 +37,6 @@ const HomePage = () => {
     getTotal();
   }, []);
 
-  //get products
-  const getAllProducts = async () => {
-    try {
-      setLoading(true);
-      const { data } = await axios.get(`/api/v1/product/product-list/${page}`);
-      setLoading(false);
-      setProducts(data.products);
-    } catch (error) {
-      setLoading(false);
-      console.log(error);
-    }
-  };
-
   //getTotal Count
   const getTotal = async () => {
     try {
@@ -65,7 +52,9 @@ const HomePage = () => {
     try {
       setLoading(true);
       const nextPage = page + 1;
-      const { data } = await axios.get(`/api/v1/product/product-list/${nextPage}`);
+      const { data } = await axios.get(
+        `/api/v1/product/product-list/${nextPage}`,
+      );
       setLoading(false);
       setProducts([...products, ...data?.products]);
       setPage(nextPage);
@@ -75,7 +64,7 @@ const HomePage = () => {
     }
   };
 
-  // filter by cat
+  // Filter by cat
   const handleFilter = (value, id) => {
     let all = [...checked];
     if (value) {
@@ -85,29 +74,45 @@ const HomePage = () => {
     }
     setChecked(all);
   };
-  
-  useEffect(() => {
-    if (!checked.length && !radio.length) getAllProducts();
-  }, [checked.length, radio.length]);
 
   useEffect(() => {
+    // Get all products
+    const getAllProducts = async () => {
+      try {
+        setLoading(true);
+        const { data } = await axios.get(
+          `/api/v1/product/product-list/${page}`,
+        );
+        setLoading(false);
+        setProducts(data.products);
+      } catch (error) {
+        setLoading(false);
+        console.log(error);
+      }
+    };
+
+    if (!checked.length && !radio.length) getAllProducts();
+  }, [checked.length, page, radio.length]);
+
+  useEffect(() => {
+    const filterProduct = async () => {
+      try {
+        const { data } = await axios.post("/api/v1/product/product-filters", {
+          checked,
+          radio,
+        });
+        setProducts(data?.products);
+        setTotal(data?.products.length);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    
     if (checked.length || radio.length) filterProduct();
   }, [checked, radio]);
 
   //get filterd product
-  const filterProduct = async () => {
-    try {
-      const { data } = await axios.post("/api/v1/product/product-filters", {
-        checked,
-        radio,
-      });
-      setProducts(data?.products);
-      setTotal(data?.products.length);
 
-    } catch (error) {
-      console.log(error);
-    }
-  };
   return (
     <Layout title={"ALL Products - Best offers "}>
       {/* banner image */}
@@ -187,7 +192,7 @@ const HomePage = () => {
                         setCart([...cart, p]);
                         localStorage.setItem(
                           "cart",
-                          JSON.stringify([...cart, p])
+                          JSON.stringify([...cart, p]),
                         );
                         toast.success("Item Added to cart");
                       }}
