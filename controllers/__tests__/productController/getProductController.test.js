@@ -131,7 +131,7 @@ describe("getProductController", () => {
                 {
                     success: true,
                     countTotal: 2,
-                    message: "All products retrieved successfully",
+                    message: "All products retrieved successfully.",
                     products: testProducts,
                 }
             );
