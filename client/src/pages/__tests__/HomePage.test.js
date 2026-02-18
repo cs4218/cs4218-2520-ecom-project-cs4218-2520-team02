@@ -124,7 +124,7 @@ describe("HomePage", () => {
   let restoreConsole;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
     toast.success = jest.fn();
     restoreConsole = silenceConsole();
     setupAxios();
@@ -286,7 +286,7 @@ describe("HomePage", () => {
       renderHome();
 
       expect(await screen.findByText("Laptop")).toBeInTheDocument();
-      fireEvent.click(await screen.findByText(/Loadmore/i));
+      fireEvent.click(await screen.findByText(/Load more/i));
 
       await waitFor(() =>
         expect(console.log).toHaveBeenCalledWith(expect.any(Error)),
@@ -322,7 +322,7 @@ describe("HomePage", () => {
       renderHome();
 
       expect(await screen.findByText("Laptop")).toBeInTheDocument();
-      fireEvent.click(await screen.findByText(/Loadmore/i));
+      fireEvent.click(await screen.findByText(/Load more/i));
 
       expect(await screen.findByText("Loading ...")).toBeInTheDocument();
     });
@@ -365,37 +365,37 @@ describe("HomePage", () => {
 
       expect(await screen.findByText("Laptop")).toBeInTheDocument();
 
-      fireEvent.click(await screen.findByText(/Loadmore/i));
+      fireEvent.click(await screen.findByText(/Load more/i));
       expect(await screen.findByText("Book")).toBeInTheDocument();
 
-      fireEvent.click(await screen.findByText(/Loadmore/i));
+      fireEvent.click(await screen.findByText(/Load more/i));
       expect(await screen.findByText("Mouse")).toBeInTheDocument();
     });
   });
 
-  describe("Loadmore Visibility (BVA)", () => {
-    test("hides Loadmore when products.length = total", async () => {
+  describe("Load more Visibility (BVA)", () => {
+    test("hides Load more when products.length = total", async () => {
       setupAxios({ total: 2, products: mockProducts });
       renderHome();
 
       expect(await screen.findByText("Laptop")).toBeInTheDocument();
-      expect(screen.queryByText(/Loadmore/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Load more/i)).not.toBeInTheDocument();
     });
 
-    test("hides Loadmore when products.length > total", async () => {
+    test("hides Load more when products.length > total", async () => {
       setupAxios({ total: 1, products: mockProducts });
       renderHome();
 
       expect(await screen.findByText("Laptop")).toBeInTheDocument();
-      expect(screen.queryByText(/Loadmore/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Load more/i)).not.toBeInTheDocument();
     });
 
-    test("shows Loadmore when products.length < total", async () => {
+    test("shows Load more when products.length < total", async () => {
       setupAxios({ total: 3, products: mockProducts });
       renderHome();
 
       expect(await screen.findByText("Laptop")).toBeInTheDocument();
-      expect(await screen.findByText(/Loadmore/i)).toBeInTheDocument();
+      expect(await screen.findByText(/Load more/i)).toBeInTheDocument();
     });
   });
 
@@ -464,7 +464,7 @@ describe("HomePage", () => {
       );
     });
 
-    test("filterProduct updates total so Loadmore disappears when filtered list equals total", async () => {
+    test("filterProduct updates total so Load more disappears when filtered list equals total", async () => {
       setupAxios({ total: 10, products: mockProducts });
       axios.post.mockResolvedValueOnce({
         data: { products: [mockProducts[0]] },
@@ -472,12 +472,12 @@ describe("HomePage", () => {
 
       renderHome();
 
-      expect(await screen.findByText(/Loadmore/i)).toBeInTheDocument();
+      expect(await screen.findByText(/Load more/i)).toBeInTheDocument();
 
       fireEvent.click(await screen.findByLabelText("Electronics"));
 
       await waitFor(() =>
-        expect(screen.queryByText(/Loadmore/i)).not.toBeInTheDocument(),
+        expect(screen.queryByText(/Load more/i)).not.toBeInTheDocument(),
       );
     });
 
