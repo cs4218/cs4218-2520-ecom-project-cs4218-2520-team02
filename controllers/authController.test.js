@@ -33,6 +33,7 @@ const {
   loginController,
   forgotPasswordController,
   updateProfileController,
+  testController,
 } = await import("./authController");
 const { hashPassword, comparePassword } =
   await import("../helpers/authHelper.js");
@@ -561,6 +562,26 @@ describe("Auth Controller", () => {
         message: "Error while update profile",
         error: new Error("db error"),
       });
+    });
+  });
+
+  describe("Test Controller", () => {
+    it("should return 200 and protected route message", () => {
+      // Act
+      testController(req, res);
+
+      // Assert
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith({
+        success: true,
+        message: "Protected Routes",
+      });
+    });
+
+    it("should chain status and send correctly", () => {
+      const result = testController(req, res);
+
+      expect(result).toBe(res);
     });
   });
 });
