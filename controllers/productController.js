@@ -101,10 +101,29 @@ export const getProductController = async (req, res) => {
 // get single product
 export const getSingleProductController = async (req, res) => {
   try {
+    const raw = req.params?.slug;
+
+    if (typeof raw !== "string" || raw.trim().length === 0) {
+      return res.status(400).send({
+        success: false,
+        message: "Product slug is required",
+      });
+    }
+
+    const slug = raw.trim();
+
     const product = await productModel
-      .findOne({ slug: req.params.slug })
+      .findOne({ slug: slug })
       .select("-photo")
       .populate("category");
+
+    if (!product) {
+      return res.status(404).send({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
     res.status(200).send({
       success: true,
       message: "Single Product Fetched",
@@ -114,7 +133,7 @@ export const getSingleProductController = async (req, res) => {
     console.log(error);
     res.status(500).send({
       success: false,
-      message: "Eror while getitng single product",
+      message: "Error while getting single product",
       error,
     });
   }
