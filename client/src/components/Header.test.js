@@ -242,9 +242,30 @@ describe("Header Component Unit Tests", () => {
     });
   });
 
+  // Special case: 0 items
   describe("Cart Validation (EP)", () => {
 
-    it("should display correct cart count", () => {
+    it("should display correct cart count when there are no items", () => {
+
+      // Arrange
+      mockUseAuth.mockReturnValue([{ user: null }, mockSetAuth]);
+      mockUseCart.mockReturnValue([[]]);
+
+      // Act
+      renderHeader();
+
+      const cartLink = screen.getByText("Cart")
+      const count = screen.getByText("0")
+
+      // Assert
+      expect(cartLink).toBeInTheDocument();
+      expect(count).toBeInTheDocument();
+
+      expect(cartLink.closest("a")).toHaveAttribute("href", "/cart");
+    
+    });
+
+    it("should display correct cart count when there are multiple items", () => {
 
       // Arrange
       mockUseAuth.mockReturnValue([{ user: null }, mockSetAuth]);
