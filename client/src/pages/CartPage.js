@@ -19,35 +19,26 @@ const CartPage = () => {
 
   //total price
   const totalPrice = () => {
-    try {
-      if (!Array.isArray(cart)) {
-        throw new TypeError("Cart must be an array.");
+    const total = cart.reduce((sum, item, index) => {
+      if (!item || item.price === undefined) {
+        console.warn(`Cart item at index ${index} is invalid:`, item);
+        return sum;
       }
 
-      const total = cart.reduce((sum, item, index) => {
-        if (!item || item.price === undefined) {
-          console.warn(`Cart item at index ${index} is invalid:`, item);
-          return sum;
-        }
+      const price = Number(item.price);
 
-        const price = Number(item.price);
+      if (Number.isNaN(price)) {
+        console.warn(`Invalid price at index ${index}:`, item.price);
+        return sum;
+      }
 
-        if (Number.isNaN(price)) {
-          console.warn(`Invalid price at index ${index}:`, item.price);
-          return sum;
-        }
+      return sum + price;
+    }, 0);
 
-        return sum + price;
-      }, 0);
-
-      return total.toLocaleString("en-US", {
-        style: "currency",
-        currency: "USD",
-      });
-    } catch (error) {
-      console.error("Error calculating total price:", error);
-      return "$0.00";
-    }
+    return total.toLocaleString("en-US", {
+      style: "currency",
+      currency: "USD",
+    });
   };
 
   //detele item

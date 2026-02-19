@@ -49,5 +49,43 @@ describe("CartPage", () => {
     expect(screen.getByTestId("layout")).toBeInTheDocument();
   });
 
-});
+  it("should calculate total price correctly", () => {
+    const cartItems = [
+      { price: 10, description: "item1" },
+      { price: 5, description: "item2" },
+    ];
+    useCart.mockReturnValue([cartItems, jest.fn()]);
 
+    renderCartPage();
+
+    const totalPrice = screen.getByText(/Total : \$15.00/i);
+    expect(totalPrice).toBeInTheDocument();
+  });
+
+  it("should handle invalid price values in cart items", () => {
+    const consoleSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+    const cartItems = [
+      { price: 10, description: "item1" },
+      { price: "invalid", description: "item2" },
+    ];
+    useCart.mockReturnValue([cartItems, jest.fn()]);
+
+    renderCartPage();
+
+    expect(consoleSpy).toHaveBeenCalledWith("Invalid price at index 1:", "invalid");
+  });
+
+  it("should handle invalid item structure in cart", () => {
+    const consoleSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+    const cartItems = [
+      { price: 10, description: "item1" },
+      { invalidField: undefined, description: "item2" },
+    ];
+    useCart.mockReturnValue([cartItems, jest.fn()]);
+
+    renderCartPage();
+
+    expect(consoleSpy).toHaveBeenCalledWith("Cart item at index 1 is invalid:", { invalidField: undefined, description: "item2" });
+  });
+
+});
