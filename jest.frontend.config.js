@@ -26,12 +26,13 @@ export default {
     "<rootDir>/client/src/hooks/*.test.js",
     "<rootDir>/client/src/pages/**/*.test.js",
     "<rootDir>/client/src/components/**/*.test.js",
+    "<rootDir>/client/src/context/*.test.js",
     "<rootDir>/client/src/**/__tests__/**/*.test.js"
   ],
 
   // jest code coverage
   collectCoverage: true,
-  collectCoverageFrom: ["client/src/pages/**", "client/src/components/**", "client/src/hooks/**"],
+  collectCoverageFrom: ["client/src/pages/**", "client/src/components/**", "client/src/hooks/**", "client/src/context/**"],
   coverageThreshold: {
     global: {
       lines: 0,
