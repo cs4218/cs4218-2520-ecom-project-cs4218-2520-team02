@@ -33,6 +33,7 @@
     "mongoose": "^8.1.2",
     "morgan": "^1.10.0",
     "nodemon": "^3.0.3",
+    "prettier": "@bokub/prettier-config",
     "react-icons": "^5.0.1",
     "slugify": "^1.6.6"
   },
@@ -40,6 +41,7 @@
     "@babel/core": "^7.24.5",
     "@babel/preset-env": "^7.24.5",
     "@babel/preset-react": "^7.24.1",
+    "@bokub/prettier-config": "^2.1.0",
     "@playwright/test": "^1.44.0",
     "@types/node": "^20.12.12",
     "babel-jest": "^29.7.0",

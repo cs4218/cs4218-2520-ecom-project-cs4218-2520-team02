@@ -34,6 +34,16 @@ describe("requireSignIn middleware", () => {
   let req, res, next;
   const ORIGINAL_ENV = process.env;
 
+  beforeAll(() => {
+    jest.spyOn(console, "log").mockImplementation(() => {});
+    jest.spyOn(console, "error").mockImplementation(() => {});
+    jest.spyOn(console, "warn").mockImplementation(() => {});
+  });
+
+  afterAll(() => {
+    jest.restoreAllMocks();
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -110,6 +120,16 @@ describe("isAdmin middleware", () => {
     next = jest.fn();
   });
 
+  beforeAll(() => {
+    jest.spyOn(console, "log").mockImplementation(() => {});
+    jest.spyOn(console, "error").mockImplementation(() => {});
+    jest.spyOn(console, "warn").mockImplementation(() => {});
+  });
+
+  afterAll(() => {
+    jest.restoreAllMocks();
+  });
+  
   test("should allow admin user", async () => {
     userModel.findById.mockResolvedValue({
       _id: "admin-id",
