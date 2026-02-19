@@ -92,6 +92,16 @@ describe("CartPage", () => {
     });
   });
 
+  beforeAll(() => {
+    jest.spyOn(console, "log").mockImplementation(() => {});
+    jest.spyOn(console, "error").mockImplementation(() => {});
+    jest.spyOn(console, "warn").mockImplementation(() => {});
+  });
+
+  afterAll(() => {
+    jest.restoreAllMocks();
+  });
+
   it("should render without crashing", () => {
     renderCartPage();
 
@@ -223,7 +233,7 @@ describe("CartPage", () => {
   });
 
   it("should show item count without login prompt when cart has items and user is logged in", () => {
-    renderCartPage(); // uses mockAuth and mockCart from beforeEach
+    renderCartPage(); 
 
     expect(screen.getByText(/You have 2 items in your cart./i)).toBeInTheDocument();
     expect(screen.queryByText(/Please login!/i)).not.toBeInTheDocument();
