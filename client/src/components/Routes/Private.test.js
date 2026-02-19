@@ -54,4 +54,14 @@ describe("PrivateRoute", () => {
     await waitFor(() => expect(mockedAxios.get).toHaveBeenCalledWith("/api/v1/auth/user-auth"));
     expect(await screen.findByTestId("spinner")).toBeInTheDocument();
   });
+
+  test("calls auth API and renders Spinner when API call fails", async () => {
+    mockedUseAuth.mockReturnValue([{ token: "abc" }, jest.fn()]);
+    mockedAxios.get.mockRejectedValueOnce(new Error("Network error"));
+
+    render(<PrivateRoute />);
+
+    await waitFor(() => expect(mockedAxios.get).toHaveBeenCalledWith("/api/v1/auth/user-auth"));
+    expect(await screen.findByTestId("spinner")).toBeInTheDocument();
+  });
 });
