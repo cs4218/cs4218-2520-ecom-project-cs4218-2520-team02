@@ -187,8 +187,56 @@ describe("CartPage", () => {
 
     renderCartPage();
 
-    expect(screen.getByText(/Update Address/i)).toBeInTheDocument();
+    fireEvent.click(screen.getAllByText(/Update Address/i)[0]);
+
+    expect(mockNavigate).toHaveBeenCalledWith("/dashboard/user/profile");
   });
+
+  it("should navigate to profile when logged in user with address clicks Update Address", () => {
+    useAuth.mockReturnValue([
+      { user: { name: "John", address: "123 Main St" }, token: "fake-token" },
+      jest.fn(),
+    ]);
+
+    renderCartPage();
+
+    fireEvent.click(screen.getByText(/Update Address/i));
+
+    expect(mockNavigate).toHaveBeenCalledWith("/dashboard/user/profile");
+  });
+
+  it("cart page should prompt login if not logged in and tries to checkout", () => {
+    useAuth.mockReturnValue([{ user: null, token: null }, jest.fn()]);
+    renderCartPage();
+    fireEvent.click(screen.getByText(/Please Login to checkout/i));
+
+    expect(mockNavigate).toHaveBeenCalledWith("/login", { state: "/cart" });
+  });
+
+  it("should show item count and login prompt when cart has items but user is not logged in", () => {
+    useAuth.mockReturnValue([{ user: null, token: null }, jest.fn()]);
+    useCart.mockReturnValue([mockCart, jest.fn()]);
+
+    renderCartPage();
+
+    expect(screen.getByText(/You have 2 items in your cart. Please login!/i)).toBeInTheDocument();
+  });
+
+  it("should show item count without login prompt when cart has items and user is logged in", () => {
+    renderCartPage(); // uses mockAuth and mockCart from beforeEach
+
+    expect(screen.getByText(/You have 2 items in your cart./i)).toBeInTheDocument();
+    expect(screen.queryByText(/Please login!/i)).not.toBeInTheDocument();
+  });
+
+  it("should show empty cart message when cart is empty", () => {
+    useCart.mockReturnValue([[], jest.fn()]);
+
+    renderCartPage();
+
+    expect(screen.getByText(/Your cart is empty./i)).toBeInTheDocument();
+  });
+
 
   // ---------------------------
   // getToken tests
