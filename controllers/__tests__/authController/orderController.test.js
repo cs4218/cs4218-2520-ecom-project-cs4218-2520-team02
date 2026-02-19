@@ -83,6 +83,16 @@ function mockMongooseQuery(result) {
 describe("getOrdersController", () => {
   let restoreConsole;
 
+  beforeAll(() => {
+    jest.spyOn(console, "log").mockImplementation(() => {});
+    jest.spyOn(console, "error").mockImplementation(() => {});
+    jest.spyOn(console, "warn").mockImplementation(() => {});
+  });
+
+  afterAll(() => {
+    jest.restoreAllMocks();
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
     restoreConsole = silenceConsole();
@@ -159,14 +169,20 @@ describe("getOrdersController", () => {
 });
 
 describe("getAllOrdersController", () => {
-  let restoreConsole;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    restoreConsole = silenceConsole();
   });
 
-  afterEach(() => restoreConsole());
+  beforeAll(() => {
+    jest.spyOn(console, "log").mockImplementation(() => {});
+    jest.spyOn(console, "error").mockImplementation(() => {});
+    jest.spyOn(console, "warn").mockImplementation(() => {});
+  });
+
+  afterAll(() => {
+    jest.restoreAllMocks();
+  });
 
   test("returns all orders", async () => {
     const req = {};
@@ -234,6 +250,16 @@ describe("getAllOrdersController", () => {
 describe("updateOrderStatusController", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  beforeAll(() => {
+    jest.spyOn(console, "log").mockImplementation(() => {});
+    jest.spyOn(console, "error").mockImplementation(() => {});
+    jest.spyOn(console, "warn").mockImplementation(() => {});
+  });
+
+  afterAll(() => {
+    jest.restoreAllMocks();
   });
 
   test("updates order status successfully", async () => {
