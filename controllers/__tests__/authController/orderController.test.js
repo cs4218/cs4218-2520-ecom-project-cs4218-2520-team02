@@ -166,6 +166,24 @@ describe("getOrdersController", () => {
 
     expect500(res, "Error while getting orders");
   });
+
+  test("returns Unknown error when find rejects with non-Error object", async () => {
+    const req = { user: { _id: "user-id" } };
+    const res = mockRes();
+
+    jest.spyOn(orderModel, 'find').mockReturnValue({
+      populate: () => ({ populate: () => Promise.reject({}) }),
+    });
+
+    await getOrdersController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.send).toHaveBeenCalledWith({
+      success: false,
+      message: "Error while getting orders",
+      error: "Unknown error",
+    });
+  });
 });
 
 describe("getAllOrdersController", () => {
@@ -244,6 +262,24 @@ describe("getAllOrdersController", () => {
     expect(query.sort).toHaveBeenCalledWith({ createdAt: -1 });
 
     expect500(res, "Error while getting orders");
+  });
+
+  test("getAllOrdersController returns Unknown error when sort rejects with non-Error object", async () => {
+    const req = {};
+    const res = mockRes();
+
+    jest.spyOn(orderModel, 'find').mockReturnValue({
+      populate: () => ({ populate: () => ({ sort: () => Promise.reject({}) }) }),
+    });
+
+    await getAllOrdersController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.send).toHaveBeenCalledWith({
+      success: false,
+      message: "Error while getting orders",
+      error: "Unknown error",
+    });
   });
 });
 
@@ -359,5 +395,24 @@ describe("updateOrderStatusController", () => {
     );
 
     expect500(res, "Error while updating order status");
+  });
+
+  test("returns Unknown error when update rejects with non-Error object", async () => {
+    const req = {
+      params: { orderId: "order-id" },
+      body: { status: "Shipped" },
+    };
+    const res = mockRes();
+
+    jest.spyOn(orderModel, "findByIdAndUpdate").mockRejectedValue({});
+
+    await updateOrderStatusController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.send).toHaveBeenCalledWith({
+      success: false,
+      message: "Error while updating order status",
+      error: "Unknown error",
+    });
   });
 });
