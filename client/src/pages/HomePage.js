@@ -20,7 +20,7 @@ const HomePage = () => {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  //get all cat
+  // Get all categories
   const getAllCategory = async () => {
     try {
       const { data } = await axios.get("/api/v1/category/get-category");
@@ -34,49 +34,26 @@ const HomePage = () => {
 
   useEffect(() => {
     getAllCategory();
-    getTotal();
   }, []);
-  //get products
-  const getAllProducts = async () => {
-    try {
-      setLoading(true);
-      const { data } = await axios.get(`/api/v1/product/product-list/${page}`);
-      setLoading(false);
-      setProducts(data.products);
-    } catch (error) {
-      setLoading(false);
-      console.log(error);
-    }
-  };
 
-  //getTotal Count
-  const getTotal = async () => {
-    try {
-      const { data } = await axios.get("/api/v1/product/product-count");
-      setTotal(data?.total);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  useEffect(() => {
-    if (page === 1) return;
-    loadMore();
-  }, [page]);
-  //load more
+  // Load more products
   const loadMore = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.get(`/api/v1/product/product-list/${page}`);
+      const nextPage = page + 1;
+      const { data } = await axios.get(
+        `/api/v1/product/product-list/${nextPage}`,
+      );
       setLoading(false);
       setProducts([...products, ...data?.products]);
+      setPage(nextPage);
     } catch (error) {
       console.log(error);
       setLoading(false);
     }
   };
 
-  // filter by cat
+  // Filter by cat
   const handleFilter = (value, id) => {
     let all = [...checked];
     if (value) {
@@ -86,38 +63,74 @@ const HomePage = () => {
     }
     setChecked(all);
   };
-  useEffect(() => {
-    if (!checked.length || !radio.length) getAllProducts();
-  }, [checked.length, radio.length]);
 
   useEffect(() => {
+    // Get all products and update count
+    setLoading(true);
+
+    const getAllProducts = async () => {
+      try {
+        const { data } = await axios.get(
+          `/api/v1/product/product-list/${page}`,
+        );
+        setProducts(data.products);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    const getTotal = async () => {
+      try {
+        const { data } = await axios.get("/api/v1/product/product-count");
+        setTotal(data?.total);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    if (!checked.length && !radio.length) {
+      getAllProducts();
+      getTotal();
+    }
+
+    setLoading(false);
+  }, [checked.length, page, radio.length]);
+
+  useEffect(() => {
+    // Get filtered products
+    const filterProduct = async () => {
+      try {
+        const { data } = await axios.post("/api/v1/product/product-filters", {
+          checked,
+          radio,
+        });
+        setProducts(data?.products);
+        setTotal(data?.products.length);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
     if (checked.length || radio.length) filterProduct();
   }, [checked, radio]);
 
-  //get filterd product
-  const filterProduct = async () => {
-    try {
-      const { data } = await axios.post("/api/v1/product/product-filters", {
-        checked,
-        radio,
-      });
-      setProducts(data?.products);
-      setTotal(data?.products.length);
-
-    } catch (error) {
-      console.log(error);
-    }
+  const resetFilters = async () => {
+    setChecked([]);
+    setRadio([]);
+    setPage(1);
   };
+
   return (
     <Layout title={"ALL Products - Best offers "}>
-      {/* banner image */}
+      {/* Banner Image */}
       <img
         src="/images/Virtual.png"
         className="banner-img"
         alt="bannerimage"
         width={"100%"}
       />
-      {/* banner image */}
+
+      {/* Products */}
       <div className="container-fluid row mt-3 home-page">
         <div className="col-md-3 filters">
           <h4 className="text-center">Filter By Category</h4>
@@ -125,6 +138,7 @@ const HomePage = () => {
             {categories?.map((c) => (
               <Checkbox
                 key={c._id}
+                checked={checked.includes(c._id)}
                 onChange={(e) => handleFilter(e.target.checked, c._id)}
               >
                 {c.name}
@@ -134,7 +148,10 @@ const HomePage = () => {
           {/* price filter */}
           <h4 className="text-center mt-4">Filter By Price</h4>
           <div className="d-flex flex-column">
-            <Radio.Group onChange={(e) => setRadio(e.target.value)}>
+            <Radio.Group
+              value={radio}
+              onChange={(e) => setRadio(e.target.value)}
+            >
               {Prices?.map((p) => (
                 <div key={p._id}>
                   <Radio value={p.array}>{p.name}</Radio>
@@ -143,10 +160,7 @@ const HomePage = () => {
             </Radio.Group>
           </div>
           <div className="d-flex flex-column">
-            <button
-              className="btn btn-danger"
-              onClick={() => window.location.reload()}
-            >
+            <button className="btn btn-danger" onClick={resetFilters}>
               RESET FILTERS
             </button>
           </div>
@@ -187,7 +201,7 @@ const HomePage = () => {
                         setCart([...cart, p]);
                         localStorage.setItem(
                           "cart",
-                          JSON.stringify([...cart, p])
+                          JSON.stringify([...cart, p]),
                         );
                         toast.success("Item Added to cart");
                       }}
@@ -205,7 +219,7 @@ const HomePage = () => {
                 className="btn loadmore"
                 onClick={(e) => {
                   e.preventDefault();
-                  setPage(page + 1);
+                  loadMore();
                 }}
               >
                 {loading ? (
@@ -213,7 +227,7 @@ const HomePage = () => {
                 ) : (
                   <>
                     {" "}
-                    Loadmore <AiOutlineReload />
+                    Load More <AiOutlineReload />
                   </>
                 )}
               </button>
