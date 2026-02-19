@@ -41,18 +41,13 @@ const CartPage = () => {
     });
   };
 
-  //detele item
+  // delete item
   const removeCartItem = (pid) => {
-    try {
-      let myCart = [...cart];
-      let index = myCart.findIndex((item) => item._id === pid);
-      myCart.splice(index, 1);
-      setCart(myCart);
-      localStorage.setItem("cart", JSON.stringify(myCart));
-    } catch (error) {
-      console.log(error);
-    }
+      const updatedCart = cart.filter((item) => item?._id !== pid);
+      setCart(updatedCart);
+      localStorage.setItem("cart", JSON.stringify(updatedCart));
   };
+
 
   // get payment gateway token
   const getToken = async () => {
