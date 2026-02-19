@@ -204,4 +204,125 @@ describe("AdminOrders Component", () => {
     await waitFor(() => expect(consoleSpy).toHaveBeenCalled());
     consoleSpy.mockRestore();
   });
+
+  test("logs when API returns success:false with message", async () => {
+    const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+    mockedAxios.get.mockResolvedValueOnce({ data: { success: false, message: "Not allowed" } });
+
+    render(<AdminOrders />);
+    await waitFor(() => expect(mockedAxios.get).toHaveBeenCalled());
+
+    expect(consoleSpy).toHaveBeenCalledWith("Failed to fetch orders: ", "Not allowed");
+    consoleSpy.mockRestore();
+  });
+
+  test("logs Unknown error when API returns success:false without message", async () => {
+    const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+    mockedAxios.get.mockResolvedValueOnce({ data: { success: false } });
+
+    render(<AdminOrders />);
+    await waitFor(() => expect(mockedAxios.get).toHaveBeenCalled());
+
+    expect(consoleSpy).toHaveBeenCalledWith("Failed to fetch orders: ", "Unknown error");
+    consoleSpy.mockRestore();
+  });
+
+  test("does not fetch orders when no auth token", async () => {
+    mockedUseAuth.mockReturnValue([{}, jest.fn()]);
+    mockedAxios.get.mockClear();
+
+    render(<AdminOrders />);
+
+    // ensure component rendered but did not call API
+    expect(screen.getByTestId("layout")).toBeInTheDocument();
+    expect(mockedAxios.get).not.toHaveBeenCalled();
+  });
+
+  test("shows product images with correct src and alt", async () => {
+    mockedAxios.get.mockResolvedValueOnce({ data: { success: true, orders: mockOrders } });
+
+    render(<AdminOrders />);
+    const img = await screen.findByAltText(mockOrders[0].products[0].name);
+    expect(img).toHaveAttribute(
+      "src",
+      `/api/v1/product/product-photo/${mockOrders[0].products[0]._id}`
+    );
+  });
+
+  test("handleChange logs on put error", async () => {
+    const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+    mockedAxios.get.mockResolvedValueOnce({ data: { success: true, orders: mockOrders } });
+    mockedAxios.put.mockRejectedValueOnce(new Error("put failed"));
+
+    render(<AdminOrders />);
+    const selects = await screen.findAllByTestId("status-select");
+    fireEvent.change(selects[0], { target: { value: "Processing" } });
+
+    await waitFor(() => expect(mockedAxios.put).toHaveBeenCalled());
+    await waitFor(() => expect(consoleSpy).toHaveBeenCalled());
+    consoleSpy.mockRestore();
+  });
+
+  test("handles orders with missing buyer and products gracefully", async () => {
+    const incompleteOrder = [
+      {
+        _id: "order-missing",
+        status: "Not Processed",
+        // no buyer
+        createdAt: "2024-03-01T00:00:00.000Z",
+        // no payment
+        products: undefined,
+      },
+    ];
+
+    mockedAxios.get.mockResolvedValueOnce({ data: { success: true, orders: incompleteOrder } });
+
+    render(<AdminOrders />);
+
+    await waitFor(() => expect(mockedAxios.get).toHaveBeenCalled());
+
+    expect(screen.queryByText("John Doe")).not.toBeInTheDocument();
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+  });
+
+  test("handles undefined payment as Failed", async () => {
+    const orderNoPayment = [
+      {
+        _id: "order-nopay",
+        status: "Not Processed",
+        buyer: { name: "No Pay" },
+        createdAt: "2024-04-01T00:00:00.000Z",
+        // payment present but missing success flag (undefined)
+        payment: {},
+        products: [],
+      },
+    ];
+
+    mockedAxios.get.mockResolvedValueOnce({ data: { success: true, orders: orderNoPayment } });
+
+    render(<AdminOrders />);
+    await screen.findByText("No Pay");
+
+    // Missing payment should render as Failed
+    expect(screen.getByText("Failed")).toBeInTheDocument();
+  });
+
+  test("falls back to index key when order _id is missing", async () => {
+    const ordersNoId = [
+      {
+        // no _id
+        status: "Not Processed",
+        buyer: { name: "Idx Buyer" },
+        createdAt: "2024-05-01T00:00:00.000Z",
+        payment: { success: true },
+        products: [],
+      },
+    ];
+
+    mockedAxios.get.mockResolvedValueOnce({ data: { success: true, orders: ordersNoId } });
+
+    render(<AdminOrders />);
+    await screen.findByText("Idx Buyer");
+    expect(screen.getByText("Idx Buyer")).toBeInTheDocument();
+  });
 });
