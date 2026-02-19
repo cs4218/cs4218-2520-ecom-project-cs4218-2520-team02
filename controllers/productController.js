@@ -6,6 +6,7 @@ import fs from "fs";
 import slugify from "slugify";
 import braintree from "braintree";
 import dotenv from "dotenv";
+import mongoose from "mongoose";
 
 dotenv.config();
 
@@ -159,16 +160,39 @@ export const getSingleProductController = async (req, res) => {
 // get photo
 export const productPhotoController = async (req, res) => {
   try {
-    const product = await productModel.findById(req.params.pid).select("photo");
-    if (product.photo.data) {
-      res.set("Content-type", product.photo.contentType);
-      return res.status(200).send(product.photo.data);
+    const { pid } = req.params ?? {};
+
+    if (!pid) {
+      return res.status(400).send({
+        success: false,
+        message: "Product ID is required",
+      });
     }
+
+    if (!mongoose.Types.ObjectId.isValid(pid)) {
+      return res.status(400).send({
+        success: false,
+        message: "Invalid Product ID",
+      });
+    }
+
+    const product = await productModel.findById(req.params.pid).select("photo");
+
+    if (!product?.photo?.data) {
+      return res.status(404).send({
+        success: false,
+        message: "Photo not found",
+      });
+    }
+
+    res.set("Content-Type", product.photo.contentType);
+    return res.status(200).send(product.photo.data);
+
   } catch (error) {
     console.log(error);
     res.status(500).send({
       success: false,
-      message: "Erorr while getting photo",
+      message: "Error while getting photo",
       error,
     });
   }
