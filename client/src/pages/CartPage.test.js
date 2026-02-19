@@ -1,6 +1,7 @@
 import CartPage from "./CartPage";
+import axios from "axios";
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { MemoryRouter } from "react-router-dom";
 import { useAuth } from "../context/auth";
@@ -25,6 +26,8 @@ jest.mock("../context/cart", () => ({
   useCart: jest.fn(),
 }));
 
+jest.mock("axios");
+
 const renderCartPage = () =>
   render(
     <MemoryRouter>
@@ -32,11 +35,34 @@ const renderCartPage = () =>
     </MemoryRouter>,
   );
 
+const mockCart = [
+  { _id: "1", name: "Product A", description: "Desc A", price: 100 },
+  { _id: "2", name: "Product B", description: "Desc B", price: 200 },
+];
+
+const mockAuth = {
+  token: "fake-token",
+  user: { name: "John", address: "123 Main St" },
+};
+
+jest.mock("braintree-web-drop-in-react", () => ({
+  __esModule: true,
+  default: ({ onInstance }) => {
+    // Immediately call onInstance with a fake instance
+    onInstance({
+      requestPaymentMethod: jest
+        .fn()
+        .mockResolvedValue({ nonce: "fake-nonce" }),
+    });
+    return <div data-testid="braintree-dropin" />;
+  },
+}));
+
 describe("CartPage", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    useAuth.mockReturnValue([{ user: null, token: null }, jest.fn()]);
-    useCart.mockReturnValue([[], jest.fn()]);
+    useAuth.mockReturnValue([mockAuth, jest.fn()]);
+    useCart.mockReturnValue([mockCart, jest.fn()]);
   });
 
   it("should render without crashing", () => {
@@ -110,4 +136,84 @@ describe("CartPage", () => {
     ]);
   });
 
+  it("cart page should show user address if logged in", () => {
+    // login user
+    useAuth.mockReturnValue([
+      {
+        user: { name: "Test User", address: "123 Test St" },
+        token: "test-token",
+      },
+      jest.fn(),
+    ]);
+
+    renderCartPage();
+
+    expect(screen.getByText(/Current Address/i)).toBeInTheDocument();
+    expect(screen.getByText(/123 Test St/i)).toBeInTheDocument();
+  });
+
+  it("cart page should prompt update if logged in but user does not have an address", () => {
+    // login user
+    useAuth.mockReturnValue([
+      { user: { name: "Test User" }, token: "test-token" },
+      jest.fn(),
+    ]);
+
+    renderCartPage();
+
+    expect(screen.getByText(/Update Address/i)).toBeInTheDocument();
+  });
+
+  // ---------------------------
+  // getToken tests
+  // ---------------------------
+  describe("getToken", () => {
+    it("should fetch and set client token on mount when auth token exists", async () => {
+      axios.get.mockResolvedValueOnce({
+        data: { success: true, token: "braintree-client-token" },
+      });
+
+      renderCartPage();
+
+      await waitFor(() => {
+        expect(axios.get).toHaveBeenCalledWith(
+          "/api/v1/product/braintree/token",
+        );
+      });
+
+      // DropIn should render once clientToken is set
+      await waitFor(() => {
+        expect(screen.getByTestId("braintree-dropin")).toBeInTheDocument();
+      });
+    });
+
+    it("should not crash if getToken API call fails", async () => {
+      axios.get.mockRejectedValueOnce(new Error("Network Error"));
+
+      renderCartPage();
+
+      await waitFor(() => {
+        expect(axios.get).toHaveBeenCalledWith(
+          "/api/v1/product/braintree/token",
+        );
+      });
+
+      // DropIn should NOT render since clientToken was never set
+      expect(screen.queryByTestId("braintree-dropin")).not.toBeInTheDocument();
+    });
+
+    it("should not set token if API returns success: false", async () => {
+      axios.get.mockResolvedValueOnce({
+        data: { success: false, token: null },
+      });
+
+      renderCartPage();
+
+      await waitFor(() => {
+        expect(axios.get).toHaveBeenCalled();
+      });
+
+      expect(screen.queryByTestId("braintree-dropin")).not.toBeInTheDocument();
+    });
+  });
 });
