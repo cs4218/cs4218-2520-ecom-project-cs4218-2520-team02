@@ -1,6 +1,6 @@
 import CartPage from "./CartPage";
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { MemoryRouter } from "react-router-dom";
 import { useAuth } from "../context/auth";
@@ -29,17 +29,13 @@ const renderCartPage = () =>
   render(
     <MemoryRouter>
       <CartPage />
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 
 describe("CartPage", () => {
-
   beforeEach(() => {
     jest.clearAllMocks();
-    useAuth.mockReturnValue([
-      { user: null, token: null },
-      jest.fn(),
-    ]);
+    useAuth.mockReturnValue([{ user: null, token: null }, jest.fn()]);
     useCart.mockReturnValue([[], jest.fn()]);
   });
 
@@ -72,7 +68,10 @@ describe("CartPage", () => {
 
     renderCartPage();
 
-    expect(consoleSpy).toHaveBeenCalledWith("Invalid price at index 1:", "invalid");
+    expect(consoleSpy).toHaveBeenCalledWith(
+      "Invalid price at index 1:",
+      "invalid",
+    );
   });
 
   it("should handle invalid item structure in cart", () => {
@@ -85,7 +84,30 @@ describe("CartPage", () => {
 
     renderCartPage();
 
-    expect(consoleSpy).toHaveBeenCalledWith("Cart item at index 1 is invalid:", { invalidField: undefined, description: "item2" });
+    expect(consoleSpy).toHaveBeenCalledWith(
+      "Cart item at index 1 is invalid:",
+      { invalidField: undefined, description: "item2" },
+    );
+  });
+
+  it("should remove item from cart correctly", () => {
+    const cartItems = [
+      { _id: "1", price: 10, description: "item1" },
+      { _id: "2", price: 5, description: "item2" },
+    ];
+
+    const setCartMock = jest.fn();
+    useCart.mockReturnValue([cartItems, setCartMock]);
+
+    renderCartPage();
+
+    const removeButtons = screen.getAllByText(/Remove/i);
+
+    fireEvent.click(removeButtons[0]);
+
+    expect(setCartMock).toHaveBeenCalledWith([
+      { _id: "2", price: 5, description: "item2" },
+    ]);
   });
 
 });
