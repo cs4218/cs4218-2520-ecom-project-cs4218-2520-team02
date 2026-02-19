@@ -3,9 +3,10 @@ import axios from "axios";
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/auth";
 import { useCart } from "../context/cart";
+import toast from "react-hot-toast";
 
 jest.mock("../components/Layout", () => ({
   __esModule: true,
@@ -28,6 +29,22 @@ jest.mock("../context/cart", () => ({
 
 jest.mock("axios");
 
+jest.mock("react-hot-toast", () => ({
+  __esModule: true,
+  default: {
+    success: jest.fn(),
+    error: jest.fn(),
+  },
+}));
+
+const mockSetCart = jest.fn();
+const mockNavigate = jest.fn();
+
+jest.mock("react-router-dom", () => ({
+  ...jest.requireActual("react-router-dom"),
+  useNavigate: jest.fn(),
+}));
+
 const renderCartPage = () =>
   render(
     <MemoryRouter>
@@ -45,24 +62,34 @@ const mockAuth = {
   user: { name: "John", address: "123 Main St" },
 };
 
-jest.mock("braintree-web-drop-in-react", () => ({
-  __esModule: true,
-  default: ({ onInstance }) => {
-    // Immediately call onInstance with a fake instance
-    onInstance({
-      requestPaymentMethod: jest
-        .fn()
-        .mockResolvedValue({ nonce: "fake-nonce" }),
-    });
+jest.mock("braintree-web-drop-in-react", () => {
+  const { useEffect } = require("react");
+  
+  const DropInMock = ({ onInstance }) => {
+    useEffect(() => {
+      onInstance({
+        requestPaymentMethod: jest.fn().mockResolvedValue({ nonce: "fake-nonce" }),
+      });
+    }, []);
     return <div data-testid="braintree-dropin" />;
-  },
-}));
+  };
+
+  return {
+    __esModule: true,
+    default: DropInMock, 
+  };
+});
 
 describe("CartPage", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    useNavigate.mockReturnValue(mockNavigate);
     useAuth.mockReturnValue([mockAuth, jest.fn()]);
     useCart.mockReturnValue([mockCart, jest.fn()]);
+
+    axios.get.mockResolvedValue({
+      data: { success: true, token: "braintree-client-token" },
+    });
   });
 
   it("should render without crashing", () => {
@@ -153,7 +180,6 @@ describe("CartPage", () => {
   });
 
   it("cart page should prompt update if logged in but user does not have an address", () => {
-    // login user
     useAuth.mockReturnValue([
       { user: { name: "Test User" }, token: "test-token" },
       jest.fn(),
@@ -216,4 +242,76 @@ describe("CartPage", () => {
       expect(screen.queryByTestId("braintree-dropin")).not.toBeInTheDocument();
     });
   });
+
+  // ---------------------------
+  // handlePayment tests
+  // ---------------------------
+  describe("handlePayment", () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      useNavigate.mockReturnValue(mockNavigate);
+      useAuth.mockReturnValue([mockAuth, jest.fn()]);
+      useCart.mockReturnValue([mockCart, mockSetCart]);
+      axios.get.mockResolvedValue({
+        data: { success: true, token: "braintree-client-token" },
+      });
+    });
+
+    it("should complete payment successfully", async () => {
+      axios.post.mockResolvedValueOnce({ data: { success: true } });
+      renderCartPage();
+
+      fireEvent.click(await screen.findByText("Make Payment"));
+
+      await waitFor(() => {
+        expect(axios.post).toHaveBeenCalledWith(
+          "/api/v1/product/braintree/payment",
+          { nonce: "fake-nonce", cart: mockCart }
+        );
+      });
+      await waitFor(() => expect(mockSetCart).toHaveBeenCalledWith([]));
+      await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/dashboard/user/orders"));
+      await waitFor(() => expect(toast.success).toHaveBeenCalledWith("Payment Completed Successfully "));
+      expect(localStorage.getItem("cart")).toBeNull();
+    });
+
+    it("should show loading state during payment processing", async () => {
+      axios.post.mockImplementationOnce(
+        () => new Promise((resolve) => setTimeout(() => resolve({ data: {} }), 100))
+      );
+
+      renderCartPage();
+      fireEvent.click(await screen.findByText("Make Payment"));
+
+      // Loading state appears
+      expect(screen.getByText("Processing ....")).toBeInTheDocument();
+
+      await waitFor(() => {
+        expect(screen.queryByText("Processing ....")).not.toBeInTheDocument();
+      }, { timeout: 3000 });
+    });
+
+    it("should handle payment failure gracefully", async () => {
+      axios.post.mockRejectedValueOnce(new Error("Payment Failed"));
+      renderCartPage();
+      fireEvent.click(await screen.findByText("Make Payment"));
+      await waitFor(() => {
+        expect(mockNavigate).not.toHaveBeenCalled();
+      });
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith("Payment Failed. Please try again.");
+      });
+    });
+
+    it("should disable Make Payment button when address is missing", async () => {
+      useAuth.mockReturnValue([
+        { token: "fake-token", user: { name: "John", address: "" } },
+        jest.fn(),
+      ]);
+      renderCartPage();
+      expect(await screen.findByText("Make Payment")).toBeDisabled();
+    });
+  });
+
 });

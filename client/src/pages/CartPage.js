@@ -81,6 +81,7 @@ const CartPage = () => {
     } catch (error) {
       console.log(error);
       setLoading(false);
+      toast.error("Payment Failed. Please try again.");
     }
   };
   return (
