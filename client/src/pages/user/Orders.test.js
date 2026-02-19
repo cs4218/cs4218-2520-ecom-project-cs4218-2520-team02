@@ -208,4 +208,73 @@ describe("Orders Component", () => {
     expect(await screen.findByText("Failed")).toBeInTheDocument();
     expect(screen.getByText("Jane")).toBeInTheDocument();
   });
+
+  test("renders when products list is empty (no product cards)", async () => {
+    const mockOrdersNoProducts = [
+        {
+        _id: "3",
+        status: "Processing",
+        buyer: { name: "Sam" },
+        createdAt: "2024-01-03",
+        payment: { success: true },
+        products: [], 
+        },
+    ];
+
+    useAuth.mockReturnValue([{ token: "t" }, jest.fn()]);
+    axios.get.mockResolvedValue({
+        data: { success: true, orders: mockOrdersNoProducts },
+    });
+
+    render(<Orders />);
+
+    // Table row should exist but product card should not be found
+    expect(await screen.findByText("Sam")).toBeInTheDocument();
+    expect(screen.queryByText("Price :")).not.toBeInTheDocument();
+  });
+
+  test("handles API returning success=false without message (uses Unknown error)", async () => {
+    useAuth.mockReturnValue([{ token: "t" }, jest.fn()]);
+    const consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+    axios.get.mockResolvedValue({
+      data: {
+        success: false,
+      },
+    });
+
+    render(<Orders />);
+
+    await waitFor(() => {
+      expect(axios.get).toHaveBeenCalledWith("/api/v1/auth/orders");
+    });
+
+    // ensure the fallback message path was executed
+    expect(consoleLogSpy).toHaveBeenCalled();
+    const firstCallArgs = consoleLogSpy.mock.calls[0];
+    expect(firstCallArgs.some((a) => String(a).includes("Unknown error"))).toBe(true);
+    consoleLogSpy.mockRestore();
+  });
+
+  test("uses index as key when order._id is missing", async () => {
+    const mockOrdersNoId = [
+      {
+        // _id omitted intentionally
+        status: "Processing",
+        buyer: { name: "NoIdUser" },
+        createdAt: "2024-01-04",
+        payment: { success: true },
+        products: [
+          { _id: "px", name: "X", description: "d", price: 10 },
+        ],
+      },
+    ];
+
+    useAuth.mockReturnValue([{ token: "t" }, jest.fn()]);
+    axios.get.mockResolvedValue({ data: { success: true, orders: mockOrdersNoId } });
+
+    render(<Orders />);
+
+    // rendering should succeed and show buyer name
+    expect(await screen.findByText("NoIdUser")).toBeInTheDocument();
+  });
 });
