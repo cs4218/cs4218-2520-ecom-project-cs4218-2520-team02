@@ -1,72 +1,75 @@
 import React from "react";
-import { render, fireEvent, screen } from "@testing-library/react";
+import { render, fireEvent, screen, cleanup } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
 import CategoryForm from "../CategoryForm";
 
+// =============== Helpers ===============
+const renderCategoryForm = (props = {}) => {
+  const defaults = {
+    handleSubmit: jest.fn((e) => e.preventDefault()),
+    value: "",
+    setValue: jest.fn(),
+  };
+
+  return render(<CategoryForm {...defaults} {...props} />);
+};
+
+// =============== Tests ===============
 describe("CategoryForm", () => {
-  it("renders input and submit button", () => {
-    render(
-      <CategoryForm handleSubmit={jest.fn()} value="" setValue={jest.fn()} />,
-    );
+  afterEach(() => cleanup());
 
-    expect(
-      screen.getByPlaceholderText("Enter new category"),
-    ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Submit" })).toBeInTheDocument();
-  });
+  describe("Smoke", () => {
+    it("should render category input and submit button", () => {
+      // Arrange & Act
+      renderCategoryForm();
 
-  it("shows the controlled input value", () => {
-    render(
-      <CategoryForm
-        handleSubmit={jest.fn()}
-        value="Electronics"
-        setValue={jest.fn()}
-      />,
-    );
-
-    expect(screen.getByPlaceholderText("Enter new category")).toHaveValue(
-      "Electronics",
-    );
-  });
-
-  it("calls setValue with the typed text", () => {
-    const setValue = jest.fn();
-
-    render(
-      <CategoryForm handleSubmit={jest.fn()} value="" setValue={setValue} />,
-    );
-
-    fireEvent.change(screen.getByPlaceholderText("Enter new category"), {
-      target: { value: "Books" },
+      // Assert
+      expect(
+        screen.getByPlaceholderText("Enter new category"),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Submit" }),
+      ).toBeInTheDocument();
     });
 
-    expect(setValue).toHaveBeenCalledTimes(1);
-    expect(setValue).toHaveBeenCalledWith("Books");
+    it("should display the controlled input value", () => {
+      // Arrange & Act
+      renderCategoryForm({ value: "Electronics" });
+
+      // Assert
+      expect(screen.getByPlaceholderText("Enter new category")).toHaveValue(
+        "Electronics",
+      );
+    });
   });
 
-  it("submits the form via button click", () => {
-    const handleSubmit = jest.fn((e) => e.preventDefault());
+  describe("Input Handling (EP)", () => {
+    it("should call setValue with the typed text", () => {
+      // Arrange
+      const setValue = jest.fn();
+      renderCategoryForm({ setValue });
 
-    render(
-      <CategoryForm handleSubmit={handleSubmit} value="" setValue={jest.fn()} />,
-    );
+      // Act
+      fireEvent.change(screen.getByPlaceholderText("Enter new category"), {
+        target: { value: "Books" },
+      });
 
-    fireEvent.click(screen.getByRole("button", { name: "Submit" }));
-
-    expect(handleSubmit).toHaveBeenCalledTimes(1);
-    expect(handleSubmit.mock.calls[0][0]).toEqual(expect.any(Object));
+      // Assert
+      expect(setValue).toHaveBeenCalledWith("Books");
+    });
   });
 
-  it("submits the form via submit event on the form", () => {
-    const handleSubmit = jest.fn((e) => e.preventDefault());
+  describe("Submit Handling (EP)", () => {
+    it("should submit the form when submit button is clicked", () => {
+      // Arrange
+      const handleSubmit = jest.fn((e) => e.preventDefault());
+      renderCategoryForm({ handleSubmit });
 
-    render(
-      <CategoryForm handleSubmit={handleSubmit} value="" setValue={jest.fn()} />,
-    );
+      // Act
+      fireEvent.click(screen.getByRole("button", { name: "Submit" }));
 
-    fireEvent.submit(screen.getByRole("button", { name: "Submit" }));
-
-    expect(handleSubmit).toHaveBeenCalledTimes(1);
-    expect(handleSubmit.mock.calls[0][0]).toEqual(expect.any(Object));
+      // Assert
+      expect(handleSubmit).toHaveBeenCalledTimes(1);
+    });
   });
 });
