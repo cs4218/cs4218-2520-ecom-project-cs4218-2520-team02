@@ -9,7 +9,7 @@ const SearchInput = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const keyword = (values.keyword ?? "").trim();
+    const keyword = values.keyword.trim();
     if (!keyword) {
       return;
     }
