@@ -19,31 +19,35 @@ const CartPage = () => {
 
   //total price
   const totalPrice = () => {
-    try {
-      let total = 0;
-      cart?.map((item) => {
-        total = total + item.price;
-      });
-      return total.toLocaleString("en-US", {
-        style: "currency",
-        currency: "USD",
-      });
-    } catch (error) {
-      console.log(error);
-    }
+    const total = cart.reduce((sum, item, index) => {
+      if (!item || item.price === undefined) {
+        console.warn(`Cart item at index ${index} is invalid:`, item);
+        return sum;
+      }
+
+      const price = Number(item.price);
+
+      if (Number.isNaN(price)) {
+        console.warn(`Invalid price at index ${index}:`, item.price);
+        return sum;
+      }
+
+      return sum + price;
+    }, 0);
+
+    return total.toLocaleString("en-US", {
+      style: "currency",
+      currency: "USD",
+    });
   };
-  //detele item
+
+  // delete item
   const removeCartItem = (pid) => {
-    try {
-      let myCart = [...cart];
-      let index = myCart.findIndex((item) => item._id === pid);
-      myCart.splice(index, 1);
-      setCart(myCart);
-      localStorage.setItem("cart", JSON.stringify(myCart));
-    } catch (error) {
-      console.log(error);
-    }
+      const updatedCart = cart.filter((item) => item?._id !== pid);
+      setCart(updatedCart);
+      localStorage.setItem("cart", JSON.stringify(updatedCart));
   };
+
 
   // get payment gateway token
   const getToken = async () => {
@@ -77,6 +81,7 @@ const CartPage = () => {
     } catch (error) {
       console.log(error);
       setLoading(false);
+      toast.error("Payment Failed. Please try again.");
     }
   };
   return (
@@ -90,10 +95,10 @@ const CartPage = () => {
                 : `Hello  ${auth?.token && auth?.user?.name}`}
               <p className="text-center">
                 {cart?.length
-                  ? `You Have ${cart.length} items in your cart ${
-                      auth?.token ? "" : "please login to checkout !"
+                  ? `You have ${cart.length} items in your cart. ${
+                      auth?.token ? "" : "Please login!"
                     }`
-                  : " Your Cart Is Empty"}
+                  : " Your cart is empty."}
               </p>
             </h1>
           </div>
@@ -164,7 +169,7 @@ const CartPage = () => {
                         })
                       }
                     >
-                      Plase Login to checkout
+                      Please Login to checkout
                     </button>
                   )}
                 </div>
