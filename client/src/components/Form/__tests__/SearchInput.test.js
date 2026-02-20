@@ -49,7 +49,7 @@ describe("SearchInput", () => {
     cleanup();
   });
 
-  describe("Page Validation (EP)", () => {
+  describe("Smoke", () => {
     test("should render search input and search button", () => {
       // Arrange & Act
       renderSearch();
