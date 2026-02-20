@@ -11,6 +11,7 @@ const CreateCategory = () => {
   const [visible, setVisible] = useState(false);
   const [selected, setSelected] = useState(null);
   const [updatedName, setUpdatedName] = useState("");
+  
   // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,6 +37,8 @@ const CreateCategory = () => {
       const { data } = await axios.get("/api/v1/category/get-category");
       if (data?.success) {
         setCategories(data?.categories);
+      } else {
+        toast.error(data.message);
       }
     } catch (error) {
       console.log(error);
