@@ -472,7 +472,7 @@ export const braintreePaymentController = async (req, res) => {
     }
 
     // Sum cart
-    const total = cart.reduce((acc, item) => acc + Number(item.price || 0), 0);
+    const total = cart.reduce((acc, item) => acc + Number(item.price), 0);
 
     if (Number.isNaN(total)) {
       return res.status(400).send({
@@ -490,7 +490,7 @@ export const braintreePaymentController = async (req, res) => {
       },
       async function (error, result) {
         if (error) {
-          console.log("Error processing transaction:", error || result);
+          console.log("Error processing transaction:", error);
           return res.status(500).send({
             success: false,
             message: "Internal server error while processing transaction.",
