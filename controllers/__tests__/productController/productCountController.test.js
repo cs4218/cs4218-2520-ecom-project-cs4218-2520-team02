@@ -1,21 +1,31 @@
 import { jest } from "@jest/globals";
 await import("../../__mocks__/jest.mocks.js");
 
-const { default: productModel } = await import("../../../models/productModel.js");
-const { productCountController } =
-  await import("../../productController.js");
+const { default: productModel } =
+  await import("../../../models/productModel.js");
+const { productCountController } = await import("../../productController.js");
 
 // =============== Helpers ===============
-const mockRes = () => ({ status: jest.fn().mockReturnThis(), send: jest.fn() });
+const mockRes = () => ({
+  status: jest.fn().mockReturnThis(),
+  send: jest.fn(),
+});
 
 const silenceConsole = () => {
   const spy = jest.spyOn(console, "log").mockImplementation(() => {});
   return () => spy.mockRestore();
 };
 
+const makeFindChain = (impl) => ({
+  estimatedDocumentCount: jest.fn(impl),
+});
+
 const expect200 = (res, total) => {
   expect(res.status).toHaveBeenCalledWith(200);
-  expect(res.send).toHaveBeenCalledWith({ success: true, total });
+  expect(res.send).toHaveBeenCalledWith({
+    success: true,
+    total,
+  });
 };
 
 const expect400 = (res) => {
@@ -36,54 +46,115 @@ describe("productCountController", () => {
     restoreConsole = silenceConsole();
   });
 
-  afterEach(() => restoreConsole());
-
-  test("returns the total product count", async () => {
-    const req = {};
-    const res = mockRes();
-
-    const query = {
-      estimatedDocumentCount: jest.fn().mockResolvedValue(123),
-    };
-    productModel.find.mockReturnValue(query);
-
-    await productCountController(req, res);
-
-    expect(productModel.find).toHaveBeenCalledWith({});
-    expect(query.estimatedDocumentCount).toHaveBeenCalled();
-
-    expect200(res, 123);
+  afterEach(() => {
+    restoreConsole();
   });
 
-  test("returns 400 when estimatedDocumentCount rejects", async () => {
-    const req = {};
-    const res = mockRes();
+  describe("Equivalence Partitioning (EP)", () => {
+    test("returns 200 with total when count succeeds", async () => {
+      // Arrange
+      const req = {};
+      const res = mockRes();
 
-    const query = {
-      estimatedDocumentCount: jest.fn().mockRejectedValue(new Error("DB fail")),
-    };
-    productModel.find.mockReturnValue(query);
+      const chain = makeFindChain(() => Promise.resolve(123));
+      productModel.find.mockReturnValue(chain);
 
-    await productCountController(req, res);
+      // Act
+      await productCountController(req, res);
 
-    expect(productModel.find).toHaveBeenCalledWith({});
-    expect(query.estimatedDocumentCount).toHaveBeenCalled();
-
-    expect400(res);
-  });
-
-  test("returns 400 when productModel.find throws synchronously", async () => {
-    const req = {};
-    const res = mockRes();
-
-    productModel.find.mockImplementation(() => {
-      throw new Error("Find crashed");
+      // Assert
+      expect(productModel.find).toHaveBeenCalledWith({});
+      expect(chain.estimatedDocumentCount).toHaveBeenCalledTimes(1);
+      expect200(res, 123);
     });
 
-    await productCountController(req, res);
+    test("returns 400 when estimatedDocumentCount rejects", async () => {
+      // Arrange
+      const req = {};
+      const res = mockRes();
 
-    expect(productModel.find).toHaveBeenCalledWith({});
+      const chain = makeFindChain(() => Promise.reject(new Error("DB fail")));
+      productModel.find.mockReturnValue(chain);
 
-    expect400(res);
+      // Act
+      await productCountController(req, res);
+
+      // Assert
+      expect(productModel.find).toHaveBeenCalledWith({});
+      expect(chain.estimatedDocumentCount).toHaveBeenCalledTimes(1);
+      expect(console.log).toHaveBeenCalledTimes(1);
+      expect400(res);
+    });
+
+    test("returns 400 when productModel.find throws synchronously", async () => {
+      // Arrange
+      const req = {};
+      const res = mockRes();
+
+      productModel.find.mockImplementation(() => {
+        throw new Error("Find crashed");
+      });
+
+      // Act
+      await productCountController(req, res);
+
+      // Assert
+      expect(productModel.find).toHaveBeenCalledWith({});
+      expect(console.log).toHaveBeenCalledTimes(1);
+      expect400(res);
+    });
+  });
+
+  describe("Boundary Value Analysis (BVA)", () => {
+    test("handles 0 total (below boundary)", async () => {
+      // Arrange
+      const req = {};
+      const res = mockRes();
+
+      const chain = makeFindChain(() => Promise.resolve(0));
+      productModel.find.mockReturnValue(chain);
+
+      // Act
+      await productCountController(req, res);
+
+      // Assert
+      expect(productModel.find).toHaveBeenCalledWith({});
+      expect(chain.estimatedDocumentCount).toHaveBeenCalledTimes(1);
+      expect200(res, 0);
+    });
+
+    test("handles 1 total (on boundary)", async () => {
+      // Arrange
+      const req = {};
+      const res = mockRes();
+
+      const chain = makeFindChain(() => Promise.resolve(1));
+      productModel.find.mockReturnValue(chain);
+
+      // Act
+      await productCountController(req, res);
+
+      // Assert
+      expect(productModel.find).toHaveBeenCalledWith({});
+      expect(chain.estimatedDocumentCount).toHaveBeenCalledTimes(1);
+      expect200(res, 1);
+    });
+
+    test("handles 10 total (above boundary)", async () => {
+      // Arrange
+      const req = {};
+      const res = mockRes();
+
+      const chain = makeFindChain(() => Promise.resolve(10));
+      productModel.find.mockReturnValue(chain);
+
+      // Act
+      await productCountController(req, res);
+
+      // Assert
+      expect(productModel.find).toHaveBeenCalledWith({});
+      expect(chain.estimatedDocumentCount).toHaveBeenCalledTimes(1);
+      expect200(res, 10);
+    });
   });
 });

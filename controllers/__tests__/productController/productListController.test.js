@@ -1,19 +1,29 @@
 import { jest } from "@jest/globals";
 await import("../../__mocks__/jest.mocks.js");
 
-const { default: productModel } = await import("../../../models/productModel.js");
-const { productListController } =
-  await import("../../productController.js");
+const { default: productModel } =
+  await import("../../../models/productModel.js");
+const { productListController } = await import("../../productController.js");
 
-// =============== Helpers ===============
+// ================= Helpers =================
 const PER_PAGE = 6;
 
-const mkRes = () => ({ status: jest.fn().mockReturnThis(), send: jest.fn() });
+const mockRes = () => ({
+  status: jest.fn().mockReturnThis(),
+  send: jest.fn(),
+});
 
 const silenceConsole = () => {
   const spy = jest.spyOn(console, "log").mockImplementation(() => {});
   return () => spy.mockRestore();
 };
+
+const makeQueryChain = (finalProducts = []) => ({
+  select: jest.fn().mockReturnThis(),
+  skip: jest.fn().mockReturnThis(),
+  limit: jest.fn().mockReturnThis(),
+  sort: jest.fn().mockResolvedValue(finalProducts),
+});
 
 const expect200 = (res, expectedProducts) => {
   expect(res.status).toHaveBeenCalledWith(200);
@@ -23,25 +33,26 @@ const expect200 = (res, expectedProducts) => {
   });
 };
 
-const expect400 = (res) => {
+const expect400Page = (res) => {
+  expect(res.status).toHaveBeenCalledWith(400);
+  expect(res.send).toHaveBeenCalledWith({
+    success: false,
+    message: "Page must be a positive integer.",
+  });
+};
+
+const expect400Error = (res) => {
   expect(res.status).toHaveBeenCalledWith(400);
   expect(res.send).toHaveBeenCalledWith(
     expect.objectContaining({
       success: false,
-      message: "error in per page ctrl",
+      message: "Error in per page controller",
       error: expect.anything(),
     }),
   );
 };
 
-const makeQueryChain = (finalProducts = []) => ({
-  select: jest.fn().mockReturnThis(),
-  skip: jest.fn().mockReturnThis(),
-  limit: jest.fn().mockReturnThis(),
-  sort: jest.fn().mockResolvedValue(finalProducts), // await ...sort(...)
-});
-
-// =============== Tests ===============
+// ================= Tests =================
 describe("productListController", () => {
   let restoreConsole;
 
@@ -52,83 +63,115 @@ describe("productListController", () => {
 
   afterEach(() => restoreConsole());
 
-  test("defaults to page 1 when req.params.page is missing", async () => {
-    const req = { params: {} };
-    const res = mkRes();
+  describe("Input validation (EP)", () => {
+    test("returns 400 when page is missing", async () => {
+      // Arrange
+      const req = { params: {} };
+      const res = mockRes();
 
-    const products = [{ _id: "p1" }, { _id: "p2" }];
-    const query = makeQueryChain(products);
-    productModel.find.mockReturnValue(query);
+      // Act
+      await productListController(req, res);
 
-    await productListController(req, res);
-
-    expect(productModel.find).toHaveBeenCalledWith({});
-    expect(query.select).toHaveBeenCalledWith("-photo");
-    expect(query.skip).toHaveBeenCalledWith(0);
-    expect(query.limit).toHaveBeenCalledWith(PER_PAGE);
-    expect(query.sort).toHaveBeenCalledWith({ createdAt: -1 });
-
-    expect200(res, products);
-  });
-
-  test("uses correct skip for page 2", async () => {
-    const req = { params: { page: 2 } };
-    const res = mkRes();
-
-    const products = [{ _id: "p7" }];
-    const query = makeQueryChain(products);
-    productModel.find.mockReturnValue(query);
-
-    await productListController(req, res);
-
-    expect(query.skip).toHaveBeenCalledWith(6);
-    expect(query.limit).toHaveBeenCalledWith(PER_PAGE);
-    expect200(res, products);
-  });
-
-  test("treats page param string like a number via coercion", async () => {
-    const req = { params: { page: "3" } };
-    const res = mkRes();
-
-    const products = [{ _id: "p13" }];
-    const query = makeQueryChain(products);
-    productModel.find.mockReturnValue(query);
-
-    await productListController(req, res);
-
-    expect(query.skip).toHaveBeenCalledWith(12);
-    expect200(res, products);
-  });
-
-  test("returns 400 when sort rejects", async () => {
-    const req = { params: { page: 1 } };
-    const res = mkRes();
-
-    const query = {
-      select: jest.fn().mockReturnThis(),
-      skip: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockReturnThis(),
-      sort: jest.fn().mockRejectedValue(new Error("DB fail")),
-    };
-    productModel.find.mockReturnValue(query);
-
-    await productListController(req, res);
-
-    expect(productModel.find).toHaveBeenCalledWith({});
-    expect400(res);
-  });
-
-  test("returns 400 when find throws synchronously", async () => {
-    const req = { params: { page: 1 } };
-    const res = mkRes();
-
-    productModel.find.mockImplementation(() => {
-      throw new Error("find crashed");
+      // Assert
+      expect400Page(res);
+      expect(productModel.find).not.toHaveBeenCalled();
     });
 
-    await productListController(req, res);
+    test("returns 400 when page is 0", async () => {
+      // Arrange
+      const req = { params: { page: 0 } };
+      const res = mockRes();
 
-    expect(productModel.find).toHaveBeenCalledWith({});
-    expect400(res);
+      // Act
+      await productListController(req, res);
+
+      // Assert
+      expect400Page(res);
+      expect(productModel.find).not.toHaveBeenCalled();
+    });
+
+    test("returns 400 when page is negative", async () => {
+      // Arrange
+      const req = { params: { page: -1 } };
+      const res = mockRes();
+
+      // Act
+      await productListController(req, res);
+
+      // Assert
+      expect400Page(res);
+      expect(productModel.find).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("Pagination calculation (BVA)", () => {
+    test("page 1 uses skip = 0 and limit = 6 (On Boundary)", async () => {
+      // Arrange
+      const req = { params: { page: 1 } };
+      const res = mockRes();
+
+      const products = [{ _id: "p1" }, { _id: "p2" }];
+      const query = makeQueryChain(products);
+      productModel.find.mockReturnValue(query);
+
+      // Act
+      await productListController(req, res);
+
+      // Assert
+      expect(productModel.find).toHaveBeenCalledWith({});
+      expect(query.select).toHaveBeenCalledWith("-photo");
+      expect(query.skip).toHaveBeenCalledWith(0);
+      expect(query.limit).toHaveBeenCalledWith(PER_PAGE);
+      expect(query.sort).toHaveBeenCalledWith({ createdAt: -1 });
+      expect200(res, products);
+    });
+
+    test("page 10 uses skip = 54 (Above Boundary)", async () => {
+      // Arrange
+      const req = { params: { page: 10 } };
+      const res = mockRes();
+
+      const products = [{ _id: "p61" }];
+      const query = makeQueryChain(products);
+      productModel.find.mockReturnValue(query);
+
+      // Act
+      await productListController(req, res);
+
+      // Assert
+      expect(productModel.find).toHaveBeenCalledWith({});
+      expect(query.select).toHaveBeenCalledWith("-photo");
+      expect(query.skip).toHaveBeenCalledWith(54);
+      expect(query.limit).toHaveBeenCalledWith(PER_PAGE);
+      expect(query.sort).toHaveBeenCalledWith({ createdAt: -1 });
+      expect200(res, products);
+    });
+  });
+
+  describe("Error handling (EP)", () => {
+    test("returns 400 when query execution rejects", async () => {
+      // Arrange
+      const req = { params: { page: 1 } };
+      const res = mockRes();
+
+      const query = {
+        select: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        sort: jest.fn().mockRejectedValue(new Error("DB fail")),
+      };
+      productModel.find.mockReturnValue(query);
+
+      // Act
+      await productListController(req, res);
+
+      // Assert
+      expect(productModel.find).toHaveBeenCalledWith({});
+      expect(query.select).toHaveBeenCalledWith("-photo");
+      expect(query.skip).toHaveBeenCalledWith(0);
+      expect(query.limit).toHaveBeenCalledWith(PER_PAGE);
+      expect(query.sort).toHaveBeenCalledWith({ createdAt: -1 });
+      expect400Error(res);
+    });
   });
 });

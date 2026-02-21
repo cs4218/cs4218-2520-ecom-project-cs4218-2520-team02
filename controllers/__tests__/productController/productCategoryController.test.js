@@ -54,39 +54,54 @@ describe("productCategoryController", () => {
 
   afterEach(() => restoreConsole());
 
-  describe("Baseline behavior (happy path)", () => {
-    test("finds category by slug, then finds products by that category and populates category", async () => {
+  describe("Success (EP + BVA: product list size 0,1,10)", () => {
+    test.each([
+      ["0 products", []],
+      ["1 product", [{ _id: "p1" }]],
+      [
+        "10 products",
+        Array.from({ length: 10 }, (_, i) => ({ _id: `p${i + 1}` })),
+      ],
+    ])("finds category by slug, then returns %s", async (_name, products) => {
+      // Arrange
       const req = { params: { slug: "electronics" } };
       const res = mockRes();
 
       const category = { _id: "c1", slug: "electronics", name: "Electronics" };
       categoryModel.findOne.mockResolvedValue(category);
 
-      const products = [{ _id: "p1" }, { _id: "p2" }];
       const query = makeFindPopulateChain(products);
       productModel.find.mockReturnValue(query);
 
+      // Act
       await productCategoryController(req, res);
 
+      // Assert
       expect(categoryModel.findOne).toHaveBeenCalledWith({
         slug: "electronics",
       });
       expect(productModel.find).toHaveBeenCalledWith({ category });
       expect(query.populate).toHaveBeenCalledWith("category");
-
       expect200(res, category, products);
     });
   });
 
-  describe("Error and defensive cases", () => {
-    test("returns 400 when DB fails", async () => {
+  describe("Error handling (EP)", () => {
+    test("returns 400 when DB query fails", async () => {
+      // Arrange
       const req = { params: { slug: "electronics" } };
       const res = mockRes();
 
       categoryModel.findOne.mockRejectedValue(new Error("DB fail"));
 
+      // Act
       await productCategoryController(req, res);
 
+      // Assert
+      expect(categoryModel.findOne).toHaveBeenCalledWith({
+        slug: "electronics",
+      });
+      expect(productModel.find).not.toHaveBeenCalled();
       expect400(res);
     });
   });

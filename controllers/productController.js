@@ -47,7 +47,9 @@ export const createProductController = async (req, res) => {
     }
 
     if (raw.price === "" || Number.isNaN(price) || price < 0) {
-      return res.status(400).send({ error: "Price must be a valid non-negative number" });
+      return res
+        .status(400)
+        .send({ error: "Price must be a valid non-negative number" });
     }
 
     if (!category) {
@@ -55,11 +57,15 @@ export const createProductController = async (req, res) => {
     }
 
     if (raw.quantity === "" || !Number.isInteger(quantity) || quantity < 0) {
-      return res.status(400).send({ error: "Quantity must be a valid non-negative integer" });
+      return res
+        .status(400)
+        .send({ error: "Quantity must be a valid non-negative integer" });
     }
 
     if (photo && photo.size > 1000000) {
-      return res.status(400).send({ error: "Photo size should be 1MB or less" });
+      return res
+        .status(400)
+        .send({ error: "Photo size should be 1MB or less" });
     }
 
     const products = new productModel({
@@ -187,7 +193,6 @@ export const productPhotoController = async (req, res) => {
 
     res.set("Content-Type", product.photo.contentType);
     return res.status(200).send(product.photo.data);
-
   } catch (error) {
     console.log(error);
     res.status(500).send({
@@ -217,7 +222,9 @@ export const deleteProductController = async (req, res) => {
       });
     }
 
-    const deleted = await productModel.findByIdAndDelete(req.params.pid).select("-photo");
+    const deleted = await productModel
+      .findByIdAndDelete(req.params.pid)
+      .select("-photo");
 
     if (!deleted) {
       return res.status(404).send({
@@ -289,7 +296,7 @@ export const updateProductController = async (req, res) => {
   }
 };
 
-// filters
+// Filters
 export const productFiltersController = async (req, res) => {
   try {
     const { checked, radio } = req.body;
@@ -324,7 +331,7 @@ export const productFiltersController = async (req, res) => {
   }
 };
 
-// product count
+// Product count
 export const productCountController = async (req, res) => {
   try {
     const total = await productModel.find({}).estimatedDocumentCount();
@@ -342,11 +349,19 @@ export const productCountController = async (req, res) => {
   }
 };
 
-// product list base on page
+// Product list based on page
 export const productListController = async (req, res) => {
   try {
     const perPage = 6;
-    const page = req.params.page ? req.params.page : 1;
+    const page = req.params.page;
+
+    if (page === undefined || page < 1) {
+      return res.status(400).send({
+        success: false,
+        message: "Page must be a positive integer.",
+      });
+    }
+
     const products = await productModel
       .find({})
       .select("-photo")
@@ -361,16 +376,16 @@ export const productListController = async (req, res) => {
     console.log(error);
     res.status(400).send({
       success: false,
-      message: "error in per page ctrl",
+      message: "Error in per page controller",
       error,
     });
   }
 };
 
-// search product
+// Search product
 export const searchProductController = async (req, res) => {
   try {
-    const raw = req?.params?.keyword;
+    const raw = req.params.keyword;
 
     if (typeof raw !== "string" || raw.trim().length === 0) {
       return res.status(400).send({
@@ -381,7 +396,7 @@ export const searchProductController = async (req, res) => {
 
     //Escapes Regex to allow searching via symbols
     const keyword = raw.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    
+
     const results = await productModel
       .find({
         $or: [
@@ -404,7 +419,7 @@ export const searchProductController = async (req, res) => {
   }
 };
 
-// similar products
+// Similar products
 export const relatedProductController = async (req, res) => {
   try {
     const { pid, cid } = req.params;
@@ -430,7 +445,7 @@ export const relatedProductController = async (req, res) => {
   }
 };
 
-// get product by category
+// Get product by category
 export const productCategoryController = async (req, res) => {
   try {
     const category = await categoryModel.findOne({ slug: req.params.slug });
@@ -469,9 +484,9 @@ export const braintreeTokenController = async (req, res) => {
         token: response.clientToken,
       });
     });
-  
-  // Misc errors
-  // Note: likely to be configuration errors rather than braintree issues 
+
+    // Misc errors
+    // Note: likely to be configuration errors rather than braintree issues
   } catch (error) {
     console.log("Error generating Braintree token: ", error);
     return res.status(500).send({
@@ -534,22 +549,23 @@ export const braintreePaymentController = async (req, res) => {
             transaction: result,
             orderId: order._id,
           });
-        
-        // Misc errors
-        // Note: likely to be saving errors
+
+          // Misc errors
+          // Note: likely to be saving errors
         } catch (error) {
           console.log("Error saving order:", error);
           return res.status(500).send({
             success: false,
-            message: "Internal server error while saving order after transaction.",
+            message:
+              "Internal server error while saving order after transaction.",
             error: error.message,
           });
         }
       },
     );
-  
-  // Misc errors
-  // Note: likely to be configuration errors rather than braintree issues 
+
+    // Misc errors
+    // Note: likely to be configuration errors rather than braintree issues
   } catch (error) {
     console.log("Error processing payment: ", error);
     return res.status(500).send({

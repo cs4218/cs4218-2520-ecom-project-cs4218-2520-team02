@@ -23,6 +23,7 @@ const expect200 = (res, expectedResults) => {
     success: true,
     results: expectedResults,
   });
+  expect(res.send).not.toHaveBeenCalled();
 };
 
 const expect400ApiError = (res) => {
@@ -60,8 +61,27 @@ describe("searchProductController", () => {
 
   afterEach(() => restoreConsole());
 
-  describe("Baseline behavior (happy paths)", () => {
-    test("trims keyword, builds escaped case-insensitive regex query over name OR description, excludes photo", async () => {
+  describe("Input Validation (EP)", () => {
+    test.each([
+      ["missing keyword (undefined)", { params: {} }],
+      ["empty string", { params: { keyword: "" } }],
+      ["whitespace-only", { params: { keyword: "   " } }],
+    ])("returns 400 when keyword is invalid: %s", async (_name, req) => {
+      // Arrange
+      const res = mockRes();
+
+      // Act
+      await searchProductController(req, res);
+
+      // Assert
+      expect(productModel.find).not.toHaveBeenCalled();
+      expect400KeywordRequired(res);
+    });
+  });
+
+  describe("Valid Search (EP)", () => {
+    test("trims white space", async () => {
+      // Arrange
       const req = { params: { keyword: "   laptop   " } };
       const res = mockRes();
 
@@ -69,8 +89,11 @@ describe("searchProductController", () => {
       const query = makeQuery(results);
       productModel.find.mockReturnValue(query);
 
+      // Act
       await searchProductController(req, res);
 
+      // Assert
+      expect(productModel.find).toHaveBeenCalledTimes(1);
       expect(productModel.find).toHaveBeenCalledWith({
         $or: [
           { name: { $regex: "laptop", $options: "i" } },
@@ -81,7 +104,8 @@ describe("searchProductController", () => {
       expect200(res, results);
     });
 
-    test("escapes regex metacharacters so they are treated literally", async () => {
+    test("allows regex metacharacters", async () => {
+      // Arrange
       const req = { params: { keyword: ".*" } };
       const res = mockRes();
 
@@ -89,8 +113,10 @@ describe("searchProductController", () => {
       const query = makeQuery(results);
       productModel.find.mockReturnValue(query);
 
+      // Act
       await searchProductController(req, res);
 
+      // Assert
       expect(productModel.find).toHaveBeenCalledWith({
         $or: [
           { name: { $regex: "\\.\\*", $options: "i" } },
@@ -102,24 +128,57 @@ describe("searchProductController", () => {
     });
   });
 
-  describe("Equivalence partitions (input validation)", () => {
-    test.each([
-      ["missing keyword (undefined)", { params: {} }],
-      ["empty string", { params: { keyword: "" } }],
-      ["whitespace-only", { params: { keyword: "   " } }],
-      ["non-string keyword", { params: { keyword: 123 } }],
-    ])("returns 400 when keyword is invalid: %s", async (_name, req) => {
+  describe("Boundary Value Analysis (BVA): keyword length", () => {
+    test("accepts a 1-character keyword (On Boundary: 1 char)", async () => {
+      // Arrange
+      const req = { params: { keyword: "a" } };
       const res = mockRes();
 
+      const results = [{ _id: "p1" }];
+      const query = makeQuery(results);
+      productModel.find.mockReturnValue(query);
+
+      // Act
       await searchProductController(req, res);
 
-      expect(productModel.find).not.toHaveBeenCalled();
-      expect400KeywordRequired(res);
+      // Assert
+      expect(productModel.find).toHaveBeenCalledWith({
+        $or: [
+          { name: { $regex: "a", $options: "i" } },
+          { description: { $regex: "a", $options: "i" } },
+        ],
+      });
+      expect(query.select).toHaveBeenCalledWith("-photo");
+      expect200(res, results);
+    });
+
+    test("accepts a 2+ character keyword (Above Boundary: 2+ chars)", async () => {
+      // Arrange
+      const req = { params: { keyword: "ab" } };
+      const res = mockRes();
+
+      const results = [{ _id: "p1" }, { _id: "p2" }];
+      const query = makeQuery(results);
+      productModel.find.mockReturnValue(query);
+
+      // Act
+      await searchProductController(req, res);
+
+      // Assert
+      expect(productModel.find).toHaveBeenCalledWith({
+        $or: [
+          { name: { $regex: "ab", $options: "i" } },
+          { description: { $regex: "ab", $options: "i" } },
+        ],
+      });
+      expect(query.select).toHaveBeenCalledWith("-photo");
+      expect200(res, results);
     });
   });
 
-  describe("Error and defensive cases", () => {
+  describe("Error handling (EP)", () => {
     test("returns 400 when select rejects", async () => {
+      // Arrange
       const req = { params: { keyword: "laptop" } };
       const res = mockRes();
 
@@ -128,8 +187,10 @@ describe("searchProductController", () => {
       };
       productModel.find.mockReturnValue(query);
 
+      // Act
       await searchProductController(req, res);
 
+      // Assert
       expect(productModel.find).toHaveBeenCalledWith({
         $or: [
           { name: { $regex: "laptop", $options: "i" } },
@@ -141,6 +202,7 @@ describe("searchProductController", () => {
     });
 
     test("returns 400 when find throws synchronously", async () => {
+      // Arrange
       const req = { params: { keyword: "laptop" } };
       const res = mockRes();
 
@@ -148,9 +210,11 @@ describe("searchProductController", () => {
         throw new Error("find crashed");
       });
 
+      // Act
       await searchProductController(req, res);
 
-      expect(productModel.find).toHaveBeenCalled();
+      // Assert
+      expect(productModel.find).toHaveBeenCalledTimes(1);
       expect400ApiError(res);
     });
   });

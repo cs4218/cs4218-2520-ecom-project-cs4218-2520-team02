@@ -1,9 +1,9 @@
 import { jest } from "@jest/globals";
 await import("../../__mocks__/jest.mocks.js");
 
-const { default: productModel } = await import("../../../models/productModel.js");
-const { productFiltersController } =
-  await import("../../productController.js");
+const { default: productModel } =
+  await import("../../../models/productModel.js");
+const { productFiltersController } = await import("../../productController.js");
 
 // =============== Mock Data ===============
 const MOCK_PRODUCTS = [
@@ -94,23 +94,29 @@ describe("productFiltersController", () => {
 
   afterEach(() => restoreConsole());
 
-  describe("Baseline behavior (happy paths)", () => {
+  describe("Sucessful Filters (EP)", () => {
     test("returns all products when no filters are selected", async () => {
+      // Arrange
       const req = { body: { checked: [], radio: [] } };
       const res = mockRes();
 
+      // Act
       await productFiltersController(req, res);
 
+      // Assert
       expect(productModel.find).toHaveBeenCalledWith({});
       expect200(res, MOCK_PRODUCTS);
     });
 
     test("filters by one selected category", async () => {
+      // Arrange
       const req = { body: { checked: ["c1"], radio: [] } };
       const res = mockRes();
 
+      // Act
       await productFiltersController(req, res);
 
+      // Assert
       expect(productModel.find).toHaveBeenCalledWith({ category: ["c1"] });
       expect200(
         res,
@@ -119,11 +125,14 @@ describe("productFiltersController", () => {
     });
 
     test("filters by multiple selected categories", async () => {
+      // Arrange
       const req = { body: { checked: ["c1", "c2"], radio: [] } };
       const res = mockRes();
 
+      // Act
       await productFiltersController(req, res);
 
+      // Assert
       expect(productModel.find).toHaveBeenCalledWith({
         category: ["c1", "c2"],
       });
@@ -134,11 +143,14 @@ describe("productFiltersController", () => {
     });
 
     test("filters by a price range only", async () => {
+      // Arrange
       const req = { body: { checked: [], radio: [100, 500] } };
       const res = mockRes();
 
+      // Act
       await productFiltersController(req, res);
 
+      // Assert
       expect(productModel.find).toHaveBeenCalledWith({
         price: { $gte: 100, $lte: 500 },
       });
@@ -149,11 +161,14 @@ describe("productFiltersController", () => {
     });
 
     test("filters by category and price range together", async () => {
+      // Arrange
       const req = { body: { checked: ["c2"], radio: [100, 500] } };
       const res = mockRes();
 
+      // Act
       await productFiltersController(req, res);
 
+      // Assert
       expect(productModel.find).toHaveBeenCalledWith({
         category: ["c2"],
         price: { $gte: 100, $lte: 500 },
@@ -165,30 +180,142 @@ describe("productFiltersController", () => {
         ),
       );
     });
-  });
 
-  describe("Boundary Value Analysis (price boundaries)", () => {
-    test("price range below 100 returns only products priced at 99 or less", async () => {
-      const req = { body: { checked: [], radio: [0, 99] } };
+    test("ignores price filter when radio does not have exactly 2 values", async () => {
+      // Arrange
+      const req = { body: { checked: ["c1"], radio: [100] } };
       const res = mockRes();
 
+      // Act
       await productFiltersController(req, res);
 
-      expect(productModel.find).toHaveBeenCalledWith({
-        price: { $gte: 0, $lte: 99 },
-      });
+      // Assert
+      expect(productModel.find).toHaveBeenCalledWith({ category: ["c1"] });
       expect200(
         res,
-        MOCK_PRODUCTS.filter((p) => p.price >= 0 && p.price <= 99),
+        MOCK_PRODUCTS.filter((p) => p.category === "c1"),
       );
     });
 
-    test("price range exactly 100 returns only products priced exactly 100", async () => {
+    test("normalizes reversed price range (min/max swapped)", async () => {
+      // Arrange
+      const req = { body: { checked: [], radio: [500, 100] } };
+      const res = mockRes();
+
+      // Act
+      await productFiltersController(req, res);
+
+      // Assert
+      expect(productModel.find).toHaveBeenCalledWith({
+        price: { $gte: 100, $lte: 500 },
+      });
+      expect200(
+        res,
+        MOCK_PRODUCTS.filter((p) => p.price >= 100 && p.price <= 500),
+      );
+    });
+  });
+
+  describe("Boundary Value Analysis (BVA) for price range", () => {
+    test("min below boundary, max on boundary (99 to 500)", async () => {
+      // Arrange
+      const req = { body: { checked: [], radio: [99, 500] } };
+      const res = mockRes();
+
+      // Act
+      await productFiltersController(req, res);
+
+      // Assert
+      expect(productModel.find).toHaveBeenCalledWith({
+        price: { $gte: 99, $lte: 500 },
+      });
+      expect200(
+        res,
+        MOCK_PRODUCTS.filter((p) => p.price >= 99 && p.price <= 500),
+      );
+    });
+
+    test("min on boundary, max on boundary (100 to 500)", async () => {
+      // Arrange
+      const req = { body: { checked: [], radio: [100, 500] } };
+      const res = mockRes();
+
+      // Act
+      await productFiltersController(req, res);
+
+      // Assert
+      expect(productModel.find).toHaveBeenCalledWith({
+        price: { $gte: 100, $lte: 500 },
+      });
+      expect200(
+        res,
+        MOCK_PRODUCTS.filter((p) => p.price >= 100 && p.price <= 500),
+      );
+    });
+
+    test("min above boundary, max on boundary (101 to 500)", async () => {
+      // Arrange
+      const req = { body: { checked: [], radio: [101, 500] } };
+      const res = mockRes();
+
+      // Act
+      await productFiltersController(req, res);
+
+      // Assert
+      expect(productModel.find).toHaveBeenCalledWith({
+        price: { $gte: 101, $lte: 500 },
+      });
+      expect200(
+        res,
+        MOCK_PRODUCTS.filter((p) => p.price >= 101 && p.price <= 500),
+      );
+    });
+
+    test("min on boundary, max below boundary (100 to 499)", async () => {
+      // Arrange
+      const req = { body: { checked: [], radio: [100, 499] } };
+      const res = mockRes();
+
+      // Act
+      await productFiltersController(req, res);
+
+      // Assert
+      expect(productModel.find).toHaveBeenCalledWith({
+        price: { $gte: 100, $lte: 499 },
+      });
+      expect200(
+        res,
+        MOCK_PRODUCTS.filter((p) => p.price >= 100 && p.price <= 499),
+      );
+    });
+
+    test("min on boundary, max above boundary (100 to 501)", async () => {
+      // Arrange
+      const req = { body: { checked: [], radio: [100, 501] } };
+      const res = mockRes();
+
+      // Act
+      await productFiltersController(req, res);
+
+      // Assert
+      expect(productModel.find).toHaveBeenCalledWith({
+        price: { $gte: 100, $lte: 501 },
+      });
+      expect200(
+        res,
+        MOCK_PRODUCTS.filter((p) => p.price >= 100 && p.price <= 501),
+      );
+    });
+
+    test("corner case, min equals max at boundary (100 to 100)", async () => {
+      // Arrange
       const req = { body: { checked: [], radio: [100, 100] } };
       const res = mockRes();
 
+      // Act
       await productFiltersController(req, res);
 
+      // Assert
       expect(productModel.find).toHaveBeenCalledWith({
         price: { $gte: 100, $lte: 100 },
       });
@@ -197,135 +324,21 @@ describe("productFiltersController", () => {
         MOCK_PRODUCTS.filter((p) => p.price === 100),
       );
     });
-
-    test("price range exactly 101 returns only products priced exactly 101", async () => {
-      const req = { body: { checked: [], radio: [101, 101] } };
-      const res = mockRes();
-
-      await productFiltersController(req, res);
-
-      expect(productModel.find).toHaveBeenCalledWith({
-        price: { $gte: 101, $lte: 101 },
-      });
-      expect200(
-        res,
-        MOCK_PRODUCTS.filter((p) => p.price === 101),
-      );
-    });
   });
 
-  describe("Boundary Value Analysis (category boundary)", () => {
-    test("with only a price range set, category is not applied", async () => {
-      const req = { body: { checked: [], radio: [100, 100] } };
-      const res = mockRes();
-
-      await productFiltersController(req, res);
-
-      expect(productModel.find).toHaveBeenCalledWith({
-        price: { $gte: 100, $lte: 100 },
-      });
-      expect200(
-        res,
-        MOCK_PRODUCTS.filter((p) => p.price === 100),
-      );
-    });
-
-    test("with category + exact-price range, returns only matching items in that category", async () => {
-      const req = { body: { checked: ["c1"], radio: [100, 100] } };
-      const res = mockRes();
-
-      await productFiltersController(req, res);
-
-      expect(productModel.find).toHaveBeenCalledWith({
-        category: ["c1"],
-        price: { $gte: 100, $lte: 100 },
-      });
-      expect200(
-        res,
-        MOCK_PRODUCTS.filter((p) => p.category === "c1" && p.price === 100),
-      );
-    });
-  });
-
-  describe("2D BVA corner cases (category × price)", () => {
-    test("category c1 with low price range returns only cheap c1 items", async () => {
-      const req = { body: { checked: ["c1"], radio: [0, 99] } };
-      const res = mockRes();
-
-      await productFiltersController(req, res);
-
-      expect(productModel.find).toHaveBeenCalledWith({
-        category: ["c1"],
-        price: { $gte: 0, $lte: 99 },
-      });
-      expect200(
-        res,
-        MOCK_PRODUCTS.filter(
-          (p) => p.category === "c1" && p.price >= 0 && p.price <= 99,
-        ),
-      );
-    });
-
-    test("category c1 with exact high price returns only that exact-priced c1 item", async () => {
-      const req = { body: { checked: ["c1"], radio: [500, 500] } };
-      const res = mockRes();
-
-      await productFiltersController(req, res);
-
-      expect(productModel.find).toHaveBeenCalledWith({
-        category: ["c1"],
-        price: { $gte: 500, $lte: 500 },
-      });
-      expect200(
-        res,
-        MOCK_PRODUCTS.filter((p) => p.category === "c1" && p.price === 500),
-      );
-    });
-
-    test("category c3 with exact high price returns only that exact-priced c3 item", async () => {
-      const req = { body: { checked: ["c3"], radio: [500, 500] } };
-      const res = mockRes();
-
-      await productFiltersController(req, res);
-
-      expect(productModel.find).toHaveBeenCalledWith({
-        category: ["c3"],
-        price: { $gte: 500, $lte: 500 },
-      });
-      expect200(
-        res,
-        MOCK_PRODUCTS.filter((p) => p.category === "c3" && p.price === 500),
-      );
-    });
-
-    test("category c2 with exact 101 price returns only that exact-priced c2 item", async () => {
-      const req = { body: { checked: ["c2"], radio: [101, 101] } };
-      const res = mockRes();
-
-      await productFiltersController(req, res);
-
-      expect(productModel.find).toHaveBeenCalledWith({
-        category: ["c2"],
-        price: { $gte: 101, $lte: 101 },
-      });
-      expect200(
-        res,
-        MOCK_PRODUCTS.filter((p) => p.category === "c2" && p.price === 101),
-      );
-    });
-  });
-
-  describe("Error and defensive cases", () => {
+  describe("Error and defensive cases (EP)", () => {
     test("returns 400 if the database query throws an error", async () => {
+      // Arrange
       const req = { body: { checked: ["c1"], radio: [100, 500] } };
       const res = mockRes();
-
       productModel.find.mockImplementation(() => {
         throw new Error("DB error");
       });
 
+      // Act
       await productFiltersController(req, res);
 
+      // Assert
       expect(productModel.find).toHaveBeenCalledWith({
         category: ["c1"],
         price: { $gte: 100, $lte: 500 },
@@ -334,51 +347,27 @@ describe("productFiltersController", () => {
     });
 
     test("returns 400 if 'checked' is missing from the request body", async () => {
+      // Arrange
       const req = { body: { radio: [100, 500] } };
       const res = mockRes();
 
+      // Act
       await productFiltersController(req, res);
 
+      // Assert
       expect400(res);
     });
 
     test("returns 400 if 'radio' is missing from the request body", async () => {
+      // Arrange
       const req = { body: { checked: ["c1"] } };
       const res = mockRes();
 
+      // Act
       await productFiltersController(req, res);
 
+      // Assert
       expect400(res);
-    });
-
-    test("ignores price filter when radio does not have exactly 2 values", async () => {
-      const req = { body: { checked: ["c1"], radio: [100] } };
-      const res = mockRes();
-
-      await productFiltersController(req, res);
-
-      expect(productModel.find).toHaveBeenCalledWith({
-        category: ["c1"],
-      });
-      expect200(
-        res,
-        MOCK_PRODUCTS.filter((p) => p.category === "c1"),
-      );
-    });
-
-    test("normalizes reversed price range (min/max swapped)", async () => {
-      const req = { body: { checked: [], radio: [500, 100] } };
-      const res = mockRes();
-
-      await productFiltersController(req, res);
-
-      expect(productModel.find).toHaveBeenCalledWith({
-        price: { $gte: 100, $lte: 500 },
-      });
-      expect200(
-        res,
-        MOCK_PRODUCTS.filter((p) => p.price >= 100 && p.price <= 500),
-      );
     });
   });
 });
