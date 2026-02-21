@@ -31,21 +31,64 @@ describe("Dashboard Component", () => {
     useAuth.mockReturnValue([mockAuth]);
   });
 
-  test("renders user information", () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test("[EP] renders user name, email, and address when auth user is populated", () => {
+    // Arrange - beforeEach provides full mockAuth with name, email, and address
+
+    // Act
     render(<Dashboard />);
 
+    // Assert
     expect(screen.getByText("John Doe")).toBeInTheDocument();
     expect(screen.getByText("john@example.com")).toBeInTheDocument();
     expect(screen.getByText("New York")).toBeInTheDocument();
   });
 
-  test("renders UserMenu component", () => {
+  test("[EP] renders UserMenu component", () => {
+    // Arrange - beforeEach provides authenticated state
+
+    // Act
     render(<Dashboard />);
+
+    // Assert
     expect(screen.getByTestId("user-menu")).toBeInTheDocument();
   });
 
-  test("renders inside Layout component", () => {
+  test("[EP] renders inside Layout component", () => {
+    // Arrange - beforeEach provides authenticated state
+
+    // Act
     render(<Dashboard />);
+
+    // Assert
     expect(screen.getByTestId("layout")).toBeInTheDocument();
+  });
+
+  test("[EP] renders without crashing when auth user is null", () => {
+    // Arrange
+    useAuth.mockReturnValue([{ user: null }]);
+
+    // Act
+    render(<Dashboard />);
+
+    // Assert 
+    expect(screen.getByTestId("layout")).toBeInTheDocument();
+    expect(screen.getByTestId("user-menu")).toBeInTheDocument();
+    expect(screen.queryByText("John Doe")).not.toBeInTheDocument();
+  });
+
+  test("[EP] renders without crashing when auth is an empty object", () => {
+    // Arrange
+    useAuth.mockReturnValue([{}]);
+
+    // Act
+    render(<Dashboard />);
+
+    // Assert
+    expect(screen.getByTestId("layout")).toBeInTheDocument();
+    expect(screen.queryByText("John Doe")).not.toBeInTheDocument();
   });
 });
