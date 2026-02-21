@@ -103,6 +103,24 @@ describe("CartContext", () => {
     expect(() => renderWithCartProvider()).not.toThrow();
   });
 
+  it("[EP] should allow duplicate items in the cart", () => {
+    // Arrange
+    const { result } = renderHook(() => useCart(), { wrapper: CartProvider });
+    const duplicateItem = { _id: "1", name: "Product 1", price: 100 };
+
+    // Act
+    act(() => {
+      const [, setCart] = result.current;
+      // Add the same item twice
+      setCart([duplicateItem, duplicateItem]);
+    });
+
+    // Assert
+    const [cart] = result.current;
+    expect(cart.length).toBe(2);
+    expect(cart[0]).toEqual(duplicateItem);
+    expect(cart[1]).toEqual(duplicateItem);
+  });
 
   // ========================================
   // BVA: Cart Size Boundaries
