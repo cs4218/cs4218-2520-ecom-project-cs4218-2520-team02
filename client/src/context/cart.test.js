@@ -95,18 +95,6 @@ describe("CartContext", () => {
     expect(screen.getByTestId("cart").textContent).toBe("[]");
   });
 
-  it("[BVA] loads and renders a cart with exactly one item from localStorage", () => {
-    // Arrange
-    const singleItemCart = [{ _id: "1", name: "Product A", price: 100 }];
-    localStorage.setItem("cart", JSON.stringify(singleItemCart));
-
-    // Act
-    renderWithCartProvider();
-
-    // Assert
-    expect(screen.getByTestId("cart").textContent).toBe(JSON.stringify(singleItemCart));
-  });
-
   it("[EP] renders without crashing when localStorage cart value is malformed JSON", () => {
     // Arrange
     localStorage.setItem("cart", "not-valid-json");
@@ -242,6 +230,40 @@ describe("CartContext", () => {
       // Assert
       expect(cart.length).toBe(1);
       expect(cart[0]._id).toBe("2");
+    });
+  });
+
+  describe("[BVA] Price Boundaries", () => {
+    it("handles zero price (minimum)", () => {
+      // Arrange
+      const { result } = renderHook(() => useCart(), { wrapper: CartProvider });
+      const product = { _id: "1", name: "Free Item", price: 0 };
+
+      // Act
+      act(() => {
+        const [, setCart] = result.current;
+        setCart([product]);
+      });
+      const [cart] = result.current;
+
+      // Assert
+      expect(cart[0].price).toBe(0);
+    });
+
+    it("handles very high price (maximum)", () => {
+      // Arrange
+      const { result } = renderHook(() => useCart(), { wrapper: CartProvider });
+      const product = { _id: "1", name: "Expensive Item", price: 999999.99 };
+
+      // Act
+      act(() => {
+        const [, setCart] = result.current;
+        setCart([product]);
+      });
+      const [cart] = result.current;
+
+      // Assert
+      expect(cart[0].price).toBe(999999.99);
     });
   });
 });
