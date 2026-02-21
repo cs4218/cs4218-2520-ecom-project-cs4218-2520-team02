@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, act } from "@testing-library/react";
+import { render, screen, act, renderHook } from "@testing-library/react";
 import { CartProvider, useCart } from "./cart";
 import "@testing-library/jest-dom";
 
@@ -113,5 +113,78 @@ describe("CartContext", () => {
 
     // Act & Assert 
     expect(() => renderWithCartProvider()).not.toThrow();
+    });
+
+  // ========================================
+  // BVA: Cart Size Boundaries
+  // ========================================
+  describe("[BVA] Cart Size Boundaries", () => {
+    it("handles empty cart (0 items)", () => {
+      // Arrange - beforeEach ensures cart is empty
+
+      // Act
+      const { result } = renderHook(() => useCart(), { wrapper: CartProvider });
+      const [cart] = result.current;
+
+      // Assert
+      expect(cart).toEqual([]);
+      expect(cart.length).toBe(0);
+    });
+
+    it("handles single item cart (1 item)", () => {
+      // Arrange
+      const { result } = renderHook(() => useCart(), { wrapper: CartProvider });
+      const product = { _id: "1", name: "Product 1", price: 100 };
+
+      // Act
+      act(() => {
+        const [, setCart] = result.current;
+        setCart([product]);
+      });
+      const [cart] = result.current;
+
+      // Assert
+      expect(cart).toEqual([product]);
+      expect(cart.length).toBe(1);
+    });
+
+    it("handles two items cart (2 items)", () => {
+      // Arrange
+      const { result } = renderHook(() => useCart(), { wrapper: CartProvider });
+      const product1 = { _id: "1", name: "Product 1", price: 100 };
+      const product2 = { _id: "2", name: "Product 2", price: 200 };
+
+      // Act
+      act(() => {
+        const [, setCart] = result.current;
+        setCart([product1, product2]);
+      });
+      const [cart] = result.current;
+
+      // Assert
+      expect(cart).toEqual([product1, product2]);
+      expect(cart.length).toBe(2);
+    });
+
+    it("handles large cart (100 items)", () => {
+      // Arrange
+      const { result } = renderHook(() => useCart(), { wrapper: CartProvider });
+      const manyProducts = Array.from({ length: 100 }, (_, i) => ({
+        _id: `${i}`,
+        name: `Product ${i}`,
+        price: (i + 1) * 10,
+      }));
+
+      // Act
+      act(() => {
+        const [, setCart] = result.current;
+        setCart(manyProducts);
+      });
+      const [cart] = result.current;
+
+      // Assert
+      expect(cart).toEqual(manyProducts);
+      expect(cart.length).toBe(100);
+    });
   });
 });
