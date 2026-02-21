@@ -139,6 +139,21 @@ describe("updateProductController", () => {
     })
 
     describe("When invalid pid is given", () => {
+        test("should return 400 if no parameters are provided", async () => {
+            const req = baseReq();
+            delete req.params;
+
+            await updateProductController(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.send).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    success: false,
+                    message: "Product ID is required",
+                })
+            );
+        })
+
         test("should return 400 if the pid is missing", async () => {
             const req = baseReq();
             delete req.params.pid;
