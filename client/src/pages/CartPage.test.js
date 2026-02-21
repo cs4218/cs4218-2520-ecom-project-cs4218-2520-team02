@@ -49,7 +49,7 @@ const renderCartPage = () =>
   render(
     <MemoryRouter>
       <CartPage />
-    </MemoryRouter>,
+    </MemoryRouter>
   );
 
 const mockCart = [
@@ -64,7 +64,6 @@ const mockAuth = {
 
 jest.mock("braintree-web-drop-in-react", () => {
   const { useEffect } = require("react");
-  
   const DropInMock = ({ onInstance }) => {
     useEffect(() => {
       onInstance({
@@ -73,11 +72,7 @@ jest.mock("braintree-web-drop-in-react", () => {
     }, []);
     return <div data-testid="braintree-dropin" />;
   };
-
-  return {
-    __esModule: true,
-    default: DropInMock, 
-  };
+  return { __esModule: true, default: DropInMock };
 });
 
 describe("CartPage", () => {
@@ -86,7 +81,6 @@ describe("CartPage", () => {
     useNavigate.mockReturnValue(mockNavigate);
     useAuth.mockReturnValue([mockAuth, jest.fn()]);
     useCart.mockReturnValue([mockCart, jest.fn()]);
-
     axios.get.mockResolvedValue({
       data: { success: true, token: "braintree-client-token" },
     });
@@ -102,26 +96,33 @@ describe("CartPage", () => {
     jest.restoreAllMocks();
   });
 
-  it("should render without crashing", () => {
+  it("[EP] renders without crashing when auth and cart are valid", () => {
+    // Arrange - beforeEach provides mockAuth and mockCart
+
+    // Act
     renderCartPage();
 
+    // Assert
     expect(screen.getByTestId("layout")).toBeInTheDocument();
   });
 
-  it("should calculate total price correctly", () => {
+  it("[EP] calculates and displays total price correctly for valid cart items", () => {
+    // Arrange
     const cartItems = [
       { price: 10, description: "item1" },
       { price: 5, description: "item2" },
     ];
     useCart.mockReturnValue([cartItems, jest.fn()]);
 
+    // Act
     renderCartPage();
 
-    const totalPrice = screen.getByText(/Total : \$15.00/i);
-    expect(totalPrice).toBeInTheDocument();
+    // Assert
+    expect(screen.getByText(/Total : \$15.00/i)).toBeInTheDocument();
   });
 
-  it("should handle invalid price values in cart items", () => {
+  it("[EP] skips item and logs warning when cart item has a non-numeric price", () => {
+    // Arrange
     const consoleSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
     const cartItems = [
       { price: 10, description: "item1" },
@@ -129,15 +130,18 @@ describe("CartPage", () => {
     ];
     useCart.mockReturnValue([cartItems, jest.fn()]);
 
+    // Act
     renderCartPage();
 
+    // Assert
     expect(consoleSpy).toHaveBeenCalledWith(
       "Invalid price at index 1:",
-      "invalid",
+      "invalid"
     );
   });
 
-  it("should handle invalid item structure in cart", () => {
+  it("[EP] skips item and logs warning when cart item has no price field", () => {
+    // Arrange
     const consoleSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
     const cartItems = [
       { price: 10, description: "item1" },
@@ -145,158 +149,176 @@ describe("CartPage", () => {
     ];
     useCart.mockReturnValue([cartItems, jest.fn()]);
 
+    // Act
     renderCartPage();
 
+    // Assert
     expect(consoleSpy).toHaveBeenCalledWith(
       "Cart item at index 1 is invalid:",
-      { invalidField: undefined, description: "item2" },
+      { invalidField: undefined, description: "item2" }
     );
   });
 
-  it("should remove item from cart correctly", () => {
+  it("[EP] removes the correct item from cart when Remove is clicked", () => {
+    // Arrange
     const cartItems = [
       { _id: "1", price: 10, description: "item1" },
       { _id: "2", price: 5, description: "item2" },
     ];
-
     const setCartMock = jest.fn();
     useCart.mockReturnValue([cartItems, setCartMock]);
 
+    // Act
     renderCartPage();
+    fireEvent.click(screen.getAllByText(/Remove/i)[0]);
 
-    const removeButtons = screen.getAllByText(/Remove/i);
-
-    fireEvent.click(removeButtons[0]);
-
+    // Assert
     expect(setCartMock).toHaveBeenCalledWith([
       { _id: "2", price: 5, description: "item2" },
     ]);
   });
 
-  it("cart page should show user address if logged in", () => {
-    // login user
+  it("[EP] shows current address and Update Address button when user has an address", () => {
+    // Arrange
     useAuth.mockReturnValue([
-      {
-        user: { name: "Test User", address: "123 Test St" },
-        token: "test-token",
-      },
+      { user: { name: "Test User", address: "123 Test St" }, token: "test-token" },
       jest.fn(),
     ]);
 
+    // Act
     renderCartPage();
 
+    // Assert
     expect(screen.getByText(/Current Address/i)).toBeInTheDocument();
     expect(screen.getByText(/123 Test St/i)).toBeInTheDocument();
   });
 
-  it("cart page should prompt update if logged in but user does not have an address", () => {
+  it("[EP] navigates to profile when logged-in user without address clicks Update Address", () => {
+    // Arrange
     useAuth.mockReturnValue([
       { user: { name: "Test User" }, token: "test-token" },
       jest.fn(),
     ]);
 
+    // Act
     renderCartPage();
-
     fireEvent.click(screen.getAllByText(/Update Address/i)[0]);
 
+    // Assert
     expect(mockNavigate).toHaveBeenCalledWith("/dashboard/user/profile");
   });
 
-  it("should navigate to profile when logged in user with address clicks Update Address", () => {
+  it("[EP] navigates to profile when logged-in user with address clicks Update Address", () => {
+    // Arrange
     useAuth.mockReturnValue([
       { user: { name: "John", address: "123 Main St" }, token: "fake-token" },
       jest.fn(),
     ]);
 
+    // Act
     renderCartPage();
-
     fireEvent.click(screen.getByText(/Update Address/i));
 
+    // Assert
     expect(mockNavigate).toHaveBeenCalledWith("/dashboard/user/profile");
   });
 
-  it("cart page should prompt login if not logged in and tries to checkout", () => {
+  it("[EP] navigates to login with cart state when guest user clicks Please Login to checkout", () => {
+    // Arrange
     useAuth.mockReturnValue([{ user: null, token: null }, jest.fn()]);
+
+    // Act
     renderCartPage();
     fireEvent.click(screen.getByText(/Please Login to checkout/i));
 
+    // Assert
     expect(mockNavigate).toHaveBeenCalledWith("/login", { state: "/cart" });
   });
 
-  it("should show item count and login prompt when cart has items but user is not logged in", () => {
+  it("[EP] shows item count with login prompt when cart has items but user is not logged in", () => {
+    // Arrange
     useAuth.mockReturnValue([{ user: null, token: null }, jest.fn()]);
     useCart.mockReturnValue([mockCart, jest.fn()]);
 
+    // Act
     renderCartPage();
 
+    // Assert
     expect(screen.getByText(/You have 2 items in your cart. Please login!/i)).toBeInTheDocument();
   });
 
-  it("should show item count without login prompt when cart has items and user is logged in", () => {
-    renderCartPage(); 
+  it("[EP] shows item count without login prompt when cart has items and user is logged in", () => {
+    // Arrange - beforeEach provides authenticated state and mockCart
 
+    // Act
+    renderCartPage();
+
+    // Assert
     expect(screen.getByText(/You have 2 items in your cart./i)).toBeInTheDocument();
     expect(screen.queryByText(/Please login!/i)).not.toBeInTheDocument();
   });
 
-  it("should show empty cart message when cart is empty", () => {
+  it("[BVA] shows empty cart message when cart has zero items", () => {
+    // Arrange
     useCart.mockReturnValue([[], jest.fn()]);
 
+    // Act
     renderCartPage();
 
+    // Assert
     expect(screen.getByText(/Your cart is empty./i)).toBeInTheDocument();
   });
-
 
   // ---------------------------
   // getToken tests
   // ---------------------------
   describe("getToken", () => {
-    it("should fetch and set client token on mount when auth token exists", async () => {
+
+    it("[EP] fetches client token and renders DropIn when API returns success:true", async () => {
+      // Arrange
       axios.get.mockResolvedValueOnce({
         data: { success: true, token: "braintree-client-token" },
       });
 
+      // Act
       renderCartPage();
 
+      // Assert
       await waitFor(() => {
-        expect(axios.get).toHaveBeenCalledWith(
-          "/api/v1/product/braintree/token",
-        );
+        expect(axios.get).toHaveBeenCalledWith("/api/v1/product/braintree/token");
       });
-
-      // DropIn should render once clientToken is set
       await waitFor(() => {
         expect(screen.getByTestId("braintree-dropin")).toBeInTheDocument();
       });
     });
 
-    it("should not crash if getToken API call fails", async () => {
+    it("[EP] does not render DropIn and does not crash when getToken API call fails", async () => {
+      // Arrange
       axios.get.mockRejectedValueOnce(new Error("Network Error"));
 
+      // Act
       renderCartPage();
 
+      // Assert
       await waitFor(() => {
-        expect(axios.get).toHaveBeenCalledWith(
-          "/api/v1/product/braintree/token",
-        );
+        expect(axios.get).toHaveBeenCalledWith("/api/v1/product/braintree/token");
       });
-
-      // DropIn should NOT render since clientToken was never set
       expect(screen.queryByTestId("braintree-dropin")).not.toBeInTheDocument();
     });
 
-    it("should not set token if API returns success: false", async () => {
+    it("[EP] does not render DropIn when API returns success:false", async () => {
+      // Arrange
       axios.get.mockResolvedValueOnce({
         data: { success: false, token: null },
       });
 
+      // Act
       renderCartPage();
 
+      // Assert
       await waitFor(() => {
         expect(axios.get).toHaveBeenCalled();
       });
-
       expect(screen.queryByTestId("braintree-dropin")).not.toBeInTheDocument();
     });
   });
@@ -315,12 +337,15 @@ describe("CartPage", () => {
       });
     });
 
-    it("should complete payment successfully", async () => {
+    it("[EP] completes payment, clears cart, and navigates to orders on success", async () => {
+      // Arrange
       axios.post.mockResolvedValueOnce({ data: { success: true } });
-      renderCartPage();
 
+      // Act
+      renderCartPage();
       fireEvent.click(await screen.findByText("Make Payment"));
 
+      // Assert
       await waitFor(() => {
         expect(axios.post).toHaveBeenCalledWith(
           "/api/v1/product/braintree/payment",
@@ -333,43 +358,52 @@ describe("CartPage", () => {
       expect(localStorage.getItem("cart")).toBeNull();
     });
 
-    it("should show loading state during payment processing", async () => {
+    it("[EP] shows loading state on button while payment is being processed", async () => {
+      // Arrange
       axios.post.mockImplementationOnce(
         () => new Promise((resolve) => setTimeout(() => resolve({ data: {} }), 100))
       );
 
+      // Act
       renderCartPage();
       fireEvent.click(await screen.findByText("Make Payment"));
 
-      // Loading state appears
+      // Assert - loading text visible during processing
       expect(screen.getByText("Processing ....")).toBeInTheDocument();
-
       await waitFor(() => {
         expect(screen.queryByText("Processing ....")).not.toBeInTheDocument();
       }, { timeout: 3000 });
     });
 
-    it("should handle payment failure gracefully", async () => {
+    it("[EP] shows error toast and does not navigate when payment POST fails", async () => {
+      // Arrange
       axios.post.mockRejectedValueOnce(new Error("Payment Failed"));
+
+      // Act
       renderCartPage();
       fireEvent.click(await screen.findByText("Make Payment"));
+
+      // Assert
       await waitFor(() => {
         expect(mockNavigate).not.toHaveBeenCalled();
       });
-
       await waitFor(() => {
         expect(toast.error).toHaveBeenCalledWith("Payment Failed. Please try again.");
       });
     });
 
-    it("should disable Make Payment button when address is missing", async () => {
+    it("[EP] disables Make Payment button when user address is missing", async () => {
+      // Arrange
       useAuth.mockReturnValue([
         { token: "fake-token", user: { name: "John", address: "" } },
         jest.fn(),
       ]);
+
+      // Act
       renderCartPage();
+
+      // Assert
       expect(await screen.findByText("Make Payment")).toBeDisabled();
     });
   });
-
 });
