@@ -147,7 +147,7 @@ To begin unit testing with Jest in your project, follow these steps:
 
 ## 6. Project Member Contributions
 ### Song Jia Hui (A0259494L)
-**Frontend Unit Test**:
+**Backend Unit Tests**:
 - models/orderModel.js
 - middlewares/authMiddleware.js
 - controllers/authController.js
@@ -156,7 +156,7 @@ To begin unit testing with Jest in your project, follow these steps:
    - getAllOrdersController
    - orderStatusController
 
-**Backend Unit Test**:
+**Frontend Unit Tests**:
 - client/src/pages/admin/AdminOrders.js
 - client/src/pages/user/Orders.js 
 - client/src/components/Routes/Private.js 
