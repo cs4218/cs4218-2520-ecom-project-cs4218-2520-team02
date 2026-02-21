@@ -187,4 +187,61 @@ describe("CartContext", () => {
       expect(cart.length).toBe(100);
     });
   });
+
+  describe("[BVA] Item Addition/Removal Boundaries", () => {
+    it("adds first item to empty cart", () => {
+      // Arrange - beforeEach ensures cart is empty
+
+      // Act
+      const { result } = renderHook(() => useCart(), { wrapper: CartProvider });
+      const product = { _id: "1", name: "Product 1", price: 100 };
+      act(() => {
+        const [cart, setCart] = result.current;
+        setCart([...cart, product]);
+      });
+      const [cart] = result.current;
+
+      // Assert
+      expect(cart).toEqual([product]);
+      expect(cart.length).toBe(1);
+    });
+
+    it("removes last item from single-item cart", () => {
+      // Arrange
+      const mockCart = [{ _id: "1", name: "Product 1", price: 100 }];
+      localStorage.setItem("cart", JSON.stringify(mockCart));
+      const { result } = renderHook(() => useCart(), { wrapper: CartProvider });
+
+      // Act
+      act(() => {
+        const [, setCart] = result.current;
+        setCart([]);
+      });
+      const [cart] = result.current;
+
+      // Assert
+      expect(cart.length).toBe(0);
+    });
+
+    it("removes one item from two-item cart", () => {
+      // Arrange
+      const mockCart = [
+        { _id: "1", name: "Product 1", price: 100 },
+        { _id: "2", name: "Product 2", price: 200 },
+      ];
+      localStorage.setItem("cart", JSON.stringify(mockCart));
+      const { result } = renderHook(() => useCart(), { wrapper: CartProvider });
+
+      // Act
+      act(() => {
+        const [cart, setCart] = result.current;
+        setCart(cart.filter((item) => item._id !== "1"));
+      });
+      const [cart] = result.current;
+
+      // Assert
+      expect(cart.length).toBe(1);
+      expect(cart[0]._id).toBe("2");
+    });
+  });
 });
