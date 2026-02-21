@@ -1,10 +1,11 @@
+// Censon Lee Lemuel John Alejo, A0273436B
 import mongoose from "mongoose";
 import mockingoose from "mockingoose";
 import { jest } from "@jest/globals";
 
 const { default: Product } = await import("../productModel.js");
 
-describe("Products model (Jest + mockingoose)", () => {
+describe("Products model", () => {
   const oid = () => new mongoose.Types.ObjectId();
 
   const base = (overrides = {}) => ({
