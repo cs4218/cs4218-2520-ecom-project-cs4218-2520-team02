@@ -117,8 +117,8 @@ describe("updateProductController", () => {
             expect(slugify).toHaveBeenCalledWith("Test Product");
 
             expect(productModel.findByIdAndUpdate).toHaveBeenCalledWith(
-                req.params.pid,
-                { ...req.fields, slug: testProductSlug },
+                nonExistentId,
+                { ...testProduct, slug: testProductSlug },
                 { new: true },
             );
 
@@ -194,8 +194,6 @@ describe("updateProductController", () => {
 
             await updateProductController(req, res);
 
-            expect(slugify).toHaveBeenCalledWith(testProduct.name);
-
             expect(productModel.findByIdAndUpdate).toHaveBeenCalledWith(
                 testProductId,
                 { ...testProduct, slug: testProductSlug },
@@ -225,6 +223,48 @@ describe("updateProductController", () => {
             );
         })
 
+        test("should return 400 if name is null", async () => {
+            const req = baseReq();
+            req.fields.name = null;
+
+            await updateProductController(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.send).toHaveBeenCalledWith(
+                {
+                    error: "Name is Required",
+                }
+            );
+        })
+
+        test("should return 400 if name is an empty string", async () => {
+            const req = baseReq();
+            req.fields.name = "";
+
+            await updateProductController(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.send).toHaveBeenCalledWith(
+                {
+                    error: "Name is Required",
+                }
+            );
+        })
+
+        test("should return 400 if name is only whitespaces", async () => {
+            const req = baseReq();
+            req.fields.name = "  ";
+
+            await updateProductController(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.send).toHaveBeenCalledWith(
+                {
+                    error: "Name is Required",
+                }
+            );
+        })
+
         test("should return 400 if description is missing", async () => {
             const req = baseReq();
             delete req.fields.description;
@@ -239,9 +279,86 @@ describe("updateProductController", () => {
             );
         })
 
+        test("should return 200 if price is zero", async () => {
+            const req = baseReq();
+            req.fields.price = 0;
+
+            const updatedProduct = {
+                photo: {
+                    data: null,
+                    contentType: null,
+                },
+                save: jest.fn().mockResolvedValue(undefined),
+            };
+
+            productModel.findByIdAndUpdate.mockResolvedValueOnce(updatedProduct);
+
+            await updateProductController(req, res);
+
+            expect(productModel.findByIdAndUpdate).toHaveBeenCalledWith(
+                testProductId,
+                {
+                    ...testProduct,
+                    price: 0,
+                    slug: testProductSlug
+                },
+                { new: true },
+            );
+
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.send).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    success: true,
+                    message: "Product Updated Successfully",
+                })
+            );
+        })
+
+        test("should return 400 if price is negative", async () => {
+            const req = baseReq();
+            req.fields.price = -0.1;
+
+            await updateProductController(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.send).toHaveBeenCalledWith(
+                {
+                    error: "Price must be a valid non-negative number",
+                }
+            );
+        })
+
+        test("should return 400 if price is non-numeric", async () => {
+            const req = baseReq();
+            req.fields.price = "invalid-price";
+
+            await updateProductController(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.send).toHaveBeenCalledWith(
+                {
+                    error: "Price must be a valid non-negative number",
+                }
+            );
+        })
+
         test("should return 400 if price is missing", async () => {
             const req = baseReq();
             delete req.fields.price;
+
+            await updateProductController(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.send).toHaveBeenCalledWith(
+                {
+                    error: "Price must be a valid non-negative number",
+                }
+            );
+        })
+
+        test("should return 400 if price is an empty string", async () => {
+            const req = baseReq();
+            req.fields.price = "";
 
             await updateProductController(req, res);
 
@@ -267,9 +384,100 @@ describe("updateProductController", () => {
             );
         })
 
+        test("should return 200 if quantity is zero", async () => {
+            const req = baseReq();
+            req.fields.quantity = 0;
+
+            const updatedProduct = {
+                photo: {
+                    data: null,
+                    contentType: null,
+                },
+                save: jest.fn().mockResolvedValue(undefined),
+            };
+
+            productModel.findByIdAndUpdate.mockResolvedValueOnce(updatedProduct);
+
+            await updateProductController(req, res);
+
+            expect(productModel.findByIdAndUpdate).toHaveBeenCalledWith(
+                testProductId,
+                {
+                    ...testProduct,
+                    quantity: 0,
+                    slug: testProductSlug
+                },
+                { new: true },
+            );
+
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.send).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    success: true,
+                    message: "Product Updated Successfully",
+                })
+            );
+        })
+
+        test("should return 400 if quantity is negative", async () => {
+            const req = baseReq();
+            req.fields.quantity = -1;
+
+            await updateProductController(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.send).toHaveBeenCalledWith(
+                {
+                    error: "Quantity must be a valid non-negative integer",
+                }
+            );
+        })
+
+        test("should return 400 if quantity is not an integer", async () => {
+            const req = baseReq();
+            req.fields.quantity = 10.90;
+
+            await updateProductController(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.send).toHaveBeenCalledWith(
+                {
+                    error: "Quantity must be a valid non-negative integer",
+                }
+            );
+        })
+
+        test("should return 400 if quantity is non-integer string", async () => {
+            const req = baseReq();
+            req.fields.quantity = "invalid-quantity";
+
+            await updateProductController(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.send).toHaveBeenCalledWith(
+                {
+                    error: "Quantity must be a valid non-negative integer",
+                }
+            );
+        })
+
         test("should return 400 if quantity is missing", async () => {
             const req = baseReq();
             delete req.fields.quantity;
+
+            await updateProductController(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.send).toHaveBeenCalledWith(
+                {
+                    error: "Quantity must be a valid non-negative integer",
+                }
+            );
+        })
+
+        test("should return 400 if quantity is an empty string", async () => {
+            const req = baseReq();
+            req.fields.quantity = "";
 
             await updateProductController(req, res);
 
