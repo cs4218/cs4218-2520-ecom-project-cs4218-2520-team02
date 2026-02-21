@@ -12,7 +12,6 @@ jest.mock("../../context/auth", () => ({
 }));
 const mockedUseAuth = useAuth;
 
-// mock mongoose to avoid heavy dependencies in tests
 jest.mock("mongoose", () => ({ set: jest.fn() }));
 
 jest.mock("react-router-dom", () => ({
@@ -26,42 +25,67 @@ describe("PrivateRoute", () => {
     jest.clearAllMocks();
   });
 
-  test("renders Spinner and does not call API when no auth token", () => {
+  test("[EP] renders Spinner and does not call API when auth token is absent", () => {
+    // Arrange
     mockedUseAuth.mockReturnValue([{}, jest.fn()]);
 
+    // Act
     render(<PrivateRoute />);
 
+    // Assert
     expect(screen.getByTestId("spinner")).toBeInTheDocument();
     expect(mockedAxios.get).not.toHaveBeenCalled();
   });
 
-  test("calls auth API and renders Outlet when API returns ok:true", async () => {
+  test("[EP] renders Outlet when token is present and API confirms authentication", async () => {
+    // Arrange
     mockedUseAuth.mockReturnValue([{ token: "abc" }, jest.fn()]);
     mockedAxios.get.mockResolvedValueOnce({ data: { ok: true } });
 
+    // Act
     render(<PrivateRoute />);
 
+    // Assert
     await waitFor(() => expect(mockedAxios.get).toHaveBeenCalledWith("/api/v1/auth/user-auth"));
     expect(await screen.findByTestId("outlet")).toBeInTheDocument();
   });
 
-  test("calls auth API and renders Spinner when API returns ok:false", async () => {
+  test("[EP] renders Spinner when token is present but API returns ok:false", async () => {
+    // Arrange
     mockedUseAuth.mockReturnValue([{ token: "abc" }, jest.fn()]);
     mockedAxios.get.mockResolvedValueOnce({ data: { ok: false } });
 
+    // Act
     render(<PrivateRoute />);
 
+    // Assert
     await waitFor(() => expect(mockedAxios.get).toHaveBeenCalledWith("/api/v1/auth/user-auth"));
     expect(await screen.findByTestId("spinner")).toBeInTheDocument();
   });
 
-  test("calls auth API and renders Spinner when API call fails", async () => {
+  test("[EP] renders Spinner when token is present but API call fails with a network error", async () => {
+    // Arrange
     mockedUseAuth.mockReturnValue([{ token: "abc" }, jest.fn()]);
     mockedAxios.get.mockRejectedValueOnce(new Error("Network error"));
 
+    // Act
     render(<PrivateRoute />);
 
+    // Assert
     await waitFor(() => expect(mockedAxios.get).toHaveBeenCalledWith("/api/v1/auth/user-auth"));
     expect(await screen.findByTestId("spinner")).toBeInTheDocument();
+  });
+
+  test("[EP] renders Spinner initially before API response resolves", async () => {
+    // Arrange (note: API is deliberately left pending to observe the initial loading state)
+    mockedUseAuth.mockReturnValue([{ token: "abc" }, jest.fn()]);
+    mockedAxios.get.mockReturnValueOnce(new Promise(() => {}));
+
+    // Act
+    render(<PrivateRoute />);
+
+    // Assert - Spinner should be visible before the promise resolves
+    expect(screen.getByTestId("spinner")).toBeInTheDocument();
+    expect(screen.queryByTestId("outlet")).not.toBeInTheDocument();
   });
 });
