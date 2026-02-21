@@ -18,74 +18,102 @@ describe("Order Model Unit Tests", () => {
 
   describe("Order validation", () => {
 
-    describe("Status validation (EP)", () => {
+    describe("Status validation", () => {
 
-      it("should use default status 'Not Processed' when status is undefined (EP: undefined)", async () => {
+      it("[EP] should default status to 'Not Processed' when status is omitted at instantiation", async () => {
+        // Arrange
         const { status, ...orderWithoutStatus } = defaultOrder;
         const order = new Order(orderWithoutStatus);
 
+        // Act & Assert
         await expect(order.validate()).resolves.toBeUndefined();
         expect(order.status).toBe("Not Processed");
       });
 
-      it("should fall back to default status when status is null (EP: null)", async () => {
+      it("[EP] should retain null status when status is explicitly set to null (null bypasses enum check)", async () => {
+        // Arrange
         const order = new Order({ ...defaultOrder, status: null });
 
+        // Act & Assert
         await expect(order.validate()).resolves.toBeUndefined();
         expect(order.status).toBeNull();
       });
 
-      it("should fail validation if status is empty string (EP: \"\")", async () => {
+      it("[EP] should fail validation with a ValidationError when status is an empty string", async () => {
+        // Arrange
         const order = new Order({ ...defaultOrder, status: "" });
 
-        await expect(order.validate()).rejects.toThrow();
+        // Act & Assert
+        await expect(order.validate()).rejects.toThrow(mongoose.Error.ValidationError);
       });
 
-      it("should fail validation if status has invalid value (EP: invalid value)", async () => {
+      // EP: invalid string partition - arbitrary value not present in the enum list
+      it("[EP] should fail validation with a ValidationError when status has an invalid value", async () => {
+        // Arrange
         const order = new Order({ ...defaultOrder, status: "InvalidStatus" });
 
-        await expect(order.validate()).rejects.toThrow();
+        // Act & Assert
+        await expect(order.validate()).rejects.toThrow(mongoose.Error.ValidationError);
       });
 
-      it("should pass validation for each valid status value (EP: valid values)", async () => {
-        const validStatuses = ["Not Processed", "Processing", "Shipped", "Delivered", "Cancelled"];
+      test.each([
+        ["Not Processed"],
+        ["Processing"],
+        ["Shipped"],
+        ["Delivered"],
+        ["Cancelled"],
+      ])("[EP] should pass validation for valid status: '%s'", async (status) => {
+        // Arrange
+        const order = new Order({ ...defaultOrder, status });
 
-        for (const status of validStatuses) {
-          const order = new Order({ ...defaultOrder, status });
-          await expect(order.validate()).resolves.toBeUndefined();
-        }
+        // Act & Assert
+        await expect(order.validate()).resolves.toBeUndefined();
       });
     });
   });
 
-  it("should create an order successfully with valid data", async () => {
+  it("[EP] should create and save an order successfully with valid data", async () => {
+    // Arrange
     const orderData = { ...defaultOrder };
-
     mockingoose(Order).toReturn(orderData, "save");
-
     const order = new Order(orderData);
+
+    // Act
     const savedOrder = await order.save();
 
+    // Assert 
     expect(savedOrder._id.toString()).toBe(orderData._id);
-
     expect(savedOrder.products.map(p => p.toString())).toEqual(orderData.products);
     expect(savedOrder.payment).toEqual(orderData.payment);
     expect(savedOrder.buyer.toString()).toBe(orderData.buyer);
     expect(savedOrder.status).toBe(orderData.status);
   });
 
-  it("should return an order by ID", async () => {
+  it("[EP] should return an order with correct fields when found by ID", async () => {
+    // Arrange
     const orderData = { ...defaultOrder };
-
     mockingoose(Order).toReturn(orderData, "findOne");
 
+    // Act
     const foundOrder = await Order.findOne({ _id: orderData._id });
 
+    // Assert
     expect(foundOrder._id.toString()).toBe(orderData._id);
-
     expect(foundOrder.products.map(p => p.toString())).toEqual(orderData.products);
     expect(foundOrder.payment).toEqual(orderData.payment);
     expect(foundOrder.buyer.toString()).toBe(orderData.buyer);
     expect(foundOrder.status).toBe(orderData.status);
+  });
+
+  it("[EP] should return null when no order matches the given ID", async () => {
+    // Arrange
+    mockingoose(Order).toReturn(null, "findOne");
+    const nonExistentId = new mongoose.Types.ObjectId().toString();
+
+    // Act
+    const foundOrder = await Order.findOne({ _id: nonExistentId });
+
+    // Assert
+    expect(foundOrder).toBeNull();
   });
 });
