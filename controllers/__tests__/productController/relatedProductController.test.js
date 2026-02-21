@@ -1,14 +1,11 @@
 import { jest } from "@jest/globals";
 await import("../../__mocks__/jest.mocks.js");
 
-const { default: categoryModel } =
-  await import("../../../models/categoryModel.js");
 const { default: productModel } =
   await import("../../../models/productModel.js");
-const { productCategoryController } =
-  await import("../../productController.js");
+const { relatedProductController } = await import("../../productController.js");
 
-// ================= Helpers =================
+// =============== Helpers ===============
 const mockRes = () => ({
   status: jest.fn().mockReturnThis(),
   send: jest.fn(),
@@ -19,11 +16,10 @@ const silenceConsole = () => {
   return () => spy.mockRestore();
 };
 
-const expect200 = (res, expectedCategory, expectedProducts) => {
+const expect200 = (res, expectedProducts) => {
   expect(res.status).toHaveBeenCalledWith(200);
   expect(res.send).toHaveBeenCalledWith({
     success: true,
-    category: expectedCategory,
     products: expectedProducts,
   });
 };
@@ -33,19 +29,20 @@ const expect400 = (res) => {
   expect(res.send).toHaveBeenCalledWith(
     expect.objectContaining({
       success: false,
-      message: "Error while getting products",
+      message: "Error while geting related products",
       error: expect.anything(),
     }),
   );
 };
 
-// productModel.find(...).populate("category") -> awaited
-const makeFindPopulateChain = (finalProducts = []) => ({
+const makeQueryChain = (finalProducts = []) => ({
+  select: jest.fn().mockReturnThis(),
+  limit: jest.fn().mockReturnThis(),
   populate: jest.fn().mockResolvedValue(finalProducts),
 });
 
-// ================= Tests =================
-describe("productCategoryController", () => {
+// =============== Tests ===============
+describe("relatedProductController", () => {
   let restoreConsole;
 
   beforeEach(() => {
@@ -55,70 +52,72 @@ describe("productCategoryController", () => {
 
   afterEach(() => restoreConsole());
 
-  describe("Happy path (EP)", () => {
-    test("finds category by slug, then finds products by that category and populates category", async () => {
+  describe("Query construction (EP)", () => {
+    test("builds query + chain: category match, excludes pid, excludes photo, limits 3, populates category", async () => {
       // Arrange
-      const req = { params: { slug: "electronics" } };
+      const req = { params: { pid: "p1", cid: "c1" } };
       const res = mockRes();
 
-      const category = { _id: "c1", slug: "electronics", name: "Electronics" };
-      categoryModel.findOne.mockResolvedValue(category);
-
-      const products = [{ _id: "p1" }, { _id: "p2" }];
-      const query = makeFindPopulateChain(products);
+      const products = [{ _id: "p2" }, { _id: "p3" }];
+      const query = makeQueryChain(products);
       productModel.find.mockReturnValue(query);
 
       // Act
-      await productCategoryController(req, res);
+      await relatedProductController(req, res);
 
       // Assert
-      expect(categoryModel.findOne).toHaveBeenCalledWith({
-        slug: "electronics",
+      expect(productModel.find).toHaveBeenCalledWith({
+        category: "c1",
+        _id: { $ne: "p1" },
       });
-      expect(productModel.find).toHaveBeenCalledWith({ category });
+      expect(query.select).toHaveBeenCalledWith("-photo");
+      expect(query.limit).toHaveBeenCalledWith(3);
       expect(query.populate).toHaveBeenCalledWith("category");
-      expect200(res, category, products);
+      expect200(res, products);
     });
+  });
 
-    test("returns 200 with empty products array when no products match the category", async () => {
+  describe("Response partition (EP)", () => {
+    test("returns 200 with empty array when there are no related products", async () => {
       // Arrange
-      const req = { params: { slug: "electronics" } };
+      const req = { params: { pid: "p1", cid: "c1" } };
       const res = mockRes();
 
-      const category = { _id: "c1", slug: "electronics", name: "Electronics" };
-      categoryModel.findOne.mockResolvedValue(category);
-
-      const query = makeFindPopulateChain([]);
+      const query = makeQueryChain([]);
       productModel.find.mockReturnValue(query);
 
       // Act
-      await productCategoryController(req, res);
+      await relatedProductController(req, res);
 
       // Assert
-      expect(categoryModel.findOne).toHaveBeenCalledWith({
-        slug: "electronics",
-      });
-      expect(productModel.find).toHaveBeenCalledWith({ category });
-      expect200(res, category, []);
+      expect200(res, []);
     });
   });
 
   describe("Error handling (EP)", () => {
-    test("returns 400 when category lookup rejects", async () => {
+    test("returns 400 when DB fails", async () => {
       // Arrange
-      const req = { params: { slug: "electronics" } };
+      const req = { params: { pid: "p1", cid: "c1" } };
       const res = mockRes();
 
-      categoryModel.findOne.mockRejectedValue(new Error("DB fail"));
+      const query = {
+        select: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        populate: jest.fn().mockRejectedValue(new Error("DB fail")),
+      };
+      productModel.find.mockReturnValue(query);
 
       // Act
-      await productCategoryController(req, res);
+      await relatedProductController(req, res);
 
       // Assert
-      expect(categoryModel.findOne).toHaveBeenCalledWith({
-        slug: "electronics",
+      expect(productModel.find).toHaveBeenCalledWith({
+        category: "c1",
+        _id: { $ne: "p1" },
       });
-      expect(productModel.find).not.toHaveBeenCalled();
+      expect(query.select).toHaveBeenCalledWith("-photo");
+      expect(query.limit).toHaveBeenCalledWith(3);
+      expect(query.populate).toHaveBeenCalledWith("category");
       expect400(res);
     });
   });
