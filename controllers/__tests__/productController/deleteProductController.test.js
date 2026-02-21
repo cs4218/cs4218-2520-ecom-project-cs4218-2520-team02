@@ -101,6 +101,18 @@ describe("deleteProductController", () => {
     })
 
     describe("When invalid pid is given", () => {
+        test("should return 400 if no parameters are provided", async () => {
+            await deleteProductController({}, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.send).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    success: false,
+                    message: "Product ID is required",
+                })
+            );
+        })
+
         test("should return 400 if the pid is missing", async () => {
             await deleteProductController({
                 params: {},
