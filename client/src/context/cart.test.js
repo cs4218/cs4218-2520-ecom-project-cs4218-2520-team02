@@ -101,7 +101,8 @@ describe("CartContext", () => {
 
     // Act & Assert 
     expect(() => renderWithCartProvider()).not.toThrow();
-    });
+  });
+
 
   // ========================================
   // BVA: Cart Size Boundaries
@@ -264,6 +265,110 @@ describe("CartContext", () => {
 
       // Assert
       expect(cart[0].price).toBe(999999.99);
+    });
+  });
+
+  // ========================================
+  // Pairwise: Cart State × Operation Combinations
+  // ========================================
+  describe("[Pairwise] Cart State x Operation Combinations", () => {
+    const testCases = [
+      {
+        desc: "empty cart + add operation",
+        initialCart: [],
+        operation: (result) => {
+          // Act
+          act(() => {
+            const [, setCart] = result.current;
+            setCart([{ _id: "1", name: "Product", price: 100 }]);
+          });
+        },
+        expectedLength: 1,
+      },
+      {
+        desc: "empty cart + remove operation",
+        initialCart: [],
+        operation: (result) => {
+          // Act
+          act(() => {
+            const [cart, setCart] = result.current;
+            setCart(cart.filter((item) => item._id !== "999"));
+          });
+        },
+        expectedLength: 0,
+      },
+      {
+        desc: "single item cart + add operation",
+        initialCart: [{ _id: "1", name: "Product 1", price: 100 }],
+        operation: (result) => {
+          // Act
+          act(() => {
+            const [cart, setCart] = result.current;
+            setCart([...cart, { _id: "2", name: "Product 2", price: 200 }]);
+          });
+        },
+        expectedLength: 2,
+      },
+      {
+        desc: "single item cart + remove operation",
+        initialCart: [{ _id: "1", name: "Product 1", price: 100 }],
+        operation: (result) => {
+          // Act
+          act(() => {
+            const [cart, setCart] = result.current;
+            setCart(cart.filter((item) => item._id !== "1"));
+          });
+        },
+        expectedLength: 0,
+      },
+      {
+        desc: "multiple items cart + add operation",
+        initialCart: [
+          { _id: "1", name: "Product 1", price: 100 },
+          { _id: "2", name: "Product 2", price: 200 },
+        ],
+        operation: (result) => {
+          // Act
+          act(() => {
+            const [cart, setCart] = result.current;
+            setCart([...cart, { _id: "3", name: "Product 3", price: 300 }]);
+          });
+        },
+        expectedLength: 3,
+      },
+      {
+        desc: "multiple items cart + clear operation",
+        initialCart: [
+          { _id: "1", name: "Product 1", price: 100 },
+          { _id: "2", name: "Product 2", price: 200 },
+        ],
+        operation: (result) => {
+          // Act
+          act(() => {
+            const [, setCart] = result.current;
+            setCart([]);
+          });
+        },
+        expectedLength: 0,
+      },
+    ];
+
+    testCases.forEach(({ desc, initialCart, operation, expectedLength }) => {
+      it(`handles ${desc}`, () => {
+        // Arrange
+        if (initialCart.length > 0) {
+          localStorage.setItem("cart", JSON.stringify(initialCart));
+        }
+
+        const { result } = renderHook(() => useCart(), { wrapper: CartProvider });
+
+        // Act
+        operation(result);
+
+        // Assert
+        const [cart] = result.current;
+        expect(cart.length).toBe(expectedLength);
+      });
     });
   });
 });
