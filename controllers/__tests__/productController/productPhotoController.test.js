@@ -133,6 +133,20 @@ describe("productPhotoController", () => {
         })
     })
 
+    describe("When no parameters are provided at all", () => {
+        test("should return 400 with an error message", async () => {
+            await productPhotoController({}, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.send).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    success: false,
+                    message: "Product ID is required",
+                })
+            );
+        })
+    })
+
     describe("When invalid product ID is provided", () => {
         test("should return 400 with an error message", async () => {
             await productPhotoController({
