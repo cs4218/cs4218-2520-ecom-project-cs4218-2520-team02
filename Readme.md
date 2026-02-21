@@ -144,3 +144,23 @@ To begin unit testing with Jest in your project, follow these steps:
      ```bash
      npm run test
      ```
+
+## 6. Project Member Contributions
+### Song Jia Hui (A0259494L)
+**Frontend Unit Test**:
+- models/orderModel.js
+- middlewares/authMiddleware.js
+- controllers/authController.js
+   - updateProfileController
+   - getOrdersController
+   - getAllOrdersController
+   - orderStatusController
+
+**Backend Unit Test**:
+- client/src/pages/admin/AdminOrders.js
+- client/src/pages/user/Orders.js 
+- client/src/components/Routes/Private.js 
+- client/src/components/UserMenu.js 
+- client/src/pages/user/Dashboard.js 
+- client/src/context/cart.js
+- pages/cartpage.js 
