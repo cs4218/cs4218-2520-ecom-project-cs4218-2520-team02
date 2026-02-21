@@ -17,6 +17,7 @@ const baseReq = () => ({
     fields: { ...testProduct },
     files: {
         photo: {
+            size: 1024,
             path: "/fake/path.jpg",
             type: "image/jpeg",
         }
@@ -62,11 +63,11 @@ describe("updateProductController", () => {
         res = mockRes();
 
         // Suppress console log
-        jest.spyOn(console, "log").mockImplementation(() => {});
+        //jest.spyOn(console, "log").mockImplementation(() => {});
     })
 
     afterEach(() => {
-        console.log.mockRestore();
+        //console.log.mockRestore();
     })
 
     describe("When valid pid and fields are given", () => {
@@ -102,6 +103,12 @@ describe("updateProductController", () => {
                 expect.objectContaining({
                     success: true,
                     message: "Product Updated Successfully",
+                    products: expect.objectContaining({
+                        photo: {
+                            data: testPhotoBytes,
+                            contentType: "image/jpeg",
+                        },
+                    })
                 })
             );
         })
@@ -485,6 +492,82 @@ describe("updateProductController", () => {
             expect(res.send).toHaveBeenCalledWith(
                 {
                     error: "Quantity must be a valid non-negative integer",
+                }
+            );
+        })
+
+        test("should return 200 when photo is missing", async () => {
+            const req = baseReq();
+            req.files = {};
+
+            const updatedProduct = {
+                photo: {
+                    data: null,
+                    contentType: null,
+                },
+                save: jest.fn().mockResolvedValue(undefined),
+            };
+
+            productModel.findByIdAndUpdate.mockResolvedValueOnce(updatedProduct);
+
+            await updateProductController(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.send).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    success: true,
+                    message: "Product Updated Successfully",
+                    products: expect.not.objectContaining({
+                        photo: {
+                            data: testPhotoBytes,
+                            contentType: "image/jpeg",
+                        },
+                    })
+                })
+            );
+        })
+
+        test("should return 200 when photo is 1MB", async () => {
+            const req = baseReq();
+            req.files.photo.size = 1000000
+
+            const updatedProduct = {
+                photo: {
+                    data: null,
+                    contentType: null,
+                },
+                save: jest.fn().mockResolvedValue(undefined),
+            };
+
+            productModel.findByIdAndUpdate.mockResolvedValueOnce(updatedProduct);
+
+            await updateProductController(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.send).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    success: true,
+                    message: "Product Updated Successfully",
+                    products: expect.objectContaining({
+                        photo: {
+                            data: testPhotoBytes,
+                            contentType: "image/jpeg",
+                        },
+                    })
+                })
+            );
+        })
+
+        test("should return 400 when photo is larger than 1MB", async () => {
+            const req = baseReq();
+            req.files.photo.size = 1000001;
+
+            await updateProductController(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.send).toHaveBeenCalledWith(
+                {
+                    error: "Photo size should be 1MB or less",
                 }
             );
         })
