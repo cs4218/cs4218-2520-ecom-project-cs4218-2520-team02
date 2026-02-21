@@ -1,4 +1,5 @@
-import {describe, jest} from "@jest/globals";
+// Jovin Ang Yusheng, A0273460H
+import { jest } from "@jest/globals";
 
 // =============== Mocks ===============
 const testProduct = {

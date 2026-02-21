@@ -1,3 +1,4 @@
+// Jovin Ang Yusheng, A0273460H
 import { jest } from "@jest/globals";
 
 // =============== Mocks ===============
@@ -63,11 +64,11 @@ describe("updateProductController", () => {
         res = mockRes();
 
         // Suppress console log
-        //jest.spyOn(console, "log").mockImplementation(() => {});
+        jest.spyOn(console, "log").mockImplementation(() => {});
     })
 
     afterEach(() => {
-        //console.log.mockRestore();
+        console.log.mockRestore();
     })
 
     describe("When valid pid and fields are given", () => {
