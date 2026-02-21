@@ -1,7 +1,7 @@
+// Song Jia Hui A0259494L
 import { jest } from "@jest/globals";
 
-/* ---------------- MODULE MOCKS ---------------- */
-
+// ============== Mocks ===============
 await jest.unstable_mockModule("jsonwebtoken", () => {
   const verify = jest.fn();
   return { default: { verify }, verify };
@@ -22,13 +22,13 @@ const { requireSignIn, isAdmin } = await import(
   "../middlewares/authMiddleware.js"
 );
 
-/* ---------------- HELPERS ---------------- */
-
 const mockRes = () => ({
   status: jest.fn().mockReturnThis(),
   send: jest.fn(),
   json: jest.fn(),
 });
+
+// ============== Tests ===============
 
 describe("requireSignIn middleware", () => {
   let req, res, next;
