@@ -71,7 +71,7 @@ describe("AdminOrders Component", () => {
       _id: "order1",
       status: "Not Process",
       buyer: { name: "John Doe" },
-      createAt: "2024-01-01T00:00:00.000Z",
+      createdAt: "2024-01-01T00:00:00.000Z",
       payment: { success: true },
       products: [
         { _id: "prod1", name: "Product 1", description: "Description 1", price: 100 },
@@ -82,7 +82,7 @@ describe("AdminOrders Component", () => {
       _id: "order2",
       status: "Shipped",
       buyer: { name: "Jane Smith" },
-      createAt: "2024-02-01T00:00:00.000Z",
+      createdAt: "2024-02-01T00:00:00.000Z",
       payment: { success: false },
       products: [
         { _id: "prod3", name: "Product 3", description: "Description 3", price: 150 },
