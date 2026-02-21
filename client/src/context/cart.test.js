@@ -174,7 +174,7 @@ describe("CartContext", () => {
       expect(cart.length).toBe(2);
     });
 
-    it("handles large cart (100 items)", () => {
+    it("[EP] handles large cart (100 items)", () => {
       // Arrange
       const { result } = renderHook(() => useCart(), { wrapper: CartProvider });
       const manyProducts = Array.from({ length: 100 }, (_, i) => ({
