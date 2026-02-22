@@ -6,22 +6,21 @@ import "@testing-library/jest-dom/extend-expect";
 import toast from "react-hot-toast";
 import Register from "./Register";
 
-// Mocking axios.post
 jest.mock("axios");
 axios.get.mockResolvedValueOnce({ data: { category: [] } });
 
 jest.mock("react-hot-toast");
 
 jest.mock("../../context/auth", () => ({
-  useAuth: jest.fn(() => [null, jest.fn()]), // Mock useAuth hook to return null state and a mock function for setAuth
+  useAuth: jest.fn(() => [null, jest.fn()]),
 }));
 
 jest.mock("../../context/cart", () => ({
-  useCart: jest.fn(() => [null, jest.fn()]), // Mock useCart hook to return null state and a mock function
+  useCart: jest.fn(() => [null, jest.fn()]),
 }));
 
 jest.mock("../../context/search", () => ({
-  useSearch: jest.fn(() => [{ keyword: "" }, jest.fn()]), // Mock useSearch hook to return null state and a mock function
+  useSearch: jest.fn(() => [{ keyword: "" }, jest.fn()]),
 }));
 
 jest.mock("../../hooks/useCategory", () => jest.fn(() => []));
