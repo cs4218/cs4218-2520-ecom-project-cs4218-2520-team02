@@ -191,7 +191,7 @@ To begin unit testing with Jest in your project, follow these steps:
 - Renamed `brainTreePaymentController()` to `braintreePaymentController()` to standardize with reference of braintree
 - Renamed `deleteCategoryCOntroller()` to `deleteCategoryController()`
 - Validate that payment has been made successfully before saving order in `braintreePaymentController()`
-- Renamed `singleCategoryController()` and `categoryController()` to getCategoryController and getAllCategoriesController respectively. 
+- Renamed `singleCategoryController()` and `categoryController()` to `getCategoryController()` and `getAllCategoriesController()` respectively. 
 - Fixed various minor spelling errors such as ‘errro’ instead of ‘error’, note that these spelling errors did not cause any logical errors in the execution of the code.
 - Use `.reduce()` instead of `.map()` to sum prices in cart for `braintreePaymentController()`
 
