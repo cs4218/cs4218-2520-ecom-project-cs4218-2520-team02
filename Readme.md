@@ -164,3 +164,24 @@ To begin unit testing with Jest in your project, follow these steps:
 - client/src/pages/user/Dashboard.js 
 - client/src/context/cart.js
 - pages/cartpage.js 
+
+
+### Yap Zhao Yi (A0277540B)
+**Backend Unit Tests**:
+- models/categoryModel.js
+- controllers/categoryController.test.js
+- controllers/productController.js
+   - braintreePaymentController
+   - braintreeTokenController
+
+**Frontend Unit Tests**:
+- client/src/components/Footer.test.js
+- client/src/components/Header.test.js
+- client/src/components/Layout.test.js
+- client/src/components/Spinner.test.js
+- client/src/hooks/useCategory.test.js
+- client/src/pages/About.test.js
+- client/src/pages/Categories.test.js 
+- client/src/pages/Contact.test.js
+- client/src/pages/Pagenotfound.test.js
+- client/src/pages/Policy.test.js
