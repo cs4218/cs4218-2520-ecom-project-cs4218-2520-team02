@@ -10,8 +10,10 @@ const UserList = () => {
     const fetchUsers = async () => {
       try {
         const { data } = await axios.get("/api/v1/user/all");
-        if (data?.success) {
+        if (data && data.success) {
           setUsers(data.users);
+        } else {
+          toast.error("Failed to fetch users");
         }
       } catch (error) {
         console.log(error);

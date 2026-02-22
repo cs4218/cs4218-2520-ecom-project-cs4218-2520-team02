@@ -65,4 +65,14 @@ describe("UserList Component", () => {
       expect(queryByText("Loading...")).toBeFalsy();
     });
   });
+
+  it("displays error toast on no data", async () => {
+    axios.get.mockResolvedValueOnce({});
+    const { queryByText } = render(<UserList />);
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("Something went wrong");
+      expect(queryByText("Loading...")).toBeFalsy();
+    });
+  });
 });
