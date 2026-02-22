@@ -259,3 +259,26 @@ To begin unit testing with Jest in your project, follow these steps:
 - Fix `Login.js` tests failing to run
 - Fix `Register.js` tests failing to run
 - Fix `Prices.js` duplicate ids
+
+### Jovin Ang Yusheng (A0273460H)
+**Backend Unit Tests**:
+- controllers/productController.js
+   - createProductController
+   - updateProductController
+   - deleteProductController
+   - getProductController
+   - getSingleProductController
+   - productPhotoController
+
+**Frontend Unit Tests**:
+- client/src/pages/admin/CreateProduct.js
+
+**Enhancements**
+- Added input validation to `productPhotoController()`, `getSingleProductController()`, and `deleteProductController()`
+- Replaced loose field access (switch (true) / case !name) with explicit trimming and proper type-safe validation in `createProductController()` and `updateProductController()`
+- Added input validation to `CreateProduct.js` to check for missing fields and show error messages instead of crashing the form.
+- Fix typos and enhance comments in `productController.js` and `CreateProduct.js`
+
+**Bugs Identified and Fixed**
+- Fix `CreateProduct.js` not respecting the `shipping` field of the product, which caused the product to always be created with `shipping: false` regardless of user input.
+- Fix `CreateProduct.js` not showing error message on when there are no categories to select from, which caused the form to crash when trying to create a product without any categories in the database.
