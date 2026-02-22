@@ -75,7 +75,7 @@ describe("Auth Context", () => {
       </AuthProvider>,
     );
 
-    fireEvent.click(screen.getByTestId("Update"));
+    fireEvent.click(screen.getByText("Update"));
 
     await waitFor(() =>
       expect(screen.getByTestId("user").textContent).toBe("testUser"),
