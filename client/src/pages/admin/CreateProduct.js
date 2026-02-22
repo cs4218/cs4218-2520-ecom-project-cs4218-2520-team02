@@ -22,12 +22,10 @@ const CreateProduct = () => {
   const getAllCategory = async () => {
     try {
       const { data } = await axios.get("/api/v1/category/get-category");
-      if (data?.success) {
-        if (data.categories.length > 0) {
-          setCategories(data?.categories);
-        } else {
-          toast.error("There are no categories. Please create a category first");
-        }
+      if (data.categories.length > 0) {
+        setCategories(data?.categories);
+      } else {
+        toast.error("There are no categories. Please create a category first");
       }
     } catch (error) {
       console.log(error);
@@ -87,12 +85,8 @@ const CreateProduct = () => {
         "/api/v1/product/create-product",
         productData
       );
-      if (data?.success) {
-        toast.success("Product Created Successfully");
-        navigate("/dashboard/admin/products");
-      } else {
-        toast.error(data?.message);
-      }
+      toast.success("Product Created Successfully");
+      navigate("/dashboard/admin/products");
     } catch (error) {
       console.log(error);
       toast.error("something went wrong");
