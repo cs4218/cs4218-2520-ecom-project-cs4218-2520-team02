@@ -1,4 +1,9 @@
 # CS4218 Project - Virtual Vault
+## MS1 CI Link
+
+ [Click me to get to the MS1 CI Action Link](https://github.com/cs4218/cs4218-2520-ecom-project-cs4218-2520-team02/actions/runs/22280090963/job/64449235183)
+
+To see the test results, either expand `Run Frontend Tests` or `Run Backend Tests`.
 
 ## 1. Project Introduction
 
@@ -242,6 +247,7 @@ To begin unit testing with Jest in your project, follow these steps:
 - Add input validation to `productFiltersController()` and escape regex characters.
 - Enhance comments and typos
 - Set up Mockingoose to test mongoose models
+- Add GitHub Actions CI workflows to run frontend and backend tests on pull requests.
 
 **Bugs Identified and Fixed**
 - Fix `HomePage.js` crash when clicking on radio filter
