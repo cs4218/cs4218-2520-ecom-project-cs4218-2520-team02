@@ -1,4 +1,9 @@
 # CS4218 Project - Virtual Vault
+## MS1 CI Link
+
+ [Click me to get to the MS1 CI Action Link](https://github.com/cs4218/cs4218-2520-ecom-project-cs4218-2520-team02/actions/runs/22280090963/job/64449235183)
+
+To see the test results, either expand `Run Frontend Tests` or `Run Backend Tests`.
 
 ## 1. Project Introduction
 
@@ -165,6 +170,24 @@ To begin unit testing with Jest in your project, follow these steps:
 - client/src/context/cart.js
 - pages/cartpage.js 
 
+**Enhancements:**
+- authMiddleware (requireSignIn): Added missing header guard returning 401 when Authorization is absent; strips Bearer prefix before verification; wraps JWT.verify in try/catch to return 401 on invalid or expired tokens.
+- authMiddleware (isAdmin) and order controllers: Added input validation with 400 responses for missing parameters; standardised status codes (400, 401, 403, 404, 500) with consistent { success, message } payloads; added try/catch blocks with descriptive error messages throughout.
+- AdminOrders.js and orderModel.js: Corrected status value "Not Process" to "Not Processed" to match the Order schema enum.
+- CartPage.js: Added toast.error() on payment failure; fixed variable naming typos; improved error messages.
+- CartPage.js (totalPrice): Replaced .map() with .reduce() for accumulation; safely casts price with Number() and guards against NaN; skips null or undefined cart items with a warning.
+
+
+**Bugs Identified and Squashed:**
+- authMiddleware (isAdmin): Changed 401 to 403 Forbidden for an authenticated user without admin permission as 401 is reserved for unauthenticated requests.
+- getAllOrdersController: Fixed .sort({ createdAt: "-1" }) to .sort({ createdAt: -1 }). Mongoose requires a numeric value, and the string will cause undefined sort order.
+- Orders.js: Added missing key prop (o?._id || i) to the order .map() 
+- Private.js: Wrapped axios.get() in try/catch and added res.data?.ok check 
+- Orders.js and AdminOrders.js: Fixed o?.createAt to o?.createdAt 
+- CartPage.js (removeCartItem): Replaced findIndex and splice with .filter(). Or else, when the item was not found, splice(-1, 1) would silently remove the last cart item instead.
+- CartPage.js (duplicate items): Changed cart .map() key from p._id to `${p._id}-${i}`. Since duplicate products shared the same key, React might incorrectly remove both items when only one was deleted.
+
+
 
 ### Yap Zhao Yi (A0277540B)
 **Backend Unit Tests**:
@@ -224,6 +247,7 @@ To begin unit testing with Jest in your project, follow these steps:
 - Add input validation to `productFiltersController()` and escape regex characters.
 - Enhance comments and typos
 - Set up Mockingoose to test mongoose models
+- Add GitHub Actions CI workflows to run frontend and backend tests on pull requests.
 
 **Bugs Identified and Fixed**
 - Fix `HomePage.js` crash when clicking on radio filter
@@ -235,3 +259,26 @@ To begin unit testing with Jest in your project, follow these steps:
 - Fix `Login.js` tests failing to run
 - Fix `Register.js` tests failing to run
 - Fix `Prices.js` duplicate ids
+
+### Jovin Ang Yusheng (A0273460H)
+**Backend Unit Tests**:
+- controllers/productController.js
+   - createProductController
+   - updateProductController
+   - deleteProductController
+   - getProductController
+   - getSingleProductController
+   - productPhotoController
+
+**Frontend Unit Tests**:
+- client/src/pages/admin/CreateProduct.js
+
+**Enhancements**
+- Added input validation to `productPhotoController()`, `getSingleProductController()`, and `deleteProductController()`
+- Replaced loose field access (switch (true) / case !name) with explicit trimming and proper type-safe validation in `createProductController()` and `updateProductController()`
+- Added input validation to `CreateProduct.js` to check for missing fields and show error messages instead of crashing the form.
+- Fix typos and enhance comments in `productController.js` and `CreateProduct.js`
+
+**Bugs Identified and Fixed**
+- Fix `CreateProduct.js` not respecting the `shipping` field of the product, which caused the product to always be created with `shipping: false` regardless of user input.
+- Fix `CreateProduct.js` not showing error message on when there are no categories to select from, which caused the form to crash when trying to create a product without any categories in the database.
