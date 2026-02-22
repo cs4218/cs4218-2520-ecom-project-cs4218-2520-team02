@@ -186,6 +186,20 @@ To begin unit testing with Jest in your project, follow these steps:
 - client/src/pages/Pagenotfound.test.js
 - client/src/pages/Policy.test.js
 
+**Enhancements:**
+- Added validation for parameters being supplied into `categoryController.js`
+- Renamed `brainTreePaymentController()` to `braintreePaymentController()` to standardize with reference of braintree
+- Renamed `deleteCategoryCOntroller()` to `deleteCategoryController()`
+- Validate that payment has been made successfully before saving order in `braintreePaymentController()`
+- Renamed `singleCategoryController()` and `categoryController()` to getCategoryController and getAllCategoriesController respectively. 
+- Fixed various minor spelling errors such as ‘errro’ instead of ‘error’, note that these spelling errors did not cause any logical errors in the execution of the code.
+- Use `.reduce()` instead of `.map()` to sum prices in cart for `braintreePaymentController()`
+
+**Bugs Identified and Squashed:**
+- React `map()` in `header.js` does not have the required key for each `<li>` element
+- Transactions within `braintreePaymentController()` expects a 2 decimal point string rather than a raw float
+
+
 ### Censon Lee Lemuel John Alejo (A0273436B)
 **Backend Unit Tests**:
 - models/productModel.js
