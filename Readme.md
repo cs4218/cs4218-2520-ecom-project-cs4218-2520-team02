@@ -164,3 +164,92 @@ To begin unit testing with Jest in your project, follow these steps:
 - client/src/pages/user/Dashboard.js 
 - client/src/context/cart.js
 - pages/cartpage.js 
+
+**Enhancements:**
+- authMiddleware (requireSignIn): Added missing header guard returning 401 when Authorization is absent; strips Bearer prefix before verification; wraps JWT.verify in try/catch to return 401 on invalid or expired tokens.
+- authMiddleware (isAdmin) and order controllers: Added input validation with 400 responses for missing parameters; standardised status codes (400, 401, 403, 404, 500) with consistent { success, message } payloads; added try/catch blocks with descriptive error messages throughout.
+- AdminOrders.js and orderModel.js: Corrected status value "Not Process" to "Not Processed" to match the Order schema enum.
+- CartPage.js: Added toast.error() on payment failure; fixed variable naming typos; improved error messages.
+- CartPage.js (totalPrice): Replaced .map() with .reduce() for accumulation; safely casts price with Number() and guards against NaN; skips null or undefined cart items with a warning.
+
+
+**Bugs Identified and Squashed:**
+- authMiddleware (isAdmin): Changed 401 to 403 Forbidden for an authenticated user without admin permission as 401 is reserved for unauthenticated requests.
+- getAllOrdersController: Fixed .sort({ createdAt: "-1" }) to .sort({ createdAt: -1 }). Mongoose requires a numeric value, and the string will cause undefined sort order.
+- Orders.js: Added missing key prop (o?._id || i) to the order .map() 
+- Private.js: Wrapped axios.get() in try/catch and added res.data?.ok check 
+- Orders.js and AdminOrders.js: Fixed o?.createAt to o?.createdAt 
+- CartPage.js (removeCartItem): Replaced findIndex and splice with .filter(). Or else, when the item was not found, splice(-1, 1) would silently remove the last cart item instead.
+- CartPage.js (duplicate items): Changed cart .map() key from p._id to `${p._id}-${i}`. Since duplicate products shared the same key, React might incorrectly remove both items when only one was deleted.
+
+
+
+### Yap Zhao Yi (A0277540B)
+**Backend Unit Tests**:
+- models/categoryModel.js
+- controllers/categoryController.test.js
+- controllers/productController.js
+   - braintreePaymentController
+   - braintreeTokenController
+
+**Frontend Unit Tests**:
+- client/src/components/Footer.test.js
+- client/src/components/Header.test.js
+- client/src/components/Layout.test.js
+- client/src/components/Spinner.test.js
+- client/src/hooks/useCategory.test.js
+- client/src/pages/About.test.js
+- client/src/pages/Categories.test.js 
+- client/src/pages/Contact.test.js
+- client/src/pages/Pagenotfound.test.js
+- client/src/pages/Policy.test.js
+
+**Enhancements:**
+- Added validation for parameters being supplied into `categoryController.js`
+- Renamed `brainTreePaymentController()` to `braintreePaymentController()` to standardize with reference of braintree
+- Renamed `deleteCategoryCOntroller()` to `deleteCategoryController()`
+- Validate that payment has been made successfully before saving order in `braintreePaymentController()`
+- Renamed `singleCategoryController()` and `categoryController()` to `getCategoryController()` and `getAllCategoriesController()` respectively. 
+- Fixed various minor spelling errors such as ‘errro’ instead of ‘error’, note that these spelling errors did not cause any logical errors in the execution of the code.
+- Use `.reduce()` instead of `.map()` to sum prices in cart for `braintreePaymentController()`
+
+**Bugs Identified and Squashed:**
+- React `map()` in `header.js` does not have the required key for each `<li>` element
+- Transactions within `braintreePaymentController()` expects a 2 decimal point string rather than a raw float
+
+
+### Censon Lee Lemuel John Alejo (A0273436B)
+**Backend Unit Tests**:
+- models/productModel.js
+- controllers/productController.js
+   - productFiltersController
+   - productCountController
+   - productListController
+   - searchProductController
+   - relatedProductController
+   - productCategoryController
+
+**Frontend Unit Tests**:
+- client/src/pages/HomePage.js
+- client/src/pages/admin/CreateProduct.js
+- client/src/components/Form/CategoryForm.js
+- client/src/components/Form/SearchInput.js
+
+**Enhancements**
+- Enhance `HomePage.js` reset filter to not refresh page
+- Enhance `HomePage.js` code to remove Eslint issues
+- Add input validation to `productListController()`
+- Add input validation to `productFiltersController()` and escape regex characters.
+- Enhance comments and typos
+- Set up Mockingoose to test mongoose models
+
+**Bugs Identified and Fixed**
+- Fix `HomePage.js` crash when clicking on radio filter
+- Fix `HomePage.js` crash when more load more button is visible due to missing react package
+- Fix `HomePage.js` getTotal not setting total state
+- Fix `CreateCategory.js` elements not having unique key when in loop
+- Fix `CreateCategory.js` not showing error message on failed getAllCategory()
+- Fix `SearchInput.js` Axios Error when searching with empty term
+- Fix `Login.js` tests failing to run
+- Fix `Register.js` tests failing to run
+- Fix `Prices.js` duplicate ids
