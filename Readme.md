@@ -185,3 +185,39 @@ To begin unit testing with Jest in your project, follow these steps:
 - client/src/pages/Contact.test.js
 - client/src/pages/Pagenotfound.test.js
 - client/src/pages/Policy.test.js
+
+### Censon Lee Lemuel John Alejo (A0273436B)
+**Backend Unit Tests**:
+- models/productModel.js
+- controllers/productController.js
+   - productFiltersController
+   - productCountController
+   - productListController
+   - searchProductController
+   - relatedProductController
+   - productCategoryController
+
+**Frontend Unit Tests**:
+- client/src/pages/HomePage.js
+- client/src/pages/admin/CreateProduct.js
+- client/src/components/Form/CategoryForm.js
+- client/src/components/Form/SearchInput.js
+
+**Enhancements**
+- Enhance `HomePage.js` reset filter to not refresh page
+- Enhance `HomePage.js` code to remove Eslint issues
+- Add input validation to `productListController()`
+- Add input validation to `productFiltersController()` and escape regex characters.
+- Enhance comments and typos
+- Set up Mockingoose to test mongoose models
+
+**Bugs Identified and Fixed**
+- Fix `HomePage.js` crash when clicking on radio filter
+- Fix `HomePage.js` crash when more load more button is visible due to missing react package
+- Fix `HomePage.js` getTotal not setting total state
+- Fix `CreateCategory.js` elements not having unique key when in loop
+- Fix `CreateCategory.js` not showing error message on failed getAllCategory()
+- Fix `SearchInput.js` Axios Error when searching with empty term
+- Fix `Login.js` tests failing to run
+- Fix `Register.js` tests failing to run
+- Fix `Prices.js` duplicate ids
