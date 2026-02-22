@@ -22,12 +22,14 @@ const CreateProduct = () => {
   const getAllCategory = async () => {
     try {
       const { data } = await axios.get("/api/v1/category/get-category");
-      if (data?.success) {
+      if (data.categories.length > 0) {
         setCategories(data?.categories);
+      } else {
+        toast.error("There are no categories. Please create a category first");
       }
     } catch (error) {
       console.log(error);
-      toast.error("Something wwent wrong in getting catgeory");
+      toast.error("Something went wrong in getting category");
     }
   };
 
@@ -38,24 +40,53 @@ const CreateProduct = () => {
   //create product function
   const handleCreate = async (e) => {
     e.preventDefault();
+
+    if (!category) {
+      toast.error("Category is Required");
+      return
+    }
+
+    if (!name) {
+      toast.error("Name is Required");
+      return;
+    }
+
+    if (!description) {
+      toast.error("Description is Required");
+      return;
+    }
+
+    if (!price) {
+      toast.error("Price is Required");
+      return;
+    }
+
+    if (!quantity) {
+      toast.error("Quantity is Required");
+      return;
+    }
+
+    if (!shipping) {
+      toast.error("Shipping is Required");
+      return;
+    }
+
+    const productData = new FormData();
+    productData.append("name", name);
+    productData.append("description", description);
+    productData.append("price", price);
+    productData.append("quantity", quantity);
+    productData.append("photo", photo);
+    productData.append("category", category);
+    productData.append("shipping", shipping);
+
     try {
-      const productData = new FormData();
-      productData.append("name", name);
-      productData.append("description", description);
-      productData.append("price", price);
-      productData.append("quantity", quantity);
-      productData.append("photo", photo);
-      productData.append("category", category);
-      const { data } = axios.post(
+      const { data } = await axios.post(
         "/api/v1/product/create-product",
         productData
       );
-      if (data?.success) {
-        toast.error(data?.message);
-      } else {
-        toast.success("Product Created Successfully");
-        navigate("/dashboard/admin/products");
-      }
+      toast.success("Product Created Successfully");
+      navigate("/dashboard/admin/products");
     } catch (error) {
       console.log(error);
       toast.error("something went wrong");
@@ -116,7 +147,7 @@ const CreateProduct = () => {
                 <input
                   type="text"
                   value={name}
-                  placeholder="write a name"
+                  placeholder="Enter product name"
                   className="form-control"
                   onChange={(e) => setName(e.target.value)}
                 />
@@ -125,7 +156,7 @@ const CreateProduct = () => {
                 <textarea
                   type="text"
                   value={description}
-                  placeholder="write a description"
+                  placeholder="Enter product description"
                   className="form-control"
                   onChange={(e) => setDescription(e.target.value)}
                 />
@@ -135,7 +166,7 @@ const CreateProduct = () => {
                 <input
                   type="number"
                   value={price}
-                  placeholder="write a Price"
+                  placeholder="Enter product price"
                   className="form-control"
                   onChange={(e) => setPrice(e.target.value)}
                 />
@@ -144,7 +175,7 @@ const CreateProduct = () => {
                 <input
                   type="number"
                   value={quantity}
-                  placeholder="write a quantity"
+                  placeholder="Enter product quantity"
                   className="form-control"
                   onChange={(e) => setQuantity(e.target.value)}
                 />
@@ -152,7 +183,7 @@ const CreateProduct = () => {
               <div className="mb-3">
                 <Select
                   bordered={false}
-                  placeholder="Select Shipping "
+                  placeholder="Select shipping"
                   size="large"
                   showSearch
                   className="form-select mb-3"
