@@ -165,6 +165,24 @@ To begin unit testing with Jest in your project, follow these steps:
 - client/src/context/cart.js
 - pages/cartpage.js 
 
+**Enhancements:**
+- authMiddleware (requireSignIn): Added missing header guard returning 401 when Authorization is absent; strips Bearer prefix before verification; wraps JWT.verify in try/catch to return 401 on invalid or expired tokens.
+- authMiddleware (isAdmin) and order controllers: Added input validation with 400 responses for missing parameters; standardised status codes (400, 401, 403, 404, 500) with consistent { success, message } payloads; added try/catch blocks with descriptive error messages throughout.
+- AdminOrders.js and orderModel.js: Corrected status value "Not Process" to "Not Processed" to match the Order schema enum.
+- CartPage.js: Added toast.error() on payment failure; fixed variable naming typos; improved error messages.
+- CartPage.js (totalPrice): Replaced .map() with .reduce() for accumulation; safely casts price with Number() and guards against NaN; skips null or undefined cart items with a warning.
+
+
+**Bugs Identified and Squashed:**
+- authMiddleware (isAdmin): Changed 401 to 403 Forbidden for an authenticated user without admin permission as 401 is reserved for unauthenticated requests.
+- getAllOrdersController: Fixed .sort({ createdAt: "-1" }) to .sort({ createdAt: -1 }). Mongoose requires a numeric value, and the string will cause undefined sort order.
+- Orders.js: Added missing key prop (o?._id || i) to the order .map() 
+- Private.js: Wrapped axios.get() in try/catch and added res.data?.ok check 
+- Orders.js and AdminOrders.js: Fixed o?.createAt to o?.createdAt 
+- CartPage.js (removeCartItem): Replaced findIndex and splice with .filter(). Or else, when the item was not found, splice(-1, 1) would silently remove the last cart item instead.
+- CartPage.js (duplicate items): Changed cart .map() key from p._id to `${p._id}-${i}`. Since duplicate products shared the same key, React might incorrectly remove both items when only one was deleted.
+
+
 
 ### Yap Zhao Yi (A0277540B)
 **Backend Unit Tests**:
