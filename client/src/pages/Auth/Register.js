@@ -31,7 +31,7 @@ const Register = () => {
     if (!emailRegex.test(email)) {
       err.email = "Email is invalid";
     }
-    if (!password.trim().length < 8) {
+    if (password.trim().length < 8) {
       err.password = "Password must be at least 8 characters long";
     }
     if (!phone.trim()) {
@@ -112,7 +112,7 @@ const Register = () => {
               }}
               className="form-control"
               id="exampleInputEmail1"
-              placeholder="Enter Your Email "
+              placeholder="Enter Your Email"
               required
             />
             {errors.email && <p className="text-danger">{errors.email}</p>}
