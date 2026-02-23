@@ -156,7 +156,7 @@ To begin unit testing with Jest in your project, follow these steps:
 - models/orderModel.js
 - middlewares/authMiddleware.js
 - controllers/authController.js
-   - updateProfileController
+   - testController
    - getOrdersController
    - getAllOrdersController
    - orderStatusController
@@ -279,6 +279,46 @@ To begin unit testing with Jest in your project, follow these steps:
 - Added input validation to `CreateProduct.js` to check for missing fields and show error messages instead of crashing the form.
 - Fix typos and enhance comments in `productController.js` and `CreateProduct.js`
 
+### Gavin Sin Fu Chen (A0273285X)
+**Backend Unit Tests**:
+- models/userModel.js
+- controllers/authController.js
+   - registerController
+   - loginController
+   - forgotPasswordController
+   - updateProfileController
+- helpers/authHelper
+   - hashPassword
+   - comparePassword
+- controllers/userController.js (self-added)
+
+**Frontend Unit Tests**:
+- client/src/pages/Auth/Register.js
+- client/src/pages/Auth/Login.js
+- context/auth.js
+- client/src/components/AdminMenu.js
+- client/src/pages/admin/AdminDashboard.js
+- client/src/pages/user/Profile.js
+- client/src/pages/admin/Users.js
+- client/src/components/UserList.js (self-added)
+
+**Enhancements**
+- Added input type string validation for `comparePassword` function
+- Added try catch error early and modify to keep return behavior consistent in `comparePassword` (part of authentication logic) for security reason
+- Added register form field validation on frontend `Register.js` page
+- Added login form field validation on frontend `Login.js` page
+- Added Users link to `AdminMenu` component
+- Created `UserList` component to display all non admin users table
+- Created associate `userController.js`, `userRoute.js` and modified `server.js` to enable backend API `/api/v1/user/all` for UserList component
+
 **Bugs Identified and Fixed**
-- Fix `CreateProduct.js` not respecting the `shipping` field of the product, which caused the product to always be created with `shipping: false` regardless of user input.
-- Fix `CreateProduct.js` not showing error message on when there are no categories to select from, which caused the form to crash when trying to create a product without any categories in the database.
+- Added status code 400 for validation error in `registerController`
+- Fixed spelling error for status message in `registerController` and `loginController`
+- Change status code from 200 to 400 for invalid password in `loginController`
+- Fixed spelling error for validation message in `loginController`
+- Added status code 422 for password validation error in `updateProfileController`
+- Change status code 400 to 500 for error message in `updateProfileController`
+- Removed confusing and trivial comments about mocking of auth, cart and search context in `Register.test.js`
+- Change `data?.errro` to `data?.error` on `Profile.js`
+- Removed onChange event on email input on `Profile.js` as the input is disabled
+
