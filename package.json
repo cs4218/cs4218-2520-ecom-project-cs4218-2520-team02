@@ -12,7 +12,10 @@
     "sonarqube": "sonar-scanner",
     "test": "npm run test:backend && npm run test:frontend",
     "test:frontend": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.frontend.config.js",
-    "test:backend": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.backend.config.js"
+    "test:backend": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.backend.config.js",
+    "test:backend-integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.backend.integration.config.js",
+    "test:frontend-integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.frontend.integration.config.js",
+    "test:integration": "npm run test:backend-integration && npm run test:frontend-integration"
   },
   "keywords": [],
   "author": "RP",
