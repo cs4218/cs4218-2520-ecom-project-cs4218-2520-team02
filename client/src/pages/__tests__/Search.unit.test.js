@@ -68,7 +68,7 @@ describe("Search Page", () => {
 
       // Assert
       expect(screen.getByTestId("layout")).toBeInTheDocument();
-      expect(screen.getByText("Search Resuts")).toBeInTheDocument();
+      expect(screen.getByText("Search Results")).toBeInTheDocument();
     });
   });
 
