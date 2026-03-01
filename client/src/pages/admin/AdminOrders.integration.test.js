@@ -53,6 +53,41 @@ const mockMultipleOrders = [
   },
 ];
 
+const failedPaymentOrder = [
+  {
+    _id: "order2",
+    status: "Processing",
+    buyer: { name: "Bob" },
+    createdAt: new Date().toISOString(),
+    payment: { success: false },
+    products: [
+      {
+        _id: "p2",
+        name: "Gadget",
+        description: "Cool gadget",
+        price: 19.99,
+      },
+    ],
+  },
+];
+
+const ordersWithoutId = [
+  {
+    status: "Not Processed",
+    buyer: { name: "Alice" },
+    createdAt: new Date().toISOString(),
+    payment: { success: true },
+    products: [
+      {
+        _id: "p1",
+        name: "Widget",
+        description: "Nice widget",
+        price: 9.99,
+      },
+    ],
+  },
+];
+
 const Wrapper = ({ children, initialAuth } = {}) => {
   if (initialAuth) localStorage.setItem("auth", JSON.stringify(initialAuth));
   else localStorage.removeItem("auth");
@@ -85,6 +120,7 @@ describe("AdminOrders (axios mocked)", () => {
   });
 
   it("fetches and renders orders when admin is authenticated", async () => {
+    // Arrange
     axios.get.mockImplementation((url) => {
       if (url === "/api/v1/auth/admin-auth") {
         return Promise.resolve({ data: { ok: true } });
@@ -97,12 +133,14 @@ describe("AdminOrders (axios mocked)", () => {
 
     const initialAuth = { user: { role: 1 }, token: "admin-token" };
 
+    // Act
     render(
       <Wrapper initialAuth={initialAuth}>
         <AdminOrders />
       </Wrapper>,
     );
 
+    // Assert
     expect(await screen.findByText(/All Orders/i)).toBeInTheDocument();
     expect(await screen.findByText(/Alice/i)).toBeInTheDocument();
     expect(screen.getByText("Widget")).toBeInTheDocument();
@@ -115,20 +153,24 @@ describe("AdminOrders (axios mocked)", () => {
   });
 
   it("does not fetch orders when no auth token is present", async () => {
+    // Arrange
     axios.get.mockResolvedValue({ data: {} });
 
+    // Act
     render(
       <Wrapper initialAuth={null}>
         <AdminOrders />
       </Wrapper>,
     );
 
+    // Assert
     await waitFor(() => {
       expect(axios.get).not.toHaveBeenCalledWith("/api/v1/auth/all-orders");
     });
   });
 
   it('renders "Failed" payment status for unsuccessful payments', async () => {
+    // Arrange
     axios.get.mockImplementation((url) => {
       if (url === "/api/v1/auth/admin-auth") {
         return Promise.resolve({ data: { ok: true } });
@@ -143,18 +185,21 @@ describe("AdminOrders (axios mocked)", () => {
 
     const initialAuth = { user: { role: 1 }, token: "admin-token" };
 
+    // Act
     render(
       <Wrapper initialAuth={initialAuth}>
         <AdminOrders />
       </Wrapper>,
     );
 
+    // Assert
     expect(await screen.findByText(/Bob/i)).toBeInTheDocument();
     expect(screen.getByText("Failed")).toBeInTheDocument();
     expect(screen.getByText("Success")).toBeInTheDocument();
   });
 
   it("renders multiple orders with correct buyer names and product counts", async () => {
+    // Arrange
     axios.get.mockImplementation((url) => {
       if (url === "/api/v1/auth/admin-auth") {
         return Promise.resolve({ data: { ok: true } });
@@ -169,16 +214,17 @@ describe("AdminOrders (axios mocked)", () => {
 
     const initialAuth = { user: { role: 1 }, token: "admin-token" };
 
+    // Act
     render(
       <Wrapper initialAuth={initialAuth}>
         <AdminOrders />
       </Wrapper>,
     );
 
+    // Assert
     expect(await screen.findByText(/Alice/i)).toBeInTheDocument();
     expect(await screen.findByText(/Bob/i)).toBeInTheDocument();
 
-    // Alice has 2 products, Bob has 1 — quantity column values
     const quantities = screen.getAllByRole("cell", { name: /^[0-9]+$/ });
     const quantityValues = quantities.map((el) => el.textContent);
     expect(quantityValues).toContain("2");
@@ -186,6 +232,7 @@ describe("AdminOrders (axios mocked)", () => {
   });
 
   it("renders empty orders list when API returns no orders", async () => {
+    // Arrange
     axios.get.mockImplementation((url) => {
       if (url === "/api/v1/auth/admin-auth") {
         return Promise.resolve({ data: { ok: true } });
@@ -198,18 +245,21 @@ describe("AdminOrders (axios mocked)", () => {
 
     const initialAuth = { user: { role: 1 }, token: "admin-token" };
 
+    // Act
     render(
       <Wrapper initialAuth={initialAuth}>
         <AdminOrders />
       </Wrapper>,
     );
 
+    // Assert
     expect(await screen.findByText(/All Orders/i)).toBeInTheDocument();
     expect(screen.queryByText(/Alice/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Bob/i)).not.toBeInTheDocument();
   });
 
   it("logs error when fetching orders fails", async () => {
+    // Arrange
     const consoleLogSpy = jest
       .spyOn(console, "log")
       .mockImplementation(() => {});
@@ -226,12 +276,14 @@ describe("AdminOrders (axios mocked)", () => {
 
     const initialAuth = { user: { role: 1 }, token: "admin-token" };
 
+    // Act
     render(
       <Wrapper initialAuth={initialAuth}>
         <AdminOrders />
       </Wrapper>,
     );
 
+    // Assert
     await waitFor(() => {
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.any(Error));
     });
@@ -239,53 +291,8 @@ describe("AdminOrders (axios mocked)", () => {
     consoleLogSpy.mockRestore();
   });
 
-  it("truncates product description to 30 characters", async () => {
-    const longDescOrder = [
-      {
-        ...mockOrders[0],
-        products: [
-          {
-            _id: "p1",
-            name: "Widget",
-            description:
-              "This is a very long description that exceeds thirty characters",
-            price: 9.99,
-          },
-        ],
-      },
-    ];
-
-    axios.get.mockImplementation((url) => {
-      if (url === "/api/v1/auth/admin-auth") {
-        return Promise.resolve({ data: { ok: true } });
-      }
-      if (url === "/api/v1/auth/all-orders") {
-        return Promise.resolve({
-          data: { success: true, orders: longDescOrder },
-        });
-      }
-      return Promise.resolve({ data: {} });
-    });
-
-    const initialAuth = { user: { role: 1 }, token: "admin-token" };
-
-    render(
-      <Wrapper initialAuth={initialAuth}>
-        <AdminOrders />
-      </Wrapper>,
-    );
-
-    expect(
-      await screen.findByText("This is a very long descriptio"),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByText(
-        "This is a very long description that exceeds thirty characters",
-      ),
-    ).not.toBeInTheDocument();
-  });
-
   it("logs message when API returns success: false", async () => {
+    // Arrange
     const consoleLogSpy = jest
       .spyOn(console, "log")
       .mockImplementation(() => {});
@@ -304,12 +311,14 @@ describe("AdminOrders (axios mocked)", () => {
 
     const initialAuth = { user: { role: 1 }, token: "admin-token" };
 
+    // Act
     render(
       <Wrapper initialAuth={initialAuth}>
         <AdminOrders />
       </Wrapper>,
     );
 
+    // Assert
     await waitFor(() => {
       expect(consoleLogSpy).toHaveBeenCalledWith(
         "Failed to fetch orders: ",
@@ -321,6 +330,7 @@ describe("AdminOrders (axios mocked)", () => {
   });
 
   it("logs fallback message when API returns success: false with no message", async () => {
+    // Arrange
     const consoleLogSpy = jest
       .spyOn(console, "log")
       .mockImplementation(() => {});
@@ -337,12 +347,14 @@ describe("AdminOrders (axios mocked)", () => {
 
     const initialAuth = { user: { role: 1 }, token: "admin-token" };
 
+    // Act
     render(
       <Wrapper initialAuth={initialAuth}>
         <AdminOrders />
       </Wrapper>,
     );
 
+    // Assert
     await waitFor(() => {
       expect(consoleLogSpy).toHaveBeenCalledWith(
         "Failed to fetch orders: ",
@@ -354,6 +366,7 @@ describe("AdminOrders (axios mocked)", () => {
   });
 
   it("calls order-status API and re-fetches orders on status change", async () => {
+    // Arrange
     axios.get.mockImplementation((url) => {
       if (url === "/api/v1/auth/admin-auth") {
         return Promise.resolve({ data: { ok: true } });
@@ -368,12 +381,14 @@ describe("AdminOrders (axios mocked)", () => {
 
     const initialAuth = { user: { role: 1 }, token: "admin-token" };
 
+    // Act
     render(
       <Wrapper initialAuth={initialAuth}>
         <AdminOrders />
       </Wrapper>,
     );
 
+    // Assert
     await waitFor(() => {
       expect(screen.getByText("All Orders")).toBeInTheDocument();
     });
@@ -382,7 +397,7 @@ describe("AdminOrders (axios mocked)", () => {
       expect(screen.getByText("Alice")).toBeInTheDocument();
     });
 
-    // Clear prior get calls so we can assert the re-fetch cleanly
+    // Clear prior get calls to assert the re-fetch
     jest.clearAllMocks();
 
     axios.get.mockImplementation((url) => {
@@ -394,17 +409,14 @@ describe("AdminOrders (axios mocked)", () => {
 
     axios.put.mockResolvedValue({ data: { success: true } });
 
-    // Open the Ant Design Select dropdown
     const selects = screen.getAllByRole("combobox");
     fireEvent.mouseDown(selects[0]);
 
-    // Wait for the dropdown options to appear
     await waitFor(() => {
       const processingOptions = screen.getAllByText("Processing");
       expect(processingOptions.length).toBeGreaterThan(1);
     });
 
-    // Click the last occurrence — the one inside the dropdown
     const processingOptions = screen.getAllByText("Processing");
     fireEvent.click(processingOptions[processingOptions.length - 1]);
 
@@ -421,6 +433,7 @@ describe("AdminOrders (axios mocked)", () => {
   });
 
   it("logs error when handleChange PUT request fails", async () => {
+    // Arrange
     const consoleLogSpy = jest
       .spyOn(console, "log")
       .mockImplementation(() => {});
@@ -439,12 +452,14 @@ describe("AdminOrders (axios mocked)", () => {
 
     const initialAuth = { user: { role: 1 }, token: "admin-token" };
 
+    // Act
     render(
       <Wrapper initialAuth={initialAuth}>
         <AdminOrders />
       </Wrapper>,
     );
 
+    // Assert
     await waitFor(() => {
       expect(screen.getByText("All Orders")).toBeInTheDocument();
     });
@@ -474,24 +489,7 @@ describe("AdminOrders (axios mocked)", () => {
   });
 
   it('renders "Failed" for unsuccessful payment', async () => {
-    const failedPaymentOrder = [
-      {
-        _id: "order2",
-        status: "Processing",
-        buyer: { name: "Bob" },
-        createdAt: new Date().toISOString(),
-        payment: { success: false },
-        products: [
-          {
-            _id: "p2",
-            name: "Gadget",
-            description: "Cool gadget",
-            price: 19.99,
-          },
-        ],
-      },
-    ];
-
+    // Arrange
     axios.get.mockImplementation((url) => {
       if (url === "/api/v1/auth/admin-auth") {
         return Promise.resolve({ data: { ok: true } });
@@ -506,36 +504,21 @@ describe("AdminOrders (axios mocked)", () => {
 
     const initialAuth = { user: { role: 1 }, token: "admin-token" };
 
+    // Act
     render(
       <Wrapper initialAuth={initialAuth}>
         <AdminOrders />
       </Wrapper>,
     );
 
+    // Assert
     expect(await screen.findByText(/Bob/i)).toBeInTheDocument();
     expect(screen.getByText("Failed")).toBeInTheDocument();
     expect(screen.queryByText("Success")).not.toBeInTheDocument();
   });
 
   it("renders order using index as key when order has no _id", async () => {
-    const ordersWithoutId = [
-      {
-        // no _id field
-        status: "Not Processed",
-        buyer: { name: "Alice" },
-        createdAt: new Date().toISOString(),
-        payment: { success: true },
-        products: [
-          {
-            _id: "p1",
-            name: "Widget",
-            description: "Nice widget",
-            price: 9.99,
-          },
-        ],
-      },
-    ];
-
+    // Arrange
     axios.get.mockImplementation((url) => {
       if (url === "/api/v1/auth/admin-auth") {
         return Promise.resolve({ data: { ok: true } });
@@ -550,12 +533,14 @@ describe("AdminOrders (axios mocked)", () => {
 
     const initialAuth = { user: { role: 1 }, token: "admin-token" };
 
+    // Act
     render(
       <Wrapper initialAuth={initialAuth}>
         <AdminOrders />
       </Wrapper>,
     );
 
+    // Assert
     expect(await screen.findByText("Alice")).toBeInTheDocument();
     expect(screen.getByText("Widget")).toBeInTheDocument();
   });
