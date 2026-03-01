@@ -53,6 +53,8 @@ jobs:
 
       - name: Build client
         run: npm run build --prefix ./client
+        env:
+          CI: false
 
       - name: Run Playwright tests
         run: npx playwright test
