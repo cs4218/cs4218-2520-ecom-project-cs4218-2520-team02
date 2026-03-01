@@ -33,7 +33,7 @@ export default defineConfig({
   webServer: [
     {
       command: process.env.CI
-        ? 'npx serve -s ./client/build -l 3000'
+        ? 'serve -s ./client/build -l 3000'
         : 'npm run client',
       port: 3000,
       reuseExistingServer: !process.env.CI,
