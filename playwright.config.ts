@@ -5,8 +5,15 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 dotenv.config({ path: path.resolve(__dirname, '.env') });
+
+// Debug env vars
+console.log("[Config] MONGO_URL set:", !!process.env.MONGO_URL);
+console.log("[Config] JWT_SECRET set:", !!process.env.JWT_SECRET);
+console.log("[Config] BRAINTREE_MERCHANT_ID set:", !!process.env.BRAINTREE_MERCHANT_ID);
+console.log("[Config] BRAINTREE_PUBLIC_KEY set:", !!process.env.BRAINTREE_PUBLIC_KEY);
+console.log("[Config] BRAINTREE_PRIVATE_KEY set:", !!process.env.BRAINTREE_PRIVATE_KEY);
+console.log("[Config] MONGO_URL length:", process.env.MONGO_URL?.length ?? 0);
 
 export default defineConfig({
   testDir: './__tests__/e2e/flows',
@@ -29,7 +36,6 @@ export default defineConfig({
       port: 3000,
       reuseExistingServer: true,
       timeout: 120_000,
-      stdout: 'pipe',
       env: {
         PORT: '3000',
       },
@@ -39,7 +45,6 @@ export default defineConfig({
       port: 6060,
       reuseExistingServer: true,
       timeout: 120_000,
-      stdout: 'pipe',
       env: {
         DEV_MODE: 'development',
         PORT: '6060',
