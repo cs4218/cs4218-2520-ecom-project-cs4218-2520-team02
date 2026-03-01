@@ -43,8 +43,11 @@ export default defineConfig({
       env: {
         DEV_MODE: 'development',
         PORT: '6060',
-         //This string URI doesn't work at all. It's just so the config can compile.
-        MONGO_URL: process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/e2e_test',
+        MONGO_URL: process.env.MONGO_URL!,
+        JWT_SECRET: process.env.JWT_SECRET!,
+        BRAINTREE_MERCHANT_ID: process.env.BRAINTREE_MERCHANT_ID!,
+        BRAINTREE_PUBLIC_KEY: process.env.BRAINTREE_PUBLIC_KEY!,
+        BRAINTREE_PRIVATE_KEY: process.env.BRAINTREE_PRIVATE_KEY!,
       },
     },
   ],
