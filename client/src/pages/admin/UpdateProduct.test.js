@@ -451,15 +451,15 @@ describe("UpdateProduct Page", () => {
     describe("handleDelete", () => {
         test("deletes product and navigates when user confirms", async () => {
             setupAxiosMocks();
-            window.prompt = jest.fn(() => "yes");
+            window.confirm = jest.fn(() => true);
             axios.delete.mockResolvedValueOnce({ data: { success: true } });
             render(<UpdateProduct />);
             await waitForProductLoaded();
 
             await userEvent.click(screen.getByRole("button", { name: /delete product/i }));
 
-            expect(window.prompt).toHaveBeenCalledWith(
-                "Are you sure want to delete this product?"
+            expect(window.confirm).toHaveBeenCalledWith(
+                "Are you sure you want to delete this product?"
             );
 
             await waitFor(() => {
@@ -472,32 +472,21 @@ describe("UpdateProduct Page", () => {
             expect(mockNavigate).toHaveBeenCalledWith("/dashboard/admin/products");
         });
 
-        test("does not delete when user cancels prompt", async () => {
+        test("does not delete when user cancels confirm", async () => {
             setupAxiosMocks();
-            window.prompt = jest.fn(() => null);
+            window.confirm = jest.fn(() => false);
             render(<UpdateProduct />);
             await waitForProductLoaded();
 
             await userEvent.click(screen.getByRole("button", { name: /delete product/i }));
 
-            expect(window.prompt).toHaveBeenCalled();
-            expect(axios.delete).not.toHaveBeenCalled();
-        });
-
-        test("does not delete when user enters empty string", async () => {
-            setupAxiosMocks();
-            window.prompt = jest.fn(() => "");
-            render(<UpdateProduct />);
-            await waitForProductLoaded();
-
-            await userEvent.click(screen.getByRole("button", { name: /delete product/i }));
-
+            expect(window.confirm).toHaveBeenCalled();
             expect(axios.delete).not.toHaveBeenCalled();
         });
 
         test("shows error toast when delete fails", async () => {
             setupAxiosMocks();
-            window.prompt = jest.fn(() => "yes");
+            window.confirm = jest.fn(() => true);
             axios.delete.mockRejectedValueOnce(new Error("Network Error"));
             render(<UpdateProduct />);
             await waitForProductLoaded();
