@@ -1,6 +1,14 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
+export const TEST_ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL!;
+export const TEST_USER_EMAIL = process.env.TEST_USER_EMAIL!;
+
+export const TEST_PASSWORD = process.env.TEST_PASSWORD!;
+
+export const TEST_ADMIN_NAME = "E2E Admin";
+export const TEST_USER_NAME = "E2E User";
+
 export async function login(page: Page, email: string, password: string) {
   await page.goto("/login");
 

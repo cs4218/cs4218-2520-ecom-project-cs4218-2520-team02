@@ -10,14 +10,16 @@ jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
-
     env:
       MONGO_URL: ${{ secrets.MONGO_URL }}
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
       BRAINTREE_MERCHANT_ID: ${{ secrets.BRAINTREE_MERCHANT_ID }}
       BRAINTREE_PUBLIC_KEY: ${{ secrets.BRAINTREE_PUBLIC_KEY }}
       BRAINTREE_PRIVATE_KEY: ${{ secrets.BRAINTREE_PRIVATE_KEY }}
-      
+      TEST_ADMIN_EMAIL: ${{ secrets.TEST_ADMIN_EMAIL }}
+      TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+      TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -50,14 +52,6 @@ jobs:
       - name: Install Playwright system deps
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: npx playwright install-deps
-
-      - name: Build client
-        run: npm run build --prefix ./client
-        env:
-          CI: false
-
-      - name: Install serve
-        run: npm install -g serve
 
       - name: Run Playwright tests
         run: npx playwright test
