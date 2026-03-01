@@ -112,4 +112,23 @@ describe("PrivateRoute", () => {
     ).not.toBeInTheDocument();
     expect(screen.getByText(/loading/i)).toBeInTheDocument();
   });
+
+  it("invalid token case: renders spinner and does not show protected content", async () => {
+    // Arrange
+    axios.get.mockResolvedValue({ data: { ok: false } });
+
+    // Act
+    const initialAuth = { user: { role: 0 }, token: "invalid-token" };
+    renderPrivateRoute(initialAuth);
+
+    // Assert
+    await waitFor(() => {
+      expect(axios.get).toHaveBeenCalledWith("/api/v1/auth/user-auth");
+    });
+
+    expect(
+      screen.queryByText("User Dashboard (Protected Content)"),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+  });
 });
