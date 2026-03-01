@@ -40,6 +40,8 @@ jobs:
         with:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-ms-playwright-${{ steps.pw.outputs.version }}
+          restore-keys: |
+            Linux-ms-playwright-
 
       - name: Install Playwright Browsers
         if: steps.playwright-cache.outputs.cache-hit != 'true'
