@@ -1,4 +1,5 @@
-name: Playwright Tests
+name: Playwright UI Tests
+
 on:
   push:
     branches: [ main ]
@@ -12,16 +13,29 @@ jobs:
     env:
       MONGO_URL: ${{ secrets.MONGO_URL }}
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      PLAYWRIGHT_BROWSERS_PATH: 0
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v5
+      - name: Set up Node
+        uses: actions/setup-node@v5
         with:
           node-version: "24"
 
       - name: Install Dependencies
         run: npm install && cd client && npm install && cd ..
+
+      - name: Get Playwright version
+        id: pw
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-ms-playwright-${{ steps.pw.outputs.version }}
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
@@ -29,7 +43,8 @@ jobs:
       - name: Run Playwright tests
         run: npx playwright test
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
           name: playwright-report
