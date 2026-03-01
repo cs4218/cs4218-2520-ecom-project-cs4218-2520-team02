@@ -56,7 +56,7 @@ describe("User Dashboard", () => {
     jest.restoreAllMocks();
   });
 
-  it("renders user name, email, contact and address when authenticated", async () => {
+  it("renders user name, email and address when authenticated", async () => {
     // Arrange - set authenticated state with mocked user
     const initialAuth = {
       token: "user-token",
