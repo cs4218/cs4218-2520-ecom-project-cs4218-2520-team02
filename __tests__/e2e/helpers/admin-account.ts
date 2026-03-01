@@ -16,8 +16,9 @@ async function ensureMongo() {
     console.log("[MongoDB] Already connected");
     return;
   }
-
-  console.log("[MongoDB] Connecting to:", uri);
+  
+  const redacted = uri.replace(/:\/\/[^@]+@/, '://***:***@');
+  console.log("[MongoDB] Connecting to:", redacted);
   try {
     await mongoose.connect(uri, {
       serverSelectionTimeoutMS: 5000,

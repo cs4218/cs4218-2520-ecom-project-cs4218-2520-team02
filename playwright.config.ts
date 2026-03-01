@@ -29,6 +29,7 @@ export default defineConfig({
       port: 3000,
       reuseExistingServer: true,
       timeout: 120_000,
+      stdout: 'pipe',
       env: {
         PORT: '3000',
       },
@@ -38,6 +39,7 @@ export default defineConfig({
       port: 6060,
       reuseExistingServer: true,
       timeout: 120_000,
+      stdout: 'pipe',
       env: {
         DEV_MODE: 'development',
         PORT: '6060',
