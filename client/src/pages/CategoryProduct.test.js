@@ -235,7 +235,7 @@ describe("CategoryProduct Page", () => {
             const buttons = screen.getAllByRole("button", {
                 name: /more details/i,
             });
-            await userEvent.click(buttons[0]);
+            userEvent.click(buttons[0]);
 
             expect(mockNavigate).toHaveBeenCalledWith("/product/laptop");
         });
@@ -249,7 +249,7 @@ describe("CategoryProduct Page", () => {
             const buttons = screen.getAllByRole("button", {
                 name: /more details/i,
             });
-            await userEvent.click(buttons[1]);
+            userEvent.click(buttons[1]);
 
             expect(mockNavigate).toHaveBeenCalledWith("/product/phone");
         });
@@ -265,7 +265,7 @@ describe("CategoryProduct Page", () => {
             const addButtons = screen.getAllByRole("button", {
                 name: /add to cart/i,
             });
-            await userEvent.click(addButtons[0]);
+            userEvent.click(addButtons[0]);
 
             expect(mockSetCart).toHaveBeenCalledWith([mockProducts[0]]);
             expect(localStorage.setItem).toHaveBeenCalledWith(
@@ -286,7 +286,7 @@ describe("CategoryProduct Page", () => {
             const addButtons = screen.getAllByRole("button", {
                 name: /add to cart/i,
             });
-            await userEvent.click(addButtons[1]);
+            userEvent.click(addButtons[1]);
 
             expect(mockSetCart).toHaveBeenCalledWith([
                 existingItem,

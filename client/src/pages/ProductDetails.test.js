@@ -4,17 +4,25 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ProductDetails from "./ProductDetails";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 // =============== Mocks ===============
 jest.mock("axios");
+jest.mock("react-hot-toast");
 
 const mockNavigate = jest.fn();
 const mockParams = { slug: "test-product" };
+const mockSetCart = jest.fn();
+let mockCart = [];
 
 jest.mock("react-router-dom", () => ({
     ...jest.requireActual("react-router-dom"),
     useNavigate: () => mockNavigate,
     useParams: () => mockParams,
+}));
+
+jest.mock("../context/cart", () => ({
+    useCart: () => [mockCart, mockSetCart],
 }));
 
 jest.mock("./../components/Layout", () => ({ children }) => (
@@ -80,6 +88,8 @@ describe("ProductDetails Page", () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockParams.slug = "test-product";
+        mockCart = [];
+        Storage.prototype.setItem = jest.fn();
     });
 
     describe("rendering", () => {
@@ -324,7 +334,7 @@ describe("ProductDetails Page", () => {
             const buttons = screen.getAllByRole("button", {
                 name: /more details/i,
             });
-            await userEvent.click(buttons[0]);
+            userEvent.click(buttons[0]);
 
             expect(mockNavigate).toHaveBeenCalledWith("/product/related-one");
         });
@@ -340,9 +350,52 @@ describe("ProductDetails Page", () => {
             const buttons = screen.getAllByRole("button", {
                 name: /more details/i,
             });
-            await userEvent.click(buttons[1]);
+            userEvent.click(buttons[1]);
 
             expect(mockNavigate).toHaveBeenCalledWith("/product/related-two");
+        });
+    });
+
+    describe("add to cart", () => {
+        test("adds product to cart, updates localStorage, and shows toast", async () => {
+            setupAxiosMocks();
+            render(<ProductDetails />);
+
+            await waitForProductLoaded();
+
+            userEvent.click(
+                screen.getByRole("button", { name: /add to cart/i })
+            );
+
+            expect(mockSetCart).toHaveBeenCalledWith([mockProduct]);
+            expect(localStorage.setItem).toHaveBeenCalledWith(
+                "cart",
+                JSON.stringify([mockProduct])
+            );
+            expect(toast.success).toHaveBeenCalledWith("Item Added to cart");
+        });
+
+        test("appends to existing cart items", async () => {
+            const existingItem = { _id: "existing", name: "Existing" };
+            mockCart = [existingItem];
+            setupAxiosMocks();
+            render(<ProductDetails />);
+
+            await waitForProductLoaded();
+
+            userEvent.click(
+                screen.getByRole("button", { name: /add to cart/i })
+            );
+
+            expect(mockSetCart).toHaveBeenCalledWith([
+                existingItem,
+                mockProduct,
+            ]);
+            expect(localStorage.setItem).toHaveBeenCalledWith(
+                "cart",
+                JSON.stringify([existingItem, mockProduct])
+            );
+            expect(toast.success).toHaveBeenCalledWith("Item Added to cart");
         });
     });
 });
