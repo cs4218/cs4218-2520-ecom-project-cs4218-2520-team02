@@ -8,9 +8,26 @@ export const ADMIN_NAME = "E2E Admin";
 
 async function ensureMongo() {
   const uri = process.env.MONGO_URL;
-  if (!uri) throw new Error("Missing MONGO_URL");
+  if (!uri) {
+    throw new Error("Missing MONGO_URL");
+  }
 
-  await mongoose.connect(uri);
+  if (mongoose.connection.readyState === 1) {
+    console.log("[MongoDB] Already connected");
+    return;
+  }
+
+  console.log("[MongoDB] Connecting to:", uri);
+  try {
+    await mongoose.connect(uri, {
+      serverSelectionTimeoutMS: 5000,
+      connectTimeoutMS: 5000,
+    });
+    console.log("[MongoDB] Connected successfully");
+  } catch (err) {
+    console.error("[MongoDB] Connection failed:", err);
+    throw err;
+  }
 }
 
 export async function createAdminUser() {
