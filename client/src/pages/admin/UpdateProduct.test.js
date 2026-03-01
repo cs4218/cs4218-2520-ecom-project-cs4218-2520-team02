@@ -88,7 +88,7 @@ function setupAxiosMocks({
 
 async function waitForProductLoaded() {
     await waitFor(() => {
-        expect(screen.getByPlaceholderText("write a name")).toHaveValue(mockProduct.name);
+        expect(screen.getByPlaceholderText("Enter product name")).toHaveValue(mockProduct.name);
     });
 }
 
@@ -158,15 +158,15 @@ describe("UpdateProduct Page", () => {
 
             await waitForProductLoaded();
 
-            expect(screen.getByPlaceholderText("write a name")).toHaveValue(mockProduct.name);
-            expect(screen.getByPlaceholderText("write a description")).toHaveValue(
+            expect(screen.getByPlaceholderText("Enter product name")).toHaveValue(mockProduct.name);
+            expect(screen.getByPlaceholderText("Enter product description")).toHaveValue(
                 mockProduct.description
             );
-            expect(screen.getByPlaceholderText("write a Price")).toHaveValue(mockProduct.price);
-            expect(screen.getByPlaceholderText("write a quantity")).toHaveValue(
+            expect(screen.getByPlaceholderText("Enter product price")).toHaveValue(mockProduct.price);
+            expect(screen.getByPlaceholderText("Enter product quantity")).toHaveValue(
                 mockProduct.quantity
             );
-            const shippingSelect = screen.getByLabelText("Select Shipping");
+            const shippingSelect = screen.getByLabelText(/Select shipping/i);
             expect(shippingSelect).toHaveValue(mockProduct.shipping ? "1" : "0");
         });
 
@@ -253,7 +253,7 @@ describe("UpdateProduct Page", () => {
             render(<UpdateProduct />);
             await waitForProductLoaded();
 
-            const nameInput = screen.getByPlaceholderText("write a name");
+            const nameInput = screen.getByPlaceholderText("Enter product name");
             await userEvent.clear(nameInput);
             await userEvent.type(nameInput, "New Name");
 
@@ -265,7 +265,7 @@ describe("UpdateProduct Page", () => {
             render(<UpdateProduct />);
             await waitForProductLoaded();
 
-            const descInput = screen.getByPlaceholderText("write a description");
+            const descInput = screen.getByPlaceholderText("Enter product description");
             await userEvent.clear(descInput);
             await userEvent.type(descInput, "New description");
 
@@ -277,7 +277,7 @@ describe("UpdateProduct Page", () => {
             render(<UpdateProduct />);
             await waitForProductLoaded();
 
-            const priceInput = screen.getByPlaceholderText("write a Price");
+            const priceInput = screen.getByPlaceholderText("Enter product price");
             await userEvent.clear(priceInput);
             await userEvent.type(priceInput, "200");
 
@@ -289,7 +289,7 @@ describe("UpdateProduct Page", () => {
             render(<UpdateProduct />);
             await waitForProductLoaded();
 
-            const qtyInput = screen.getByPlaceholderText("write a quantity");
+            const qtyInput = screen.getByPlaceholderText("Enter product quantity");
             await userEvent.clear(qtyInput);
             await userEvent.type(qtyInput, "25");
 
@@ -330,7 +330,7 @@ describe("UpdateProduct Page", () => {
             render(<UpdateProduct />);
             await waitForProductLoaded();
 
-            const shippingSelect = screen.getByLabelText(/Select Shipping/);
+            const shippingSelect = screen.getByLabelText(/Select shipping/i);
             expect(shippingSelect).toHaveValue("1");
 
             await userEvent.selectOptions(shippingSelect, "0");
@@ -433,7 +433,7 @@ describe("UpdateProduct Page", () => {
             render(<UpdateProduct />);
             await waitForProductLoaded();
 
-            const nameInput = screen.getByPlaceholderText("write a name");
+            const nameInput = screen.getByPlaceholderText("Enter product name");
             await userEvent.clear(nameInput);
             await userEvent.type(nameInput, "Updated Name");
 
