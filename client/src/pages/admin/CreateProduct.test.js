@@ -73,8 +73,13 @@ describe("CreateProduct Page", () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        jest.spyOn(console, "log").mockImplementation(() => {});
         global.URL.createObjectURL.mockClear?.();
         global.URL.createObjectURL.mockImplementation(() => "blob:mock");
+    });
+
+    afterEach(() => {
+        console.log.mockRestore();
     });
 
     describe("render", () => {
