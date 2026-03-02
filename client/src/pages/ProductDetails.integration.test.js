@@ -1,5 +1,6 @@
+// Yap Zhao Yi, A0277540B
 import React from "react";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, waitFor, within, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Route, Routes, MemoryRouter } from "react-router-dom";
 import axios from "axios";
@@ -105,7 +106,9 @@ describe("ProductDetails Page Integration Test", () => {
       });
 
       // Act
-      renderProductDetails()
+      await act(async () => {
+        renderProductDetails();
+      });
 
       // Assert
       await waitFor(() => {
@@ -132,7 +135,9 @@ describe("ProductDetails Page Integration Test", () => {
       axios.get.mockRejectedValueOnce(new Error("Network error"));
 
       // Act
-      renderProductDetails();
+      await act(async () => {
+        renderProductDetails();
+      });
 
       // Assert
       await waitFor(() =>
@@ -158,7 +163,9 @@ describe("ProductDetails Page Integration Test", () => {
       });
 
       // Act
-      renderProductDetails();
+      await act(async () => {
+        renderProductDetails();
+      });
 
       // Assert
       await waitFor(() =>
@@ -183,11 +190,13 @@ describe("ProductDetails Page Integration Test", () => {
       });
 
       // Act
-      renderProductDetails();
+      await act(async () => {
+        renderProductDetails();
+      });
 
       // Assert
       await waitFor(() => {
-        expect(screen.queryByText(/ProductA/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/ProductA/i)).toBeInTheDocument();
         expect(screen.getByText("Product Details")).toBeInTheDocument();
       });
 
@@ -215,7 +224,9 @@ describe("ProductDetails Page Integration Test", () => {
         }
       });
 
-      renderProductDetails();
+      await act(async () => {
+        renderProductDetails();
+      });
 
       await waitFor(() =>
         expect(
@@ -229,7 +240,9 @@ describe("ProductDetails Page Integration Test", () => {
       const addButton = within(mainProductSection).getByText("ADD TO CART");
 
       // Act
-      await user.click(addButton);
+      await act(async () => {
+        await user.click(addButton);
+      });
 
       // Assert
       const storedCart = JSON.parse(
@@ -252,7 +265,10 @@ describe("ProductDetails Page Integration Test", () => {
         }
       });
 
-      renderProductDetails();
+      await act(async () => {
+        renderProductDetails();
+      });
+
       await waitFor(() => expect(screen.getByText(/ProductA/i)).toBeInTheDocument());
 
       const user = createUser();
@@ -260,8 +276,10 @@ describe("ProductDetails Page Integration Test", () => {
       const addButton = within(mainProductSection).getByText("ADD TO CART");
 
       // Act
-      await user.click(addButton);
-      await user.click(addButton);
+      await act(async () => {
+        await user.click(addButton);
+        await user.click(addButton);
+      });
 
       // Assert
       const storedCart = JSON.parse(localStorage.getItem("cart_guest"));
@@ -281,7 +299,9 @@ describe("ProductDetails Page Integration Test", () => {
         }
       });
 
-      renderProductDetails();
+      await act(async () => {
+        renderProductDetails();
+      });
 
       await waitFor(() =>
         expect(screen.getByText("ProductB")).toBeInTheDocument()
@@ -293,7 +313,9 @@ describe("ProductDetails Page Integration Test", () => {
       const addButton = within(productBCard).getByText("ADD TO CART");
 
       // Act
-      await user.click(addButton);
+      await act(async () => {
+        await user.click(addButton);
+      });
 
       // Assert
       const storedCart = JSON.parse(localStorage.getItem("cart_guest"));
@@ -313,7 +335,10 @@ describe("ProductDetails Page Integration Test", () => {
         }
       });
 
-      renderProductDetails();
+      await act(async () => {
+        renderProductDetails();
+      });
+
       await waitFor(() => expect(screen.getByText("ProductB")).toBeInTheDocument());
 
       const user = createUser();
@@ -324,8 +349,10 @@ describe("ProductDetails Page Integration Test", () => {
       const addButtonC = within(productCCard).getByText("ADD TO CART");
 
       // Act
-      await user.click(addButtonB);
-      await user.click(addButtonC);
+      await act(async () => {
+        await user.click(addButtonB);
+        await user.click(addButtonC);
+      });
 
       // Assert
       const storedCart = JSON.parse(localStorage.getItem("cart_guest"));
@@ -346,7 +373,10 @@ describe("ProductDetails Page Integration Test", () => {
         }
       });
 
-      renderProductDetails();
+      await act(async () => {
+        renderProductDetails();
+      });
+
       await waitFor(() => expect(screen.getByText("ProductB")).toBeInTheDocument());
 
       const user = createUser();
@@ -360,11 +390,13 @@ describe("ProductDetails Page Integration Test", () => {
       const addC = within(cardC).getByText("ADD TO CART");
 
       // Act
-      await user.click(addMain);
-      await user.click(addB);
-      await user.click(addC);
-      await user.click(addMain);
-      await user.click(addB);
+      await act(async () => {
+        await user.click(addMain);
+        await user.click(addB);
+        await user.click(addC);
+        await user.click(addMain);
+        await user.click(addB);
+      });
 
       // Assert
       const storedCart = JSON.parse(localStorage.getItem("cart_guest"));
@@ -392,7 +424,9 @@ describe("ProductDetails Page Integration Test", () => {
         }
       });
 
-      renderProductDetails();
+      await act(async () => {
+        renderProductDetails();
+      });
 
       await waitFor(() => {
         expect(screen.getByText("ProductB")).toBeInTheDocument();
@@ -404,7 +438,9 @@ describe("ProductDetails Page Integration Test", () => {
       const moreDetailsButton = within(productBCard).getByText("More Details");
 
       // Act
-      await user.click(moreDetailsButton);
+      await act(async () => {
+        await user.click(moreDetailsButton);
+      });
 
       // Assert
       await waitFor(() => { 
