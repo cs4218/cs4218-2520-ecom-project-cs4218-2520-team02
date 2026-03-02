@@ -199,7 +199,7 @@ const UpdateProduct = () => {
               </div>
               <div className="mb-3">
                 <Select
-                  bordered={false}
+                  variant="borderless"
                   placeholder="Select shipping"
                   size="large"
                   showSearch
