@@ -1,6 +1,6 @@
 // Jovin Ang Yusheng, A0273460H
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import UpdateProduct from "./UpdateProduct";
 import axios from "axios";
@@ -110,6 +110,7 @@ describe("UpdateProduct Page", () => {
         test("renders layout and admin menu", async () => {
             setupAxiosMocks();
             render(<UpdateProduct />);
+            await waitForProductLoaded();
 
             expect(screen.getByTestId("layout")).toBeInTheDocument();
             expect(screen.getByTestId("admin-menu")).toBeInTheDocument();
@@ -118,6 +119,7 @@ describe("UpdateProduct Page", () => {
         test("renders heading", async () => {
             setupAxiosMocks();
             render(<UpdateProduct />);
+            await waitForProductLoaded();
 
             expect(screen.getByRole("heading", { name: /update product/i })).toBeInTheDocument();
         });
@@ -125,6 +127,7 @@ describe("UpdateProduct Page", () => {
         test("renders update and delete buttons", async () => {
             setupAxiosMocks();
             render(<UpdateProduct />);
+            await waitForProductLoaded();
 
             expect(screen.getByRole("button", { name: /update product/i })).toBeInTheDocument();
             expect(screen.getByRole("button", { name: /delete product/i })).toBeInTheDocument();
@@ -135,21 +138,19 @@ describe("UpdateProduct Page", () => {
         test("fetches single product by slug", async () => {
             setupAxiosMocks();
             render(<UpdateProduct />);
+            await waitForProductLoaded();
 
-            await waitFor(() => {
-                expect(axios.get).toHaveBeenCalledWith(
-                    `/api/v1/product/get-product/${mockParams.slug}`
-                );
-            });
+            expect(axios.get).toHaveBeenCalledWith(
+                `/api/v1/product/get-product/${mockParams.slug}`
+            );
         });
 
         test("fetches all categories", async () => {
             setupAxiosMocks();
             render(<UpdateProduct />);
+            await waitForProductLoaded();
 
-            await waitFor(() => {
-                expect(axios.get).toHaveBeenCalledWith("/api/v1/category/get-category");
-            });
+            expect(axios.get).toHaveBeenCalledWith("/api/v1/category/get-category");
         });
 
         test("populates form fields with product data", async () => {
@@ -173,11 +174,10 @@ describe("UpdateProduct Page", () => {
         test("populates category select with fetched categories", async () => {
             setupAxiosMocks();
             render(<UpdateProduct />);
+            await waitForProductLoaded();
 
-            await waitFor(() => {
-                expect(screen.getByRole("option", { name: "Electronics" })).toBeInTheDocument();
-                expect(screen.getByRole("option", { name: "Clothing" })).toBeInTheDocument();
-            });
+            expect(screen.getByRole("option", { name: "Electronics" })).toBeInTheDocument();
+            expect(screen.getByRole("option", { name: "Clothing" })).toBeInTheDocument();
         });
 
         test("selects the product's current category", async () => {
@@ -206,23 +206,21 @@ describe("UpdateProduct Page", () => {
         test("shows toast error when category fetch fails", async () => {
             setupAxiosMocks({ categoryError: true });
             render(<UpdateProduct />);
+            await waitForProductLoaded();
 
-            await waitFor(() => {
-                expect(toast.error).toHaveBeenCalledWith(
-                    "Something went wrong in getting category"
-                );
-            });
+            expect(toast.error).toHaveBeenCalledWith(
+                "Something went wrong in getting category"
+            );
         });
 
         test("shows toast error when categories array is empty", async () => {
             setupAxiosMocks({ categories: [] });
             render(<UpdateProduct />);
+            await waitForProductLoaded();
 
-            await waitFor(() => {
-                expect(toast.error).toHaveBeenCalledWith(
-                    "There are no categories. Please create a category first"
-                );
-            });
+            expect(toast.error).toHaveBeenCalledWith(
+                "There are no categories. Please create a category first"
+            );
 
             const categorySelect = screen.getByLabelText("Select a category");
             const categoryOptions = Array.from(categorySelect.querySelectorAll("option")).filter(
@@ -235,10 +233,11 @@ describe("UpdateProduct Page", () => {
             const consoleSpy = jest.spyOn(console, "log").mockImplementation();
             setupAxiosMocks({ productError: true });
             render(<UpdateProduct />);
-
             await waitFor(() => {
-                expect(consoleSpy).toHaveBeenCalledWith(expect.any(Error));
+                expect(screen.getByRole("option", { name: "Electronics" })).toBeInTheDocument();
             });
+
+            expect(consoleSpy).toHaveBeenCalledWith(expect.any(Error));
             expect(toast.error).toHaveBeenCalledWith(
                 "Something went wrong in fetching product"
             );
@@ -254,8 +253,10 @@ describe("UpdateProduct Page", () => {
             await waitForProductLoaded();
 
             const nameInput = screen.getByPlaceholderText("Enter product name");
-            userEvent.clear(nameInput);
-            userEvent.type(nameInput, "New Name");
+            act(() => {
+                userEvent.clear(nameInput);
+                userEvent.type(nameInput, "New Name");
+            });
 
             expect(nameInput).toHaveValue("New Name");
         });
@@ -266,8 +267,10 @@ describe("UpdateProduct Page", () => {
             await waitForProductLoaded();
 
             const descInput = screen.getByPlaceholderText("Enter product description");
-            userEvent.clear(descInput);
-            userEvent.type(descInput, "New description");
+            act(() => {
+                userEvent.clear(descInput);
+                userEvent.type(descInput, "New description");
+            });
 
             expect(descInput).toHaveValue("New description");
         });
@@ -278,8 +281,10 @@ describe("UpdateProduct Page", () => {
             await waitForProductLoaded();
 
             const priceInput = screen.getByPlaceholderText("Enter product price");
-            userEvent.clear(priceInput);
-            userEvent.type(priceInput, "200");
+            act(() => {
+                userEvent.clear(priceInput);
+                userEvent.type(priceInput, "200");
+            });
 
             expect(priceInput).toHaveValue(200);
         });
@@ -290,8 +295,10 @@ describe("UpdateProduct Page", () => {
             await waitForProductLoaded();
 
             const qtyInput = screen.getByPlaceholderText("Enter product quantity");
-            userEvent.clear(qtyInput);
-            userEvent.type(qtyInput, "25");
+            act(() => {
+                userEvent.clear(qtyInput);
+                userEvent.type(qtyInput, "25");
+            });
 
             expect(qtyInput).toHaveValue(25);
         });
@@ -303,7 +310,9 @@ describe("UpdateProduct Page", () => {
 
             const file = new File(["dummy"], "test.png", { type: "image/png" });
             const photoInput = document.querySelector('input[type="file"][name="photo"]');
-            userEvent.upload(photoInput, file);
+            act(() => {
+                userEvent.upload(photoInput, file);
+            });
 
             expect(screen.getByText("test.png")).toBeInTheDocument();
             const img = screen.getByAltText("product_photo");
@@ -320,7 +329,9 @@ describe("UpdateProduct Page", () => {
             });
 
             const categorySelect = screen.getByLabelText("Select a category");
-            userEvent.selectOptions(categorySelect, "2");
+            act(() => {
+                userEvent.selectOptions(categorySelect, "2");
+            });
 
             expect(categorySelect).toHaveValue("2");
         });
@@ -333,7 +344,9 @@ describe("UpdateProduct Page", () => {
             const shippingSelect = screen.getByLabelText(/Select shipping/i);
             expect(shippingSelect).toHaveValue("1");
 
-            userEvent.selectOptions(shippingSelect, "0");
+            act(() => {
+                userEvent.selectOptions(shippingSelect, "0");
+            });
 
             expect(shippingSelect).toHaveValue("0");
         });
@@ -346,7 +359,9 @@ describe("UpdateProduct Page", () => {
             render(<UpdateProduct />);
             await waitForProductLoaded();
 
-            userEvent.click(screen.getByRole("button", { name: /update product/i }));
+            act(() => {
+                userEvent.click(screen.getByRole("button", { name: /update product/i }));
+            });
 
             await waitFor(() => {
                 expect(axios.put).toHaveBeenCalledTimes(1);
@@ -369,7 +384,9 @@ describe("UpdateProduct Page", () => {
             render(<UpdateProduct />);
             await waitForProductLoaded();
 
-            userEvent.click(screen.getByRole("button", { name: /update product/i }));
+            act(() => {
+                userEvent.click(screen.getByRole("button", { name: /update product/i }));
+            });
 
             await waitFor(() => {
                 expect(axios.put).toHaveBeenCalledTimes(1);
@@ -387,9 +404,13 @@ describe("UpdateProduct Page", () => {
 
             const file = new File(["content"], "new-photo.png", { type: "image/png" });
             const photoInput = document.querySelector('input[type="file"][name="photo"]');
-            userEvent.upload(photoInput, file);
+            act(() => {
+                userEvent.upload(photoInput, file);
+            });
 
-            userEvent.click(screen.getByRole("button", { name: /update product/i }));
+            act(() => {
+                userEvent.click(screen.getByRole("button", { name: /update product/i }));
+            });
 
             await waitFor(() => {
                 expect(axios.put).toHaveBeenCalledTimes(1);
@@ -405,7 +426,9 @@ describe("UpdateProduct Page", () => {
             render(<UpdateProduct />);
             await waitForProductLoaded();
 
-            userEvent.click(screen.getByRole("button", { name: /update product/i }));
+            act(() => {
+                userEvent.click(screen.getByRole("button", { name: /update product/i }));
+            });
 
             await waitFor(() => {
                 expect(toast.success).toHaveBeenCalledWith("Product Updated Successfully");
@@ -419,7 +442,9 @@ describe("UpdateProduct Page", () => {
             render(<UpdateProduct />);
             await waitForProductLoaded();
 
-            userEvent.click(screen.getByRole("button", { name: /update product/i }));
+            act(() => {
+                userEvent.click(screen.getByRole("button", { name: /update product/i }));
+            });
 
             await waitFor(() => {
                 expect(toast.error).toHaveBeenCalledWith("Something went wrong");
@@ -434,10 +459,14 @@ describe("UpdateProduct Page", () => {
             await waitForProductLoaded();
 
             const nameInput = screen.getByPlaceholderText("Enter product name");
-            userEvent.clear(nameInput);
-            userEvent.type(nameInput, "Updated Name");
+            act(() => {
+                userEvent.clear(nameInput);
+                userEvent.type(nameInput, "Updated Name");
+            });
 
-            userEvent.click(screen.getByRole("button", { name: /update product/i }));
+            act(() => {
+                userEvent.click(screen.getByRole("button", { name: /update product/i }));
+            });
 
             await waitFor(() => {
                 expect(axios.put).toHaveBeenCalledTimes(1);
@@ -456,7 +485,9 @@ describe("UpdateProduct Page", () => {
             render(<UpdateProduct />);
             await waitForProductLoaded();
 
-            userEvent.click(screen.getByRole("button", { name: /delete product/i }));
+            act(() => {
+                userEvent.click(screen.getByRole("button", { name: /delete product/i }));
+            });
 
             expect(window.confirm).toHaveBeenCalledWith(
                 "Are you sure you want to delete this product?"
@@ -478,7 +509,9 @@ describe("UpdateProduct Page", () => {
             render(<UpdateProduct />);
             await waitForProductLoaded();
 
-            userEvent.click(screen.getByRole("button", { name: /delete product/i }));
+            act(() => {
+                userEvent.click(screen.getByRole("button", { name: /delete product/i }));
+            });
 
             expect(window.confirm).toHaveBeenCalled();
             expect(axios.delete).not.toHaveBeenCalled();
@@ -491,7 +524,9 @@ describe("UpdateProduct Page", () => {
             render(<UpdateProduct />);
             await waitForProductLoaded();
 
-            userEvent.click(screen.getByRole("button", { name: /delete product/i }));
+            act(() => {
+                userEvent.click(screen.getByRole("button", { name: /delete product/i }));
+            });
 
             await waitFor(() => {
                 expect(toast.error).toHaveBeenCalledWith("Something went wrong");
