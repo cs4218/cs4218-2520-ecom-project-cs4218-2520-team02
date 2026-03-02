@@ -82,6 +82,7 @@ describe("CategoryProduct Page", () => {
         test("renders layout", async () => {
             setupAxiosMocks();
             render(<CategoryProduct />);
+            await waitForProductsLoaded();
 
             expect(screen.getByTestId("layout")).toBeInTheDocument();
         });

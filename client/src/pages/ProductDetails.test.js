@@ -81,6 +81,7 @@ function setupAxiosMocks({
 async function waitForProductLoaded() {
     await waitFor(() => {
         expect(screen.getByText(/Name : Test Product/)).toBeInTheDocument();
+        expect(screen.getByText("Related One")).toBeInTheDocument();
     });
 }
 
@@ -96,6 +97,7 @@ describe("ProductDetails Page", () => {
         test("renders layout", async () => {
             setupAxiosMocks();
             render(<ProductDetails />);
+            await waitForProductLoaded();
 
             expect(screen.getByTestId("layout")).toBeInTheDocument();
         });
@@ -103,6 +105,7 @@ describe("ProductDetails Page", () => {
         test("renders product details heading", async () => {
             setupAxiosMocks();
             render(<ProductDetails />);
+            await waitForProductLoaded();
 
             expect(
                 screen.getByRole("heading", { name: /product details/i })
@@ -112,6 +115,7 @@ describe("ProductDetails Page", () => {
         test("renders ADD TO CART button", async () => {
             setupAxiosMocks();
             render(<ProductDetails />);
+            await waitForProductLoaded();
 
             expect(
                 screen.getByRole("button", { name: /add to cart/i })
@@ -121,6 +125,7 @@ describe("ProductDetails Page", () => {
         test("renders similar products heading", async () => {
             setupAxiosMocks();
             render(<ProductDetails />);
+            await waitForProductLoaded();
 
             expect(screen.getByText(/Similar Products ➡️/)).toBeInTheDocument();
         });
@@ -130,12 +135,11 @@ describe("ProductDetails Page", () => {
         test("fetches product by slug", async () => {
             setupAxiosMocks();
             render(<ProductDetails />);
+            await waitForProductLoaded();
 
-            await waitFor(() => {
-                expect(axios.get).toHaveBeenCalledWith(
-                    "/api/v1/product/get-product/test-product"
-                );
-            });
+            expect(axios.get).toHaveBeenCalledWith(
+                "/api/v1/product/get-product/test-product"
+            );
         });
 
         test("does not fetch when slug is falsy", async () => {
@@ -222,12 +226,11 @@ describe("ProductDetails Page", () => {
         test("fetches related products after product loads", async () => {
             setupAxiosMocks();
             render(<ProductDetails />);
+            await waitForProductLoaded();
 
-            await waitFor(() => {
-                expect(axios.get).toHaveBeenCalledWith(
-                    "/api/v1/product/related-product/1/1"
-                );
-            });
+            expect(axios.get).toHaveBeenCalledWith(
+                "/api/v1/product/related-product/1/1"
+            );
         });
 
         test("renders related product cards", async () => {
@@ -286,12 +289,13 @@ describe("ProductDetails Page", () => {
         test("shows 'No Similar Products found' when none exist", async () => {
             setupAxiosMocks({ relatedProducts: [] });
             render(<ProductDetails />);
-
             await waitFor(() => {
-                expect(
-                    screen.getByText(/No Similar Products found/)
-                ).toBeInTheDocument();
+                expect(screen.getByText(/Name : Test Product/)).toBeInTheDocument();
             });
+
+            expect(
+                screen.getByText(/No Similar Products found/)
+            ).toBeInTheDocument();
         });
 
         test("does not show 'No Similar Products found' when related products exist", async () => {
