@@ -367,8 +367,10 @@ describe("CartPage", () => {
 
       // Act
       renderCartPage();
-      fireEvent.click(await screen.findByText("Make Payment"));
-
+      const button = await screen.findByText("Make Payment");
+      await waitFor(() => expect(button).not.toBeDisabled());
+      fireEvent.click(button);
+      
       // Assert - loading text visible during processing
       expect(screen.getByText("Processing ....")).toBeInTheDocument();
     });
