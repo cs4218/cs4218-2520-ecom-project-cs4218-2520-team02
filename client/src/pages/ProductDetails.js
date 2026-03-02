@@ -2,8 +2,6 @@ import React, { useState, useEffect } from "react";
 import Layout from "./../components/Layout";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
-import { useCart } from "../context/cart";
-import toast from "react-hot-toast";
 import "../styles/ProductDetailsStyles.css";
 import toast from "react-hot-toast";
 import { useCart } from "../context/cart";
@@ -12,9 +10,9 @@ import { useAuth } from "../context/auth";
 const ProductDetails = () => {
   const params = useParams();
   const navigate = useNavigate();
-  const [cart, setCart] = useCart();
   const [product, setProduct] = useState({});
   const [relatedProducts, setRelatedProducts] = useState([]);
+  const [cart, setCart] = useCart();
   const [auth] = useAuth();
   const userId = auth?.user?._id || "guest";
 
@@ -22,7 +20,7 @@ const ProductDetails = () => {
   useEffect(() => {
     if (params?.slug) getProduct();
   }, [params?.slug]);
-
+  
   // getProduct
   const getProduct = async () => {
     try {
@@ -35,7 +33,7 @@ const ProductDetails = () => {
       console.log(error);
     }
   };
-
+  
   // get similar product
   const getSimilarProduct = async (pid, cid) => {
     try {
@@ -47,7 +45,6 @@ const ProductDetails = () => {
       console.log(error);
     }
   };
-  
   return (
     <Layout>
       <div className="row container product-details">
@@ -76,11 +73,11 @@ const ProductDetails = () => {
           <button
             className="btn btn-secondary ms-1"
             onClick={() => {
-              setCart([...cart, product]);
-              localStorage.setItem(
-                `cart_${userId}`,
-                JSON.stringify([...cart, product])
-              );
+              setCart(prevCart => {
+                const updatedCart = [...prevCart, product];
+                localStorage.setItem(`cart_${userId}`, JSON.stringify(updatedCart));
+                return updatedCart;
+              });
               toast.success("Item Added to cart");
             }}
           >
@@ -125,11 +122,11 @@ const ProductDetails = () => {
                   <button
                     className="btn btn-dark ms-1"
                     onClick={() => {
-                      setCart([...cart, p]);
-                      localStorage.setItem(
-                        `cart_${userId}`,
-                        JSON.stringify([...cart, p])
-                      );
+                      setCart(prevCart => {
+                        const updatedCart = [...prevCart, p];
+                        localStorage.setItem(`cart_${userId}`, JSON.stringify(updatedCart));
+                        return updatedCart;
+                      });
                       toast.success("Item Added to cart");
                     }}
                   >
