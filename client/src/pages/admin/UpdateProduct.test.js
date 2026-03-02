@@ -254,8 +254,8 @@ describe("UpdateProduct Page", () => {
             await waitForProductLoaded();
 
             const nameInput = screen.getByPlaceholderText("Enter product name");
-            await userEvent.clear(nameInput);
-            await userEvent.type(nameInput, "New Name");
+            userEvent.clear(nameInput);
+            userEvent.type(nameInput, "New Name");
 
             expect(nameInput).toHaveValue("New Name");
         });
@@ -266,8 +266,8 @@ describe("UpdateProduct Page", () => {
             await waitForProductLoaded();
 
             const descInput = screen.getByPlaceholderText("Enter product description");
-            await userEvent.clear(descInput);
-            await userEvent.type(descInput, "New description");
+            userEvent.clear(descInput);
+            userEvent.type(descInput, "New description");
 
             expect(descInput).toHaveValue("New description");
         });
@@ -278,8 +278,8 @@ describe("UpdateProduct Page", () => {
             await waitForProductLoaded();
 
             const priceInput = screen.getByPlaceholderText("Enter product price");
-            await userEvent.clear(priceInput);
-            await userEvent.type(priceInput, "200");
+            userEvent.clear(priceInput);
+            userEvent.type(priceInput, "200");
 
             expect(priceInput).toHaveValue(200);
         });
@@ -290,8 +290,8 @@ describe("UpdateProduct Page", () => {
             await waitForProductLoaded();
 
             const qtyInput = screen.getByPlaceholderText("Enter product quantity");
-            await userEvent.clear(qtyInput);
-            await userEvent.type(qtyInput, "25");
+            userEvent.clear(qtyInput);
+            userEvent.type(qtyInput, "25");
 
             expect(qtyInput).toHaveValue(25);
         });
@@ -303,7 +303,7 @@ describe("UpdateProduct Page", () => {
 
             const file = new File(["dummy"], "test.png", { type: "image/png" });
             const photoInput = document.querySelector('input[type="file"][name="photo"]');
-            await userEvent.upload(photoInput, file);
+            userEvent.upload(photoInput, file);
 
             expect(screen.getByText("test.png")).toBeInTheDocument();
             const img = screen.getByAltText("product_photo");
@@ -320,7 +320,7 @@ describe("UpdateProduct Page", () => {
             });
 
             const categorySelect = screen.getByLabelText("Select a category");
-            await userEvent.selectOptions(categorySelect, "2");
+            userEvent.selectOptions(categorySelect, "2");
 
             expect(categorySelect).toHaveValue("2");
         });
@@ -333,7 +333,7 @@ describe("UpdateProduct Page", () => {
             const shippingSelect = screen.getByLabelText(/Select shipping/i);
             expect(shippingSelect).toHaveValue("1");
 
-            await userEvent.selectOptions(shippingSelect, "0");
+            userEvent.selectOptions(shippingSelect, "0");
 
             expect(shippingSelect).toHaveValue("0");
         });
@@ -346,7 +346,7 @@ describe("UpdateProduct Page", () => {
             render(<UpdateProduct />);
             await waitForProductLoaded();
 
-            await userEvent.click(screen.getByRole("button", { name: /update product/i }));
+            userEvent.click(screen.getByRole("button", { name: /update product/i }));
 
             await waitFor(() => {
                 expect(axios.put).toHaveBeenCalledTimes(1);
@@ -369,7 +369,7 @@ describe("UpdateProduct Page", () => {
             render(<UpdateProduct />);
             await waitForProductLoaded();
 
-            await userEvent.click(screen.getByRole("button", { name: /update product/i }));
+            userEvent.click(screen.getByRole("button", { name: /update product/i }));
 
             await waitFor(() => {
                 expect(axios.put).toHaveBeenCalledTimes(1);
@@ -387,9 +387,9 @@ describe("UpdateProduct Page", () => {
 
             const file = new File(["content"], "new-photo.png", { type: "image/png" });
             const photoInput = document.querySelector('input[type="file"][name="photo"]');
-            await userEvent.upload(photoInput, file);
+            userEvent.upload(photoInput, file);
 
-            await userEvent.click(screen.getByRole("button", { name: /update product/i }));
+            userEvent.click(screen.getByRole("button", { name: /update product/i }));
 
             await waitFor(() => {
                 expect(axios.put).toHaveBeenCalledTimes(1);
@@ -405,7 +405,7 @@ describe("UpdateProduct Page", () => {
             render(<UpdateProduct />);
             await waitForProductLoaded();
 
-            await userEvent.click(screen.getByRole("button", { name: /update product/i }));
+            userEvent.click(screen.getByRole("button", { name: /update product/i }));
 
             await waitFor(() => {
                 expect(toast.success).toHaveBeenCalledWith("Product Updated Successfully");
@@ -419,7 +419,7 @@ describe("UpdateProduct Page", () => {
             render(<UpdateProduct />);
             await waitForProductLoaded();
 
-            await userEvent.click(screen.getByRole("button", { name: /update product/i }));
+            userEvent.click(screen.getByRole("button", { name: /update product/i }));
 
             await waitFor(() => {
                 expect(toast.error).toHaveBeenCalledWith("Something went wrong");
@@ -434,10 +434,10 @@ describe("UpdateProduct Page", () => {
             await waitForProductLoaded();
 
             const nameInput = screen.getByPlaceholderText("Enter product name");
-            await userEvent.clear(nameInput);
-            await userEvent.type(nameInput, "Updated Name");
+            userEvent.clear(nameInput);
+            userEvent.type(nameInput, "Updated Name");
 
-            await userEvent.click(screen.getByRole("button", { name: /update product/i }));
+            userEvent.click(screen.getByRole("button", { name: /update product/i }));
 
             await waitFor(() => {
                 expect(axios.put).toHaveBeenCalledTimes(1);
@@ -456,7 +456,7 @@ describe("UpdateProduct Page", () => {
             render(<UpdateProduct />);
             await waitForProductLoaded();
 
-            await userEvent.click(screen.getByRole("button", { name: /delete product/i }));
+            userEvent.click(screen.getByRole("button", { name: /delete product/i }));
 
             expect(window.confirm).toHaveBeenCalledWith(
                 "Are you sure you want to delete this product?"
@@ -478,7 +478,7 @@ describe("UpdateProduct Page", () => {
             render(<UpdateProduct />);
             await waitForProductLoaded();
 
-            await userEvent.click(screen.getByRole("button", { name: /delete product/i }));
+            userEvent.click(screen.getByRole("button", { name: /delete product/i }));
 
             expect(window.confirm).toHaveBeenCalled();
             expect(axios.delete).not.toHaveBeenCalled();
@@ -491,7 +491,7 @@ describe("UpdateProduct Page", () => {
             render(<UpdateProduct />);
             await waitForProductLoaded();
 
-            await userEvent.click(screen.getByRole("button", { name: /delete product/i }));
+            userEvent.click(screen.getByRole("button", { name: /delete product/i }));
 
             await waitFor(() => {
                 expect(toast.error).toHaveBeenCalledWith("Something went wrong");
