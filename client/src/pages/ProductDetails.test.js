@@ -1,10 +1,11 @@
 // Jovin Ang Yusheng, A0273460H
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ProductDetails from "./ProductDetails";
 import axios from "axios";
 import toast from "react-hot-toast";
+
 
 // =============== Mocks ===============
 jest.mock("axios");
@@ -12,8 +13,13 @@ jest.mock("react-hot-toast");
 
 const mockNavigate = jest.fn();
 const mockParams = { slug: "test-product" };
-const mockSetCart = jest.fn();
+let mockSetCart;
 let mockCart = [];
+let mockAuth = { user: { _id: "guest", name: "Test User" } };
+
+jest.mock("../context/auth", () => ({
+  useAuth: () => [mockAuth],
+}));
 
 jest.mock("react-router-dom", () => ({
     ...jest.requireActual("react-router-dom"),
@@ -22,7 +28,17 @@ jest.mock("react-router-dom", () => ({
 }));
 
 jest.mock("../context/cart", () => ({
-    useCart: () => [mockCart, mockSetCart],
+  useCart: () => {
+    mockSetCart = jest.fn((update) => {
+      if (typeof update === "function") {
+        mockCart = update(mockCart);
+        return mockCart;
+      }
+      mockCart = update;
+      return mockCart;
+    });
+    return [mockCart, mockSetCart];
+  },
 }));
 
 jest.mock("./../components/Layout", () => ({ children }) => (
@@ -90,6 +106,14 @@ describe("ProductDetails Page", () => {
         jest.clearAllMocks();
         mockParams.slug = "test-product";
         mockCart = [];
+        mockSetCart = jest.fn((updater) => {
+            if (typeof updater === "function") {
+                mockCart = updater(mockCart);
+            } else {
+                mockCart = updater;
+            }
+            return mockCart;
+        });
         Storage.prototype.setItem = jest.fn();
     });
 
@@ -117,9 +141,9 @@ describe("ProductDetails Page", () => {
             render(<ProductDetails />);
             await waitForProductLoaded();
 
-            expect(
-                screen.getByRole("button", { name: /add to cart/i })
-            ).toBeInTheDocument();
+            const mainProductSection = screen.getByText("Product Details").closest(".product-details-info");
+            const addButton = within(mainProductSection).getByRole("button", { name: /add to cart/i });
+            expect(addButton).toBeInTheDocument();
         });
 
         test("renders similar products heading", async () => {
@@ -367,37 +391,49 @@ describe("ProductDetails Page", () => {
 
             await waitForProductLoaded();
 
-            userEvent.click(
-                screen.getByRole("button", { name: /add to cart/i })
-            );
+            const mainProductSection = screen.getByText("Product Details").closest(".product-details-info");
+            const addButton = within(mainProductSection).getByRole("button", { name: /add to cart/i });
 
-            expect(mockSetCart).toHaveBeenCalledWith([mockProduct]);
+            userEvent.click(addButton);
+
+            expect(mockSetCart).toHaveBeenCalledWith(expect.any(Function));
+            expect(mockCart).toEqual([mockProduct]);
             expect(localStorage.setItem).toHaveBeenCalledWith(
-                "cart",
+                "cart_guest",
                 JSON.stringify([mockProduct])
             );
             expect(toast.success).toHaveBeenCalledWith("Item Added to cart");
         });
 
         test("appends to existing cart items", async () => {
-            const existingItem = { _id: "existing", name: "Existing" };
-            mockCart = [existingItem];
+
+            mockCart = [{ _id: "existing", name: "Existing" }];
+
             setupAxiosMocks();
             render(<ProductDetails />);
 
             await waitForProductLoaded();
 
-            userEvent.click(
-                screen.getByRole("button", { name: /add to cart/i })
-            );
+            const mainProductSection = screen
+                .getByText("Product Details")
+                .closest(".product-details-info");
+            const addButton = within(mainProductSection).getByRole("button", {
+                name: /add to cart/i,
+            });
 
-            expect(mockSetCart).toHaveBeenCalledWith([
-                existingItem,
+            userEvent.click(addButton);
+
+            expect(mockSetCart).toHaveBeenCalledWith(expect.any(Function));
+            expect(mockCart).toEqual([
+                { _id: "existing", name: "Existing" },
                 mockProduct,
             ]);
             expect(localStorage.setItem).toHaveBeenCalledWith(
-                "cart",
-                JSON.stringify([existingItem, mockProduct])
+                "cart_guest",
+                JSON.stringify([
+                    { _id: "existing", name: "Existing" },
+                    mockProduct,
+                ])
             );
             expect(toast.success).toHaveBeenCalledWith("Item Added to cart");
         });
