@@ -1,7 +1,5 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
-import mongoose from "mongoose";
-import userModel from "../../../models/userModel";
 
 export const TEST_ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL!;
 export const TEST_USER_EMAIL = process.env.TEST_USER_EMAIL!;
@@ -70,10 +68,3 @@ export async function logout(page: Page, userName: string) {
   await page.waitForURL("/login", { timeout: 60000 });
 }
 
-export async function deleteUser(email: string) {
-  if (mongoose.connection.readyState === 0) {
-    await mongoose.connect(process.env.MONGO_URL || "mongodb://127.0.0.1:27017/ecom_e2e");
-  }
-
-  await userModel.deleteOne({ email });
-}

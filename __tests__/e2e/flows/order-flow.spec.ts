@@ -1,10 +1,12 @@
 // Song Jia Hui A0259494L
 import { test, expect } from "@playwright/test";
-import { registerAndLogin, logout, login, deleteUser } from "../helpers/auth";
+import { registerAndLogin, logout, login } from "../helpers/auth";
 import {
   TEST_ADMIN_EMAIL,
   TEST_PASSWORD,
   TEST_ADMIN_NAME,
+  TEST_USER_EMAIL,
+  TEST_USER_NAME
 } from "../helpers/auth";
 
 const mockOrders = [
@@ -33,25 +35,13 @@ const mockOrders = [
 
 test.describe("Order Flow for Users", () => {
   test.describe("Order Flow for authenticated users", () => {
-    const user = {
-      name: "alice",
-      email: "",
-      password: "alicetest123",
-      phone: "12345678",
-      address: "singapore",
-      dob: "2000-01-01",
-      answer: "Singapore",
-    };
 
     test.beforeEach(async ({ page }) => {
-      // testing in isolation by creating a new account every test
-      user.email = `tester_${Math.random()}@example.com`;
-      await registerAndLogin(page, user);
+      await login(page, TEST_USER_EMAIL, TEST_PASSWORD);
     });
 
     test.afterEach(async ({ page }) => {
-      await logout(page, user.name);
-      await deleteUser(user.email);
+      await logout(page, TEST_USER_NAME);
     });
 
     test("should render orders page with an empty order", async ({ page }) => {
@@ -76,9 +66,6 @@ test.describe("Order Flow for Users", () => {
     });
 
     test("user can view order details", async ({ page }) => {
-      //   page.on("request", (r) => console.log("REQ:", r.url()));
-      //   page.on("requestfailed", (r) => console.log("FAILED:", r.url()));
-      //   page.on("response", (r) => console.log("RES:", r.url(), r.status()));
 
       // Arrange
 
