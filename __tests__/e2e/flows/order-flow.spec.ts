@@ -6,7 +6,7 @@ import {
   TEST_PASSWORD,
   TEST_ADMIN_NAME,
   TEST_USER_EMAIL,
-  TEST_USER_NAME
+  TEST_USER_NAME,
 } from "../helpers/auth";
 
 const mockOrders = [
@@ -35,7 +35,6 @@ const mockOrders = [
 
 test.describe("Order Flow for Users", () => {
   test.describe("Order Flow for authenticated users", () => {
-
     test.beforeEach(async ({ page }) => {
       await login(page, TEST_USER_EMAIL, TEST_PASSWORD);
     });
@@ -66,9 +65,7 @@ test.describe("Order Flow for Users", () => {
     });
 
     test("user can view order details", async ({ page }) => {
-
       // Arrange
-
       await page.route("**/api/v1/auth/orders", (route) => {
         route.fulfill({
           status: 200,
