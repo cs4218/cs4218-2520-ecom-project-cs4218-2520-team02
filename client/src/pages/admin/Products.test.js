@@ -60,6 +60,9 @@ describe("Products Page", () => {
         test("renders layout and admin menu", async () => {
             setupAxiosMocks();
             render(<Products />);
+            await waitFor(() => {
+                expect(screen.getByText("Test Product")).toBeInTheDocument();
+            });
 
             expect(screen.getByTestId("layout")).toBeInTheDocument();
             expect(screen.getByTestId("admin-menu")).toBeInTheDocument();
@@ -68,6 +71,9 @@ describe("Products Page", () => {
         test("renders heading", async () => {
             setupAxiosMocks();
             render(<Products />);
+            await waitFor(() => {
+                expect(screen.getByText("Test Product")).toBeInTheDocument();
+            });
 
             expect(
                 screen.getByRole("heading", { name: /all products list/i })
