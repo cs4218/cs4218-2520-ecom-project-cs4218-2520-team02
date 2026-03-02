@@ -1,46 +1,31 @@
 // Censon Lee Lemuel John Alejo, A0273436B
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 
-import { TEST_ADMIN_EMAIL, TEST_PASSWORD, TEST_ADMIN_NAME} from "../helpers/auth";
-import { loginAndGoto, logout } from "../helpers/auth";
-
-// =============== Helpers ===============
-
-function uniqueName(prefix: string): string {
-  return `${prefix}-${Date.now()}`;
-}
-
-async function gotoCreateCategory(page: Page): Promise<void> {
-  await loginAndGoto(page, "/dashboard/admin/create-category", TEST_ADMIN_EMAIL, TEST_PASSWORD);
-  await expect(page.getByText("Manage Category")).toBeVisible();
-}
-
-async function createCategory(page: Page, name: string): Promise<void> {
-  await page.getByPlaceholder("Enter new category").fill(name);
-  await page.getByText("Submit", { exact: true }).click();
-  await expect(page.getByText(`${name} is created`, { exact: true })).toBeVisible();
-}
+import { TEST_ADMIN_NAME} from "../helpers/auth";
+import { logout } from "../helpers/auth";
+import { uniqueName, gotoCreateCategory, createCategory } from "../helpers/category";
 
 // =============== Tests ===============
 
 test.describe("Admin Category CRUD", () => {
+  test.beforeEach(async ({ page }) => {
+    await gotoCreateCategory(page);
+  });
+
+  test.afterEach(async ({ page }) => {
+    await logout(page, TEST_ADMIN_NAME);
+  });
 
   test("create category", async ({ page }) => {
-    await gotoCreateCategory(page);
-
     const name = uniqueName("Create");
     await createCategory(page, name);
 
     const row = page.locator("tr", { hasText: name });
     await row.getByText("Delete", { exact: true }).click();
     await expect(page.getByText("Category is deleted", { exact: true })).toBeVisible();
-
-    await logout(page, TEST_ADMIN_NAME);
   });
 
   test("update category", async ({ page }) => {
-    await gotoCreateCategory(page);
-
     const originalName = uniqueName("Original");
     await createCategory(page, originalName);
 
@@ -63,13 +48,9 @@ test.describe("Admin Category CRUD", () => {
     const updatedRow = page.locator("tr", { hasText: updatedName });
     await updatedRow.getByText("Delete", { exact: true }).click();
     await expect(page.getByText("Category is deleted", { exact: true })).toBeVisible();
-
-    await logout(page, TEST_ADMIN_NAME);
   });
 
   test("delete category", async ({ page }) => {
-    await gotoCreateCategory(page);
-
     const name = uniqueName("Delete");
     await createCategory(page, name);
 
@@ -77,8 +58,6 @@ test.describe("Admin Category CRUD", () => {
     await row.getByText("Delete", { exact: true }).click();
     await expect(page.getByText("Category is deleted", { exact: true })).toBeVisible();
     await expect(page.getByText(name, { exact: true })).toHaveCount(0);
-
-    await logout(page, TEST_ADMIN_NAME);
   });
 
 });
