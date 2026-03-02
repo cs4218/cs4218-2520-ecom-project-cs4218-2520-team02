@@ -9,6 +9,37 @@ export const TEST_PASSWORD = process.env.TEST_PASSWORD!;
 export const TEST_ADMIN_NAME = "E2E Admin";
 export const TEST_USER_NAME = "E2E User";
 
+type User = {
+  name: string;
+  email: string;
+  password: string;
+  phone: string;
+  address: string;
+  dob: string;
+  answer: string;
+};
+
+export async function registerAndLogin(page: Page, user: User) {
+  await page.goto("/register");
+
+  await page.getByPlaceholder('Enter Your Name').fill(user.name);
+  await page.getByPlaceholder("Enter Your Email").fill(user.email);
+  await page.getByPlaceholder("Enter Your Password").fill(user.password);
+  await page.getByPlaceholder("Enter Your Phone").fill(user.phone);
+  await page.getByPlaceholder("Enter Your Address").fill(user.address);
+  await page.getByPlaceholder("Enter Your DOB").fill(user.dob);
+  await page.getByPlaceholder("What is Your Favorite Sport").fill(user.answer);
+
+  await page.locator('button:has-text("REGISTER")').click();
+  await page.waitForURL("/login");
+
+  await page.getByPlaceholder('Enter Your Email').fill(user.email);
+  await page.getByPlaceholder('Enter Your Password').fill(user.password);
+  await page.locator('button:has-text("LOGIN")').click();
+
+  await page.waitForURL("/");
+}
+
 export async function login(page: Page, email: string, password: string) {
   await page.goto("/login");
 
