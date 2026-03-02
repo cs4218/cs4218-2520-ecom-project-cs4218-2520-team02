@@ -1,6 +1,6 @@
 // Jovin Ang Yusheng, A0273460H
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import CreateProduct from "./CreateProduct";
 import axios from "axios";
@@ -73,17 +73,25 @@ describe("CreateProduct Page", () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        jest.spyOn(console, "log").mockImplementation(() => {});
         global.URL.createObjectURL.mockClear?.();
         global.URL.createObjectURL.mockImplementation(() => "blob:mock");
     });
 
+    afterEach(() => {
+        console.log.mockRestore();
+    });
+
     describe("render", () => {
-        test("renders layout and admin menu", () => {
+        test("renders layout and admin menu", async () => {
             axios.get.mockResolvedValueOnce({
                 data: { success: true, categories: [] },
             });
 
             render(<CreateProduct />);
+            await waitFor(() => {
+                expect(toast.error).toHaveBeenCalled();
+            });
 
             expect(screen.getByTestId("layout")).toBeInTheDocument();
             expect(screen.getByTestId("admin-menu")).toBeInTheDocument();
@@ -98,15 +106,9 @@ describe("CreateProduct Page", () => {
             });
 
             render(<CreateProduct />);
-
-            // axios.get called
-            await waitFor(() => {
-                expect(axios.get).toHaveBeenCalledWith("/api/v1/category/get-category");
-            });
-
             await screen.findByRole("option", { name: mockCategories[0].name });
 
-            // options rendered
+            expect(axios.get).toHaveBeenCalledWith("/api/v1/category/get-category");
             expect(screen.getByRole("option", { name: mockCategories[0].name })).toBeInTheDocument();
             expect(screen.getByRole("option", { name: mockCategories[1].name })).toBeInTheDocument();
             expect(screen.getByTestId("layout")).toBeInTheDocument();
@@ -122,25 +124,27 @@ describe("CreateProduct Page", () => {
             });
 
             render(<CreateProduct />);
-
             await waitFor(() => {
-                expect(toast.error).toHaveBeenCalledWith(
-                    "There are no categories. Please create a category first"
-                );
+                expect(toast.error).toHaveBeenCalled();
             });
-        })
+
+            expect(toast.error).toHaveBeenCalledWith(
+                "There are no categories. Please create a category first"
+            );
+        });
 
         test("shows toast error if category fetch fails", async () => {
             axios.get.mockRejectedValueOnce(new Error("Network Error"));
 
             render(<CreateProduct />);
-
             await waitFor(() => {
-                expect(toast.error).toHaveBeenCalledWith(
-                    "Something went wrong in getting category"
-                );
+                expect(toast.error).toHaveBeenCalled();
             });
-        })
+
+            expect(toast.error).toHaveBeenCalledWith(
+                "Something went wrong in getting category"
+            );
+        });
     })
 
     describe("create product", () => {
@@ -150,14 +154,13 @@ describe("CreateProduct Page", () => {
             });
 
             render(<CreateProduct />);
-
-            // Wait for categories loaded
             await screen.findByRole("option", { name: mockCategories[0].name });
 
-            // Click without selecting category
-            userEvent.click(
-                screen.getByRole("button", { name: /create product/i })
-            );
+            act(() => {
+                userEvent.click(
+                    screen.getByRole("button", { name: /create product/i })
+                );
+            });
 
             expect(toast.error).toHaveBeenCalledWith("Category is Required");
             expect(axios.post).not.toHaveBeenCalled();
@@ -169,18 +172,17 @@ describe("CreateProduct Page", () => {
             });
 
             render(<CreateProduct />);
-
             await screen.findByRole("option", { name: mockCategories[0].name });
 
-            // select category only
-            userEvent.selectOptions(
-                screen.getByLabelText("Select a category"),
-                mockNewProduct.category
-            );
-
-            userEvent.click(
-                screen.getByRole("button", { name: /create product/i })
-            );
+            act(() => {
+                userEvent.selectOptions(
+                    screen.getByLabelText("Select a category"),
+                    mockNewProduct.category
+                );
+                userEvent.click(
+                    screen.getByRole("button", { name: /create product/i })
+                );
+            });
 
             expect(toast.error).toHaveBeenCalledWith("Name is Required");
             expect(axios.post).not.toHaveBeenCalled();
@@ -192,21 +194,21 @@ describe("CreateProduct Page", () => {
             });
 
             render(<CreateProduct />);
-
             await screen.findByRole("option", { name: mockCategories[0].name });
 
-            userEvent.selectOptions(
-                screen.getByLabelText("Select a category"),
-                mockNewProduct.category
-            );
-            userEvent.type(
-                screen.getByPlaceholderText("Enter product name"),
-                mockNewProduct.name
-            );
-
-            userEvent.click(
-                screen.getByRole("button", { name: /create product/i })
-            );
+            act(() => {
+                userEvent.selectOptions(
+                    screen.getByLabelText("Select a category"),
+                    mockNewProduct.category
+                );
+                userEvent.type(
+                    screen.getByPlaceholderText("Enter product name"),
+                    mockNewProduct.name
+                );
+                userEvent.click(
+                    screen.getByRole("button", { name: /create product/i })
+                );
+            });
 
             expect(toast.error).toHaveBeenCalledWith("Description is Required");
             expect(axios.post).not.toHaveBeenCalled();
@@ -218,25 +220,25 @@ describe("CreateProduct Page", () => {
             });
 
             render(<CreateProduct />);
-
             await screen.findByRole("option", { name: mockCategories[0].name });
 
-            userEvent.selectOptions(
-                screen.getByLabelText("Select a category"),
-                mockNewProduct.category
-            );
-            userEvent.type(
-                screen.getByPlaceholderText("Enter product name"),
-                mockNewProduct.name
-            );
-            userEvent.type(
-                screen.getByPlaceholderText("Enter product description"),
-                mockNewProduct.description
-            );
-
-            userEvent.click(
-                screen.getByRole("button", { name: /create product/i })
-            );
+            act(() => {
+                userEvent.selectOptions(
+                    screen.getByLabelText("Select a category"),
+                    mockNewProduct.category
+                );
+                userEvent.type(
+                    screen.getByPlaceholderText("Enter product name"),
+                    mockNewProduct.name
+                );
+                userEvent.type(
+                    screen.getByPlaceholderText("Enter product description"),
+                    mockNewProduct.description
+                );
+                userEvent.click(
+                    screen.getByRole("button", { name: /create product/i })
+                );
+            });
 
             expect(toast.error).toHaveBeenCalledWith("Price is Required");
             expect(axios.post).not.toHaveBeenCalled();
@@ -248,67 +250,67 @@ describe("CreateProduct Page", () => {
             });
 
             render(<CreateProduct />);
-
             await screen.findByRole("option", { name: mockCategories[0].name });
 
-            userEvent.selectOptions(
-                screen.getByLabelText("Select a category"),
-                mockNewProduct.category
-            );
-            userEvent.type(
-                screen.getByPlaceholderText("Enter product name"),
-                mockNewProduct.name
-            );
-            userEvent.type(
-                screen.getByPlaceholderText("Enter product description"),
-                mockNewProduct.description
-            );
-            userEvent.type(
-                screen.getByPlaceholderText("Enter product price"),
-                mockNewProduct.price
-            );
-
-            userEvent.click(
-                screen.getByRole("button", { name: /create product/i })
-            );
+            act(() => {
+                userEvent.selectOptions(
+                    screen.getByLabelText("Select a category"),
+                    mockNewProduct.category
+                );
+                userEvent.type(
+                    screen.getByPlaceholderText("Enter product name"),
+                    mockNewProduct.name
+                );
+                userEvent.type(
+                    screen.getByPlaceholderText("Enter product description"),
+                    mockNewProduct.description
+                );
+                userEvent.type(
+                    screen.getByPlaceholderText("Enter product price"),
+                    mockNewProduct.price
+                );
+                userEvent.click(
+                    screen.getByRole("button", { name: /create product/i })
+                );
+            });
 
             expect(toast.error).toHaveBeenCalledWith("Quantity is Required");
             expect(axios.post).not.toHaveBeenCalled();
         });
 
-        test("validation: shows error if quantity missing", async () => {
+        test("validation: shows error if shipping missing", async () => {
             axios.get.mockResolvedValueOnce({
                 data: { success: true, categories: mockCategories },
             });
 
             render(<CreateProduct />);
-
             await screen.findByRole("option", { name: mockCategories[0].name });
 
-            userEvent.selectOptions(
-                screen.getByLabelText("Select a category"),
-                mockNewProduct.category
-            );
-            userEvent.type(
-                screen.getByPlaceholderText("Enter product name"),
-                mockNewProduct.name
-            );
-            userEvent.type(
-                screen.getByPlaceholderText("Enter product description"),
-                mockNewProduct.description
-            );
-            userEvent.type(
-                screen.getByPlaceholderText("Enter product price"),
-                mockNewProduct.price
-            );
-            userEvent.type(
-                screen.getByPlaceholderText("Enter product quantity"),
-                mockNewProduct.quantity
-            );
-
-            userEvent.click(
-                screen.getByRole("button", { name: /create product/i })
-            );
+            act(() => {
+                userEvent.selectOptions(
+                    screen.getByLabelText("Select a category"),
+                    mockNewProduct.category
+                );
+                userEvent.type(
+                    screen.getByPlaceholderText("Enter product name"),
+                    mockNewProduct.name
+                );
+                userEvent.type(
+                    screen.getByPlaceholderText("Enter product description"),
+                    mockNewProduct.description
+                );
+                userEvent.type(
+                    screen.getByPlaceholderText("Enter product price"),
+                    mockNewProduct.price
+                );
+                userEvent.type(
+                    screen.getByPlaceholderText("Enter product quantity"),
+                    mockNewProduct.quantity
+                );
+                userEvent.click(
+                    screen.getByRole("button", { name: /create product/i })
+                );
+            });
 
             expect(toast.error).toHaveBeenCalledWith("Shipping is Required");
             expect(axios.post).not.toHaveBeenCalled();
@@ -324,46 +326,44 @@ describe("CreateProduct Page", () => {
             });
 
             render(<CreateProduct />);
-
-            // Wait until categories are rendered
             await screen.findByRole("option", { name: mockCategories[0].name });
 
-            userEvent.type(
-                screen.getByPlaceholderText("Enter product name"),
-                mockNewProduct.name
-            );
-            userEvent.type(
-                screen.getByPlaceholderText("Enter product description"),
-                mockNewProduct.description
-            );
-            userEvent.type(
-                screen.getByPlaceholderText("Enter product price"),
-                mockNewProduct.price
-            );
-            userEvent.type(
-                screen.getByPlaceholderText("Enter product quantity"),
-                mockNewProduct.quantity
-            );
-
-            userEvent.selectOptions(
-                screen.getByLabelText("Select a category"),
-                mockNewProduct.category
-            );
-
-            userEvent.selectOptions(
-                screen.getByLabelText("Select shipping"),
-                mockNewProduct.shipping
-            );
-
-            // upload photo
             const photoInput = document.querySelector('input[type="file"][name="photo"]');
             expect(photoInput).toBeInTheDocument();
-            userEvent.upload(photoInput, mockNewProduct.photo);
 
-            // click create
-            userEvent.click(
-                screen.getByRole("button", { name: /create product/i })
-            );
+            act(() => {
+                userEvent.type(
+                    screen.getByPlaceholderText("Enter product name"),
+                    mockNewProduct.name
+                );
+                userEvent.type(
+                    screen.getByPlaceholderText("Enter product description"),
+                    mockNewProduct.description
+                );
+                userEvent.type(
+                    screen.getByPlaceholderText("Enter product price"),
+                    mockNewProduct.price
+                );
+                userEvent.type(
+                    screen.getByPlaceholderText("Enter product quantity"),
+                    mockNewProduct.quantity
+                );
+                userEvent.selectOptions(
+                    screen.getByLabelText("Select a category"),
+                    mockNewProduct.category
+                );
+                userEvent.selectOptions(
+                    screen.getByLabelText("Select shipping"),
+                    mockNewProduct.shipping
+                );
+                userEvent.upload(photoInput, mockNewProduct.photo);
+            });
+
+            act(() => {
+                userEvent.click(
+                    screen.getByRole("button", { name: /create product/i })
+                );
+            });
 
             await waitFor(() => {
                 expect(axios.post).toHaveBeenCalledTimes(1);
@@ -373,7 +373,6 @@ describe("CreateProduct Page", () => {
             expect(url).toBe("/api/v1/product/create-product");
             expect(formDataArg).toBeInstanceOf(FormData);
 
-            // verify FormData content
             expect(formDataArg.get("name")).toBe(mockNewProduct.name);
             expect(formDataArg.get("description")).toBe(mockNewProduct.description);
             expect(formDataArg.get("price")).toBe(mockNewProduct.price);
@@ -386,7 +385,7 @@ describe("CreateProduct Page", () => {
                 "Product Created Successfully"
             );
             expect(mockNavigate).toHaveBeenCalledWith("/dashboard/admin/products");
-        })
+        });
 
         test("shows toast error if product creation fails", async () => {
             axios.get.mockResolvedValueOnce({
@@ -396,46 +395,44 @@ describe("CreateProduct Page", () => {
             axios.post.mockRejectedValueOnce(new Error("Network Error"));
 
             render(<CreateProduct />);
-
-            // Wait until categories are rendered
             await screen.findByRole("option", { name: mockCategories[0].name });
 
-            userEvent.type(
-                screen.getByPlaceholderText("Enter product name"),
-                mockNewProduct.name
-            );
-            userEvent.type(
-                screen.getByPlaceholderText("Enter product description"),
-                mockNewProduct.description
-            );
-            userEvent.type(
-                screen.getByPlaceholderText("Enter product price"),
-                mockNewProduct.price
-            );
-            userEvent.type(
-                screen.getByPlaceholderText("Enter product quantity"),
-                mockNewProduct.quantity
-            );
-
-            userEvent.selectOptions(
-                screen.getByLabelText("Select a category"),
-                mockNewProduct.category
-            );
-
-            userEvent.selectOptions(
-                screen.getByLabelText("Select shipping"),
-                mockNewProduct.shipping
-            );
-
-            // upload photo
             const photoInput = document.querySelector('input[type="file"][name="photo"]');
             expect(photoInput).toBeInTheDocument();
-            userEvent.upload(photoInput, mockNewProduct.photo);
 
-            // click create
-            userEvent.click(
-                screen.getByRole("button", { name: /create product/i })
-            );
+            act(() => {
+                userEvent.type(
+                    screen.getByPlaceholderText("Enter product name"),
+                    mockNewProduct.name
+                );
+                userEvent.type(
+                    screen.getByPlaceholderText("Enter product description"),
+                    mockNewProduct.description
+                );
+                userEvent.type(
+                    screen.getByPlaceholderText("Enter product price"),
+                    mockNewProduct.price
+                );
+                userEvent.type(
+                    screen.getByPlaceholderText("Enter product quantity"),
+                    mockNewProduct.quantity
+                );
+                userEvent.selectOptions(
+                    screen.getByLabelText("Select a category"),
+                    mockNewProduct.category
+                );
+                userEvent.selectOptions(
+                    screen.getByLabelText("Select shipping"),
+                    mockNewProduct.shipping
+                );
+                userEvent.upload(photoInput, mockNewProduct.photo);
+            });
+
+            act(() => {
+                userEvent.click(
+                    screen.getByRole("button", { name: /create product/i })
+                );
+            });
 
             await waitFor(() => {
                 expect(axios.post).toHaveBeenCalledTimes(1);
@@ -445,7 +442,6 @@ describe("CreateProduct Page", () => {
             expect(url).toBe("/api/v1/product/create-product");
             expect(formDataArg).toBeInstanceOf(FormData);
 
-            // verify FormData content
             expect(formDataArg.get("name")).toBe(mockNewProduct.name);
             expect(formDataArg.get("description")).toBe(mockNewProduct.description);
             expect(formDataArg.get("price")).toBe(mockNewProduct.price);
@@ -457,6 +453,6 @@ describe("CreateProduct Page", () => {
             expect(toast.error).toHaveBeenCalledWith(
                 "something went wrong"
             );
-        })
+        });
     })
 })
