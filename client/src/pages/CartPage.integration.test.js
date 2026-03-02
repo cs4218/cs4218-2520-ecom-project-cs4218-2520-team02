@@ -105,6 +105,7 @@ describe("CartPage", () => {
   });
 
   afterEach(() => {
+    jest.clearAllMocks();
     localStorage.clear();
   });
 
