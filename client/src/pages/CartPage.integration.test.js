@@ -562,6 +562,7 @@ describe("CartPage", () => {
 
     renderCartPage(initialAuth, mockCartItems);
 
+    await screen.findByTestId("braintree-dropin"); 
     const payBtn = await screen.findByRole("button", { name: /make payment/i });
     fireEvent.click(payBtn);
 
