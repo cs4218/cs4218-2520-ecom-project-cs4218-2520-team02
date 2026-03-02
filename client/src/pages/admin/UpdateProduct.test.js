@@ -102,8 +102,13 @@ describe("UpdateProduct Page", () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        jest.spyOn(console, "log").mockImplementation(() => {});
         global.URL.createObjectURL.mockClear?.();
         global.URL.createObjectURL.mockImplementation(() => "blob:mock");
+    });
+
+    afterEach(() => {
+        console.log.mockRestore();
     });
 
     describe("rendering", () => {
@@ -230,19 +235,16 @@ describe("UpdateProduct Page", () => {
         });
 
         test("shows toast error when single product fetch fails", async () => {
-            const consoleSpy = jest.spyOn(console, "log").mockImplementation();
             setupAxiosMocks({ productError: true });
             render(<UpdateProduct />);
             await waitFor(() => {
                 expect(screen.getByRole("option", { name: "Electronics" })).toBeInTheDocument();
             });
 
-            expect(consoleSpy).toHaveBeenCalledWith(expect.any(Error));
+            expect(console.log).toHaveBeenCalledWith(expect.any(Error));
             expect(toast.error).toHaveBeenCalledWith(
                 "Something went wrong in fetching product"
             );
-
-            consoleSpy.mockRestore();
         });
     });
 
