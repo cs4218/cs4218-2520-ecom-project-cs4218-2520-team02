@@ -43,9 +43,14 @@ const CartPage = () => {
 
   // delete item
   const removeCartItem = (pid) => {
-      const updatedCart = cart.filter((item) => item?._id !== pid);
+    const index = cart.findIndex((item) => item?._id === pid);
+
+    if (index !== -1) {
+      const updatedCart = [...cart];
+      updatedCart.splice(index, 1);
       setCart(updatedCart);
       localStorage.setItem("cart", JSON.stringify(updatedCart));
+    }
   };
 
 
