@@ -1,6 +1,6 @@
 // Song Jia Hui A0259494L
 import { test, expect } from "@playwright/test";
-import { registerAndLogin, logout, login } from "../helpers/auth";
+import { registerAndLogin, logout, login, deleteUser } from "../helpers/auth";
 import {
   TEST_ADMIN_EMAIL,
   TEST_PASSWORD,
@@ -33,22 +33,25 @@ const mockOrders = [
 
 test.describe("Order Flow for Users", () => {
   test.describe("Order Flow for authenticated users", () => {
-    test.beforeEach(async ({ page }) => {
-      const user = {
-        name: "alice",
-        email: `tester_${Math.random()}@example.com`,
-        password: "alicetest123",
-        phone: "12345678",
-        address: "singapore",
-        dob: "2000-01-01",
-        answer: "Singapore",
-      };
+    const user = {
+      name: "alice",
+      email: "",
+      password: "alicetest123",
+      phone: "12345678",
+      address: "singapore",
+      dob: "2000-01-01",
+      answer: "Singapore",
+    };
 
+    test.beforeEach(async ({ page }) => {
+      // testing in isolation by creating a new account every test
+      user.email = `tester_${Math.random()}@example.com`;
       await registerAndLogin(page, user);
     });
 
     test.afterEach(async ({ page }) => {
-      await logout(page, "alice");
+      await logout(page, user.name);
+      await deleteUser(user.email);
     });
 
     test("should render orders page with an empty order", async ({ page }) => {
@@ -95,7 +98,9 @@ test.describe("Order Flow for Users", () => {
       await page.getByRole("link", { name: "Orders" }).click();
 
       // Assert
-      await expect(page.getByText("NUS T-shirt", { exact: true })).toBeVisible();
+      await expect(
+        page.getByText("NUS T-shirt", { exact: true }),
+      ).toBeVisible();
       await page.goto("/");
     });
   });
