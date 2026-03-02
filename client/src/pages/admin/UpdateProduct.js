@@ -35,6 +35,7 @@ const UpdateProduct = () => {
       setCategory(data.product.category._id);
     } catch (error) {
       console.log(error);
+      toast.error("Something went wrong in fetching product");
     }
   };
   useEffect(() => {
@@ -45,8 +46,10 @@ const UpdateProduct = () => {
   const getAllCategory = async () => {
     try {
       const { data } = await axios.get("/api/v1/category/get-category");
-      if (data?.success) {
+      if (data.categories.length > 0) {
         setCategories(data?.categories);
+      } else {
+        toast.error("There are no categories. Please create a category first");
       }
     } catch (error) {
       console.log(error);
@@ -69,19 +72,16 @@ const UpdateProduct = () => {
       productData.append("quantity", quantity);
       photo && productData.append("photo", photo);
       productData.append("category", category);
+      productData.append("shipping", shipping);
       const { data } = await axios.put(
         `/api/v1/product/update-product/${id}`,
         productData
       );
-      if (data?.success) {
-        toast.success("Product Updated Successfully");
-        navigate("/dashboard/admin/products");
-      } else {
-        toast.error(data?.message);
-      }
+      toast.success("Product Updated Successfully");
+      navigate("/dashboard/admin/products");
     } catch (error) {
       console.log(error);
-      toast.error("something went wrong");
+      toast.error("Something went wrong");
     }
   };
 
@@ -101,7 +101,7 @@ const UpdateProduct = () => {
     }
   };
   return (
-    <Layout title={"Dashboard - Create Product"}>
+    <Layout title={"Dashboard - Update Product"}>
       <div className="container-fluid m-3 p-3">
         <div className="row">
           <div className="col-md-3">
@@ -200,14 +200,14 @@ const UpdateProduct = () => {
               <div className="mb-3">
                 <Select
                   variant="borderless"
-                  placeholder="Select Shipping "
+                  placeholder="Select shipping"
                   size="large"
                   showSearch
                   className="form-select mb-3"
                   onChange={(value) => {
-                    setShipping(value);
+                    setShipping(value === "1");
                   }}
-                  value={shipping ? "yes" : "No"}
+                  value={shipping ? "1" : "0"}
                 >
                   <Option value="0">No</Option>
                   <Option value="1">Yes</Option>
