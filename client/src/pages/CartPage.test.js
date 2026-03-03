@@ -8,6 +8,7 @@ import { MemoryRouter, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/auth";
 import { useCart } from "../context/cart";
 import toast from "react-hot-toast";
+import { removeCartItemState } from "./CartPage";
 
 jest.mock("../components/Layout", () => ({
   __esModule: true,
@@ -160,24 +161,56 @@ describe("CartPage", () => {
     );
   });
 
-  it("[EP] removes the correct item from cart when Remove is clicked", () => {
-    // Arrange
-    const cartItems = [
-      { _id: "1", price: 10, description: "item1" },
-      { _id: "2", price: 5, description: "item2" },
-    ];
-    const setCartMock = jest.fn();
-    useCart.mockReturnValue([cartItems, setCartMock]);
+  describe("removeCartItemHelper", () => {
+    it("[EP] removes item when pid exists (TRUE branch)", () => {
+      // Arrange
+      const cart = [{ _id: "1" }, { _id: "2" }];
+      const setCartMock = jest.fn();
 
-    // Act
-    renderCartPage();
-    fireEvent.click(screen.getAllByText(/Remove/i)[0]);
+      // Act
+      const result = removeCartItemState(cart, "1", setCartMock);
 
-    // Assert
-    expect(setCartMock).toHaveBeenCalledWith([
-      { _id: "2", price: 5, description: "item2" },
-    ]);
+      // Assert
+      expect(result).toEqual([{ _id: "2" }]);
+      expect(setCartMock).toHaveBeenCalledWith([{ _id: "2" }]);
+      expect(localStorage.getItem("cart")).toBe(JSON.stringify([{ _id: "2" }]));
+    });
+
+    it("[EP] does nothing if pid does not exist (FALSE branch)", () => {
+      // Arrange
+      const cart = [
+        { _id: "1", name: "A" },
+        { _id: "2", name: "B" },
+      ];
+      const setCartMock = jest.fn();
+
+      // Act
+      const result = removeCartItemState(cart, "999", setCartMock);
+
+      // Assert
+      expect(result).toBe(cart);
+    });
+
+    it("[EP] removes the correct item from cart when Remove is clicked", () => {
+      // Arrange
+      const cartItems = [
+        { _id: "1", price: 10, description: "item1" },
+        { _id: "2", price: 5, description: "item2" },
+      ];
+      const setCartMock = jest.fn();
+      useCart.mockReturnValue([cartItems, setCartMock]); 
+
+      // Act
+      renderCartPage();
+      fireEvent.click(screen.getAllByText(/Remove/i)[0]);
+
+      // Assert
+      expect(setCartMock).toHaveBeenCalledWith([
+        { _id: "2", price: 5, description: "item2" },
+      ]);
+    });
   });
+  
 
   it("[EP] shows current address and Update Address button when user has an address", () => {
     // Arrange

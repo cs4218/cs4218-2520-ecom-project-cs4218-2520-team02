@@ -29,10 +29,12 @@ export default {
     "<rootDir>/client/src/context/*.test.js",
     "<rootDir>/client/src/**/__tests__/**/*.test.js"
   ],
+  testPathIgnorePatterns: ["<rootDir>/client/.*\\.integration\\.test\\.js$"],
 
   // jest code coverage
   collectCoverage: true,
-  collectCoverageFrom: ["client/src/pages/**", "client/src/components/**", "client/src/hooks/**", "client/src/context/**"],
+  collectCoverageFrom: ["client/src/pages/**", "client/src/components/**", "client/src/hooks/**", "client/src/context/**", 
+    "!client/**/*.test.js", "!client/**/*.integration.test.js",],
   coverageThreshold: {
     global: {
       lines: 0,
