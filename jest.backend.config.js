@@ -13,7 +13,7 @@ export default {
     "<rootDir>/middlewares/*.test.js",
     "<rootDir>/models/*.test.js",
   ],
-  testPathIgnorePatterns: ["<rootDir>/client/"],
+  testPathIgnorePatterns: ["<rootDir>/client/", "<rootDir>/.*\\.integration\\.test\\.js$"],
   
   // jest code coverage
   collectCoverage: true,
@@ -23,6 +23,8 @@ export default {
     "models/**",
     "routes/**",
     "helpers/**",
+    "!**/*.test.js",
+    "!**/*.integration.test.js",
   ],
   coverageThreshold: {
     global: {

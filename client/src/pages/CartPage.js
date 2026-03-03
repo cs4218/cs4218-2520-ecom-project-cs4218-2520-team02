@@ -9,6 +9,20 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import "../styles/CartStyles.css";
 
+export const removeCartItemState = (cart, pid, setCart) => {
+  const index = cart.findIndex((item) => item?._id === pid);
+
+  if (index !== -1) { // TRUE branch
+    const updatedCart = [...cart];
+    updatedCart.splice(index, 1);
+    setCart(updatedCart);
+    localStorage.setItem("cart", JSON.stringify(updatedCart));
+    return updatedCart;
+  }
+
+  return cart; // FALSE branch
+};
+
 const CartPage = () => {
   const [auth, setAuth] = useAuth();
   const [cart, setCart] = useCart();
@@ -43,16 +57,8 @@ const CartPage = () => {
 
   // delete item
   const removeCartItem = (pid) => {
-    const index = cart.findIndex((item) => item?._id === pid);
-
-    if (index !== -1) {
-      const updatedCart = [...cart];
-      updatedCart.splice(index, 1);
-      setCart(updatedCart);
-      localStorage.setItem("cart", JSON.stringify(updatedCart));
-    }
+    removeCartItemState(cart, pid, setCart);
   };
-
 
   // get payment gateway token
   const getToken = async () => {
