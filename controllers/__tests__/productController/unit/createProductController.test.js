@@ -25,7 +25,7 @@ const productModelMock = jest.fn(function (data) {
     return this;
 });
 
-await jest.unstable_mockModule("../../../models/productModel.js", () => ({
+await jest.unstable_mockModule("../../../../models/productModel.js", () => ({
     default: productModelMock,
 }));
 
@@ -42,10 +42,10 @@ await jest.unstable_mockModule("slugify", () => ({
 const mockRes = () => ({ status: jest.fn().mockReturnThis(), send: jest.fn() }); // Mock response
 
 // =============== Imports ===============
-const { default: productModel } = await import("../../../models/productModel.js");
+const { default: productModel } = await import("../../../../models/productModel.js");
 const fs = await import("fs");
 const { default: slugify } = await import("slugify");
-const { createProductController } = await import("../../productController.js");
+const { createProductController } = await import("../../../productController.js");
 
 // =============== Tests ===============
 describe("createProductController", () => {

@@ -31,7 +31,7 @@ const nonExistentId = "5f1d7a3c9e12b4c6d8f0a1b2";
 
 const testPhotoBytes = Buffer.from("file-bytes");
 
-await jest.unstable_mockModule("../../../models/productModel.js", () => ({
+await jest.unstable_mockModule("../../../../models/productModel.js", () => ({
     default: {
         findByIdAndUpdate: jest.fn(),
     },
@@ -50,10 +50,10 @@ await jest.unstable_mockModule("slugify", () => ({
 const mockRes = () => ({ status: jest.fn().mockReturnThis(), send: jest.fn() }); // Mock response
 
 // =============== Imports ===============
-const { default: productModel } = await import("../../../models/productModel.js");
+const { default: productModel } = await import("../../../../models/productModel.js");
 const fs = await import("fs");
 const { default: slugify } = await import("slugify");
-const { updateProductController } = await import("../../productController.js");
+const { updateProductController } = await import("../../../productController.js");
 
 // =============== Tests ===============
 describe("updateProductController", () => {

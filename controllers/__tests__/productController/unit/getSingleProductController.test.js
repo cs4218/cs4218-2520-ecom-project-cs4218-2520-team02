@@ -21,7 +21,7 @@ const testProduct = {
     "__v":0
 }
 
-await jest.unstable_mockModule("../../../models/productModel.js", () => ({
+await jest.unstable_mockModule("../../../../models/productModel.js", () => ({
     default: {
         findOne: jest.fn(),
     },
@@ -30,8 +30,8 @@ await jest.unstable_mockModule("../../../models/productModel.js", () => ({
 const mockRes = () => ({ status: jest.fn().mockReturnThis(), send: jest.fn() }); // Mock response
 
 // =============== Imports ===============
-const { default: productModel } = await import("../../../models/productModel.js");
-const { getSingleProductController } = await import("../../productController.js");
+const { default: productModel } = await import("../../../../models/productModel.js");
+const { getSingleProductController } = await import("../../../productController.js");
 
 const mockFindOneChain = (resolvedValue, shouldReject = false) => {
     const populateMock = shouldReject

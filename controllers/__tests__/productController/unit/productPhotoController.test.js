@@ -2,7 +2,7 @@
 import { jest } from "@jest/globals";
 
 // =============== Mocks ===============
-await jest.unstable_mockModule("../../../models/productModel.js", () => ({
+await jest.unstable_mockModule("../../../../models/productModel.js", () => ({
     default: {
         findById: jest.fn(),
     },
@@ -11,8 +11,8 @@ await jest.unstable_mockModule("../../../models/productModel.js", () => ({
 const mockRes = () => ({ set: jest.fn(), status: jest.fn().mockReturnThis(), send: jest.fn() }); // Mock response
 
 // =============== Imports ===============
-const { default: productModel } = await import("../../../models/productModel.js");
-const { productPhotoController } = await import("../../productController.js");
+const { default: productModel } = await import("../../../../models/productModel.js");
+const { productPhotoController } = await import("../../../productController.js");
 
 const mockFindByIdChain = (resolvedValue, shouldReject = false) => {
     const selectMock = shouldReject

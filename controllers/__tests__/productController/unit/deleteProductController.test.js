@@ -21,7 +21,7 @@ const testProduct = {
     "__v":0
 }
 
-await jest.unstable_mockModule("../../../models/productModel.js", () => ({
+await jest.unstable_mockModule("../../../../models/productModel.js", () => ({
     default: {
         findByIdAndDelete: jest.fn(),
     },
@@ -30,8 +30,8 @@ await jest.unstable_mockModule("../../../models/productModel.js", () => ({
 const mockRes = () => ({ status: jest.fn().mockReturnThis(), send: jest.fn() });
 
 // =============== Imports ===============
-const { default: productModel } = await import("../../../models/productModel.js");
-const { deleteProductController } = await import("../../productController.js");
+const { default: productModel } = await import("../../../../models/productModel.js");
+const { deleteProductController } = await import("../../../productController.js");
 
 const mockDeleteChain = (resolvedValue, shouldReject = false) => {
     const selectMock = shouldReject
