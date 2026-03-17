@@ -14,7 +14,7 @@ await jest.unstable_mockModule("braintree", () => ({
   },
 }));
 
-const { braintreeTokenController } = await import("../../../controllers/productController.js");
+const { braintreeTokenController } = await import("../../../productController.js");
 
 const createTestApp = () => {
   const app = express();

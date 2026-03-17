@@ -1,10 +1,10 @@
 // Censon Lee Lemuel John Alejo, A0273436B
 import { jest } from "@jest/globals";
-await import("../../__mocks__/jest.mocks.js");
+await import("../../../__mocks__/jest.mocks.js");
 
 const { default: productModel } =
-  await import("../../../models/productModel.js");
-const { productFiltersController } = await import("../../productController.js");
+  await import("../../../../models/productModel.js");
+const { productFiltersController } = await import("../../../productController.js");
 
 // =============== Mock Data ===============
 const MOCK_PRODUCTS = [
