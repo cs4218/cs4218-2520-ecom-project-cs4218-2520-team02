@@ -9,14 +9,15 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import "../styles/CartStyles.css";
 
-export const removeCartItemState = (cart, pid, setCart) => {
+export const removeCartItemState = (cart, pid, setCart, userId = "guest") => {
+  
   const index = cart.findIndex((item) => item?._id === pid);
 
   if (index !== -1) { // TRUE branch
     const updatedCart = [...cart];
     updatedCart.splice(index, 1);
     setCart(updatedCart);
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
+    localStorage.setItem(`cart_${userId}`, JSON.stringify(updatedCart));
     return updatedCart;
   }
 
@@ -30,6 +31,7 @@ const CartPage = () => {
   const [instance, setInstance] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const userId = auth?.user?._id || "guest";
 
   //total price
   const totalPrice = () => {
@@ -57,7 +59,7 @@ const CartPage = () => {
 
   // delete item
   const removeCartItem = (pid) => {
-    removeCartItemState(cart, pid, setCart);
+    removeCartItemState(cart, pid, setCart, userId);
   };
 
   // get payment gateway token
@@ -85,7 +87,7 @@ const CartPage = () => {
         cart,
       });
       setLoading(false);
-      localStorage.removeItem("cart");
+      localStorage.removeItem(`cart_${userId}`);
       setCart([]);
       navigate("/dashboard/user/orders");
       toast.success("Payment Completed Successfully ");
