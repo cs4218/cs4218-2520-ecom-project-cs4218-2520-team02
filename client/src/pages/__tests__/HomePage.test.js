@@ -585,7 +585,7 @@ describe("HomePage", () => {
 
       expect(window.localStorage.setItem).toHaveBeenCalledTimes(1);
       expect(window.localStorage.setItem).toHaveBeenCalledWith(
-        "cartuser-123",
+        "cart_user-123",
         JSON.stringify(nextCart),
       );
       expect(toast.success).toHaveBeenCalledWith("Item Added to cart");

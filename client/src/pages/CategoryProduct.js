@@ -71,7 +71,7 @@ const CategoryProduct = () => {
                         onClick={() => {
                           setCart([...cart, p]);
                           localStorage.setItem(
-                            `cart${userId}`,
+                            `cart_${userId}`,
                             JSON.stringify([...cart, p])
                           );
                           toast.success("Item Added to cart");

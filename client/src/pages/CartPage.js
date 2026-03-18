@@ -32,7 +32,6 @@ const CartPage = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const userId = auth?.user?._id || "guest";
-
   //total price
   const totalPrice = () => {
     const total = cart.reduce((sum, item, index) => {

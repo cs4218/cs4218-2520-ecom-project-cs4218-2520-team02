@@ -71,7 +71,7 @@ test.describe("Product Exploration Flow", () => {
     await expect(mainSection.locator(`text=Price :${relatedProductPrice}`)).toBeVisible();
   });
 
-  test('should be add product to cart from product details', async ({ page }) => {
+  test('should be able to add product to cart from product details', async ({ page }) => {
     
     // Arrange
     await page.goto("/");
