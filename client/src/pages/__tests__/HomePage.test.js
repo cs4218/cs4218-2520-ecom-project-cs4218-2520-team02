@@ -44,6 +44,11 @@ jest.mock("../../context/cart", () => ({
   useCart: () => [mockCartState, mockSetCart],
 }));
 
+const mockUseAuth = jest.fn();
+jest.mock("../../context/auth", () => ({
+  useAuth: () => mockUseAuth(),
+}));
+
 jest.mock("react-icons/ai", () => ({
   AiOutlineReload: () => <span>↻</span>,
 }));
@@ -151,6 +156,7 @@ describe("HomePage", () => {
     jest.resetAllMocks();
     restoreConsole = silenceConsole();
     mockCartState = [];
+    mockUseAuth.mockReturnValue([{ user: { _id: "user-123" }, token: "" }, jest.fn()]);
     setupAxios();
   });
 
@@ -561,6 +567,10 @@ describe("HomePage", () => {
       expect(nextCart).toHaveLength(2);
 
       expect(window.localStorage.setItem).toHaveBeenCalledTimes(1);
+      expect(window.localStorage.setItem).toHaveBeenCalledWith(
+        "cartuser-123",
+        JSON.stringify(nextCart),
+      );
       expect(toast.success).toHaveBeenCalledWith("Item Added to cart");
     });
   });
