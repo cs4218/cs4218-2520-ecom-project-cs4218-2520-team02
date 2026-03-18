@@ -60,6 +60,20 @@ const silenceConsole = () => {
   return () => spy.mockRestore();
 };
 
+const silenceActWarning = () => {
+  const spy = jest.spyOn(console, "error").mockImplementation((...args) => {
+    const joinedMessage = args
+      .map((value) => (typeof value === "string" ? value : String(value)))
+      .join(" ");
+
+    if (joinedMessage.includes("not wrapped in act")) {
+      return;
+    }
+  });
+
+  return () => spy.mockRestore();
+};
+
 // =============== Mock data ===============
 const mockCategories = [
   { _id: "1", name: "Electronics" },
@@ -160,16 +174,19 @@ const waitForPage1 = async () => {
 // =============== Tests ===============
 describe("HomePage integration", () => {
   let restoreConsole;
+  let restoreConsoleError;
 
   beforeEach(() => {
     jest.clearAllMocks();
     restoreConsole = silenceConsole();
+    restoreConsoleError = silenceActWarning();
     window.localStorage.getItem.mockReturnValue(null);
     setupAxios();
   });
 
   afterEach(() => {
     restoreConsole();
+    restoreConsoleError();
     cleanup();
   });
 

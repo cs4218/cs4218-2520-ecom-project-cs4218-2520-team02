@@ -9,6 +9,8 @@ import { AuthProvider } from "../../context/auth";
 import { CartProvider } from "../../context/cart";
 import { SearchProvider, useSearch } from "../../context/search";
 
+jest.mock("../../hooks/useCategory", () => jest.fn(() => []));
+
 // =============== Helpers ===============
 const SeedResults = ({ results }) => {
   const [values, setValues] = useSearch();

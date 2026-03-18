@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Checkbox, Radio } from "antd";
 import { Prices } from "../components/Prices";
 import { useCart } from "../context/cart";
+import { useAuth } from "../context/auth";
 import axios from "axios";
 import toast from "react-hot-toast";
 import Layout from "./../components/Layout";
@@ -19,7 +20,8 @@ const HomePage = () => {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
-
+  const [auth] = useAuth();
+  const userId = auth?.user?._id || "guest";
   // Get all categories
   const getAllCategory = async () => {
     try {
@@ -193,7 +195,7 @@ const HomePage = () => {
                       onClick={() => {
                         setCart([...cart, p]);
                         localStorage.setItem(
-                          "cart",
+                          `cart${userId}`,
                           JSON.stringify([...cart, p]),
                         );
                         toast.success("Item Added to cart");
