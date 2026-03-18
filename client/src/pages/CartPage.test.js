@@ -168,12 +168,12 @@ describe("CartPage", () => {
       const setCartMock = jest.fn();
 
       // Act
-      const result = removeCartItemState(cart, "1", setCartMock);
+      const result = removeCartItemState(cart, "1", setCartMock, "guest");
 
       // Assert
       expect(result).toEqual([{ _id: "2" }]);
       expect(setCartMock).toHaveBeenCalledWith([{ _id: "2" }]);
-      expect(localStorage.getItem("cart")).toBe(JSON.stringify([{ _id: "2" }]));
+      expect(localStorage.getItem("cart_guest")).toBe(JSON.stringify([{ _id: "2" }]));
     });
 
     it("[EP] does nothing if pid does not exist (FALSE branch)", () => {
@@ -185,7 +185,7 @@ describe("CartPage", () => {
       const setCartMock = jest.fn();
 
       // Act
-      const result = removeCartItemState(cart, "999", setCartMock);
+      const result = removeCartItemState(cart, "999", setCartMock, "guest");
 
       // Assert
       expect(result).toBe(cart);
@@ -389,7 +389,7 @@ describe("CartPage", () => {
       await waitFor(() => expect(mockSetCart).toHaveBeenCalledWith([]));
       await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/dashboard/user/orders"));
       await waitFor(() => expect(toast.success).toHaveBeenCalledWith("Payment Completed Successfully "));
-      expect(localStorage.getItem("cart")).toBeNull();
+      expect(localStorage.getItem("cart_guest")).toBeNull();
     });
 
     it("[EP] shows loading state on button while payment is being processed", async () => {
