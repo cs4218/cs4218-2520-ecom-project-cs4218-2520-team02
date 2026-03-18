@@ -38,17 +38,19 @@ const HomePage = () => {
 
   // Load more products
   const loadMore = async () => {
+    if (products.length >= total) { // No more products to load
+      return;
+    }
+
     try {
       setLoading(true);
       const nextPage = page + 1;
-      const { data } = await axios.get(
-        `/api/v1/product/product-list/${nextPage}`,
-      );
-      setLoading(false);
-      setProducts([...products, ...data?.products]);
+      const { data } = await axios.get(`/api/v1/product/product-list/${nextPage}`);
+      setProducts((prev) => [...prev, ...data.products]); // append safely
       setPage(nextPage);
     } catch (error) {
       console.log(error);
+    } finally {
       setLoading(false);
     }
   };
@@ -63,38 +65,29 @@ const HomePage = () => {
     }
     setChecked(all);
   };
-
+  
   useEffect(() => {
-    // Get all products and update count
-    setLoading(true);
+    const fetchInitialProducts = async () => {
+      if (!checked.length && !radio.length && page === 1) {
+        setLoading(true);
+        try {
+          const { data: productsData } = await axios.get(
+            `/api/v1/product/product-list/1`
+          );
+          setProducts(productsData.products);
 
-    const getAllProducts = async () => {
-      try {
-        const { data } = await axios.get(
-          `/api/v1/product/product-list/${page}`,
-        );
-        setProducts(data.products);
-      } catch (error) {
-        console.log(error);
+          const { data: totalData } = await axios.get("/api/v1/product/product-count");
+          setTotal(totalData?.total);
+        } catch (error) {
+          console.log(error);
+        } finally {
+          setLoading(false);
+        }
       }
     };
 
-    const getTotal = async () => {
-      try {
-        const { data } = await axios.get("/api/v1/product/product-count");
-        setTotal(data?.total);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
-    if (!checked.length && !radio.length) {
-      getAllProducts();
-      getTotal();
-    }
-
-    setLoading(false);
-  }, [checked.length, page, radio.length]);
+    fetchInitialProducts();
+  }, [checked.length, radio.length, page]);
 
   useEffect(() => {
     // Get filtered products
