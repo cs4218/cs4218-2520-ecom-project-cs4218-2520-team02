@@ -117,6 +117,20 @@ const silenceConsole = () => {
   return () => spy.mockRestore();
 };
 
+const silenceActWarning = () => {
+  const spy = jest.spyOn(console, "error").mockImplementation((...args) => {
+    const joinedMessage = args
+      .map((value) => (typeof value === "string" ? value : String(value)))
+      .join(" ");
+
+    if (joinedMessage.includes("not wrapped in act")) {
+      return;
+    }
+  });
+
+  return () => spy.mockRestore();
+};
+
 const setupAxios = ({
   total = 10,
   products = mockProducts,
@@ -151,10 +165,12 @@ const waitForProductsToRender = async () => {
 // =============== Tests ===============
 describe("HomePage", () => {
   let restoreConsole;
+  let restoreConsoleError;
 
   beforeEach(() => {
     jest.resetAllMocks();
     restoreConsole = silenceConsole();
+    restoreConsoleError = silenceActWarning();
     mockCartState = [];
     mockUseAuth.mockReturnValue([{ user: { _id: "user-123" }, token: "" }, jest.fn()]);
     setupAxios();
@@ -162,6 +178,7 @@ describe("HomePage", () => {
 
   afterEach(() => {
     restoreConsole();
+    restoreConsoleError();
     cleanup();
   });
 
