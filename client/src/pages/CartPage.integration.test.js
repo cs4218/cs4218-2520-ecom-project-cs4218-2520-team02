@@ -62,12 +62,14 @@ const LocationDisplay = () => {
 
 // ====== Render Routes =======
 const renderCartPage = (initialAuth = null, initialCart = []) => {
+  
   if (initialAuth) localStorage.setItem("auth", JSON.stringify(initialAuth));
   else localStorage.removeItem("auth");
 
+  const userId = initialAuth?.user?._id || "guest";
   if (initialCart.length)
-    localStorage.setItem("cart", JSON.stringify(initialCart));
-  else localStorage.removeItem("cart");
+    localStorage.setItem(`cart_${userId}`, JSON.stringify(initialCart));
+  else localStorage.removeItem(`cart_${userId}`);
 
   return render(
     <MemoryRouter initialEntries={["/cart"]}>
@@ -288,7 +290,7 @@ describe("CartPage", () => {
     expect(screen.getByText("Laptop")).toBeInTheDocument();
 
     // localStorage updated
-    const stored = JSON.parse(localStorage.getItem("cart"));
+    const stored = JSON.parse(localStorage.getItem(`cart_guest`));
     expect(stored).toHaveLength(1);
     expect(stored[0]._id).toBe("p2");
   });

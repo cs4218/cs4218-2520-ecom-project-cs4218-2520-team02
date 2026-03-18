@@ -4,6 +4,13 @@ import { render, screen, act, renderHook } from "@testing-library/react";
 import { CartProvider, useCart } from "./cart";
 import "@testing-library/jest-dom";
 
+jest.mock("../context/auth", () => ({
+  __esModule: true,
+  useAuth: jest.fn(),
+}));
+
+import { useAuth } from "../context/auth";
+
 const CartConsumer = () => {
   const [cart] = useCart();
   return <div data-testid="cart">{JSON.stringify(cart)}</div>;
@@ -21,6 +28,12 @@ describe("CartContext", () => {
   beforeEach(() => {
     localStorage.clear();
     jest.clearAllMocks();
+
+    useAuth.mockReturnValue([
+      { user: null }, // guest user
+      jest.fn(),
+    ]);
+
   });
 
   beforeAll(() => {
@@ -49,7 +62,7 @@ describe("CartContext", () => {
       { _id: "1", name: "Product A", price: 100 },
       { _id: "2", name: "Product B", price: 200 },
     ];
-    localStorage.setItem("cart", JSON.stringify(storedCart));
+    localStorage.setItem("cart_guest", JSON.stringify(storedCart));
 
     // Act
     renderWithCartProvider();
@@ -98,7 +111,7 @@ describe("CartContext", () => {
 
   it("[EP] renders without crashing when localStorage cart value is malformed JSON", () => {
     // Arrange
-    localStorage.setItem("cart", "not-valid-json");
+    localStorage.setItem("cart_guest", "not-valid-json");
 
     // Act & Assert 
     expect(() => renderWithCartProvider()).not.toThrow();
@@ -217,7 +230,7 @@ describe("CartContext", () => {
     it("removes last item from single-item cart", () => {
       // Arrange
       const mockCart = [{ _id: "1", name: "Product 1", price: 100 }];
-      localStorage.setItem("cart", JSON.stringify(mockCart));
+      localStorage.setItem("cart_guest", JSON.stringify(mockCart));
       const { result } = renderHook(() => useCart(), { wrapper: CartProvider });
 
       // Act
@@ -237,7 +250,7 @@ describe("CartContext", () => {
         { _id: "1", name: "Product 1", price: 100 },
         { _id: "2", name: "Product 2", price: 200 },
       ];
-      localStorage.setItem("cart", JSON.stringify(mockCart));
+      localStorage.setItem("cart_guest", JSON.stringify(mockCart));
       const { result } = renderHook(() => useCart(), { wrapper: CartProvider });
 
       // Act
@@ -376,7 +389,7 @@ describe("CartContext", () => {
       it(`handles ${desc}`, () => {
         // Arrange
         if (initialCart.length > 0) {
-          localStorage.setItem("cart", JSON.stringify(initialCart));
+          localStorage.setItem("cart_guest", JSON.stringify(initialCart));
         }
 
         const { result } = renderHook(() => useCart(), { wrapper: CartProvider });
