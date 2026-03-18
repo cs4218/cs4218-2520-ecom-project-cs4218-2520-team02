@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Layout from "../components/Layout";
 import { useParams, useNavigate } from "react-router-dom";
 import { useCart } from "../context/cart";
+import { useAuth } from "../context/auth";
 import toast from "react-hot-toast";
 import "../styles/CategoryProductStyles.css";
 import axios from "axios";
@@ -12,7 +13,9 @@ const CategoryProduct = () => {
   const [cart, setCart] = useCart();
   const [products, setProducts] = useState([]);
   const [category, setCategory] = useState([]);
-
+  const [auth] = useAuth();
+  const userId = auth?.user?._id || "guest";
+  
   useEffect(() => {
     if (params?.slug) getPrductsByCat();
   }, [params?.slug]);
@@ -68,7 +71,7 @@ const CategoryProduct = () => {
                         onClick={() => {
                           setCart([...cart, p]);
                           localStorage.setItem(
-                            "cart",
+                            `cart${userId}`,
                             JSON.stringify([...cart, p])
                           );
                           toast.success("Item Added to cart");
