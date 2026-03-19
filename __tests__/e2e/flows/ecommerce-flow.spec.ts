@@ -7,30 +7,12 @@ import {
   TEST_USER_NAME,
 } from "../helpers/auth";
 
+// Prefill cart
+// Note: uses non-existant products to reduce time taken for adding products
 const SEEDED_CART = [
   { _id: "1", name: "Product A", price: 10, description: "desc" },
   { _id: "2", name: "Product B", price: 20, description: "desc" },
 ];
-
-async function getStoredAuth(page: Page) {
-  return page.evaluate(() => JSON.parse(localStorage.getItem("auth") || "null"));
-}
-
-async function seedLoggedInCart(page: Page) {
-  const storedAuth = await getStoredAuth(page);
-  const userId = storedAuth?.user?._id;
-
-  expect(userId, "expected login() to persist auth.user._id in localStorage").toBeTruthy();
-
-  await page.evaluate(
-    ({ uid, cart }) => {
-      localStorage.setItem(`cart_${uid}`, JSON.stringify(cart));
-    },
-    { uid: userId, cart: SEEDED_CART },
-  );
-
-  return storedAuth;
-}
 
 test.describe("E-Commerce Flow", () => {
 
@@ -121,7 +103,7 @@ test.describe("E-Commerce Flow", () => {
   test('should be able remove products from cart', async ({ page }) => {
 
     // Arrange
-    // Prefill cart
+    // Prefill cart as guest
     await page.addInitScript(() => {
       localStorage.setItem("cart_guest", JSON.stringify([
         { _id: "1", name: "Product A", price: 10, description: "desc" },
@@ -211,9 +193,17 @@ test.describe("E-Commerce Flow", () => {
   test('should be able to check out when logged in as user', async ({ page }) => {
 
     // Arrange
-    // Pre-login
+    // Pre-login with cart
     await login(page, TEST_USER_EMAIL, TEST_PASSWORD);
-    const storedAuth = await seedLoggedInCart(page);
+    const storedAuth = await page.evaluate(() => JSON.parse(localStorage.getItem("auth") || "null"));
+    const userId = storedAuth?.user?._id;
+    await page.addInitScript((uid) => {
+      localStorage.setItem(`cart_${uid}`, JSON.stringify([
+        { _id: "1", name: "Product A", price: 10, description: "desc" },
+        { _id: "2", name: "Product B", price: 20, description: "desc" }
+      ]));
+    }, userId);
+
     const storedUserName = storedAuth?.user?.name || TEST_USER_NAME;
 
     // Act
@@ -236,13 +226,17 @@ test.describe("E-Commerce Flow", () => {
     // Arrange
     // Pre-login
     await login(page, TEST_USER_EMAIL, TEST_PASSWORD);
-    await seedLoggedInCart(page);
+    await page.goto("/");
+
+    const firstProductCard = page.locator('.card').first();
+    await firstProductCard.getByRole("button", { name: "ADD TO CART" }).click();
+
+    await page.goto("/cart");
 
     const tokenResponsePromise = page.waitForResponse(
       (resp) =>
         resp.url().includes("/api/v1/product/braintree/token") && resp.ok()
     );
-    await page.goto("/cart");
     
     // Ensure braintree works
     const tokenResponse = await tokenResponsePromise;
@@ -280,5 +274,53 @@ test.describe("E-Commerce Flow", () => {
 
   test('should provide an error toast if an invalid credit card number was provided', async ({ page }) => {
   
+    // Arrange
+    // Pre-login
+    await login(page, TEST_USER_EMAIL, TEST_PASSWORD);
+    await page.goto("/");
+
+    const firstProductCard = page.locator('.card').first();
+    await firstProductCard.getByRole("button", { name: "ADD TO CART" }).click();
+
+    await page.goto("/cart");
+    
+    const tokenResponsePromise = page.waitForResponse(
+      (resp) =>
+        resp.url().includes("/api/v1/product/braintree/token") && resp.ok()
+    );
+    
+    // Ensure braintree works
+    const tokenResponse = await tokenResponsePromise;
+    expect(tokenResponse.ok()).toBeTruthy();
+
+    await expect(
+      page.getByRole("button", { name: "Make Payment" })
+    ).toBeEnabled();
+
+    // Act
+    // 1. Click paying with card
+    await page.getByRole("button", { name: "Paying with Card" }).click();
+    await expect(page.getByText("Card Number")).toBeVisible();
+
+    // 2. Fill in credit card
+    const cardNumberFrame = page.frameLocator('iframe[name="braintree-hosted-field-number"]');
+    await cardNumberFrame.getByLabel("Credit Card Number").fill("1231231231231231"); // Braintree test invalid card number
+
+    // 3. Fill in credit card expiration
+    const expirationDateFrame = page.frameLocator('iframe[name="braintree-hosted-field-expirationDate"]');
+    await expirationDateFrame.getByLabel("Expiration Date").fill("0126");
+
+    // 4. Fill in credit card CVV
+    const cvvFrame = page.frameLocator('iframe[name="braintree-hosted-field-cvv"]');
+    await cvvFrame.getByLabel("CVV").fill("123");
+
+    // 5. Click the Make Payment button
+    const makePaymentButton = page.getByRole("button", { name: "Make Payment" });
+    await makePaymentButton.click();
+
+    // Assert
+    await expect(page.getByText("This card number is not valid.")).toBeVisible();
+    await expect(page.getByText("Please check your information and try again.")).toBeVisible();
+    await expect(page).toHaveURL("/cart");
   });
 });
