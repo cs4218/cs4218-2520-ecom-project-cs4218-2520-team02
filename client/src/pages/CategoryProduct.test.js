@@ -276,7 +276,7 @@ describe("CategoryProduct Page", () => {
 
             expect(mockSetCart).toHaveBeenCalledWith([mockProducts[0]]);
             expect(localStorage.setItem).toHaveBeenCalledWith(
-                "cartuser-123",
+                "cart_user-123",
                 JSON.stringify([mockProducts[0]])
             );
             expect(toast.success).toHaveBeenCalledWith("Item Added to cart");
@@ -300,7 +300,7 @@ describe("CategoryProduct Page", () => {
                 mockProducts[1],
             ]);
             expect(localStorage.setItem).toHaveBeenCalledWith(
-                "cartuser-123",
+                "cart_user-123",
                 JSON.stringify([existingItem, mockProducts[1]])
             );
             expect(toast.success).toHaveBeenCalledWith("Item Added to cart");
