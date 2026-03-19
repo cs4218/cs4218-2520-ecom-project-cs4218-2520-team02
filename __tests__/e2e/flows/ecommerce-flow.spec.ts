@@ -104,12 +104,12 @@ test.describe("E-Commerce Flow", () => {
 
     // Arrange
     // Prefill cart as guest
-    await page.addInitScript(() => {
-      localStorage.setItem("cart_guest", JSON.stringify([
-        { _id: "1", name: "Product A", price: 10, description: "desc" },
-        { _id: "2", name: "Product B", price: 20, description: "desc" }
-      ]));
-    });
+    await page.addInitScript(
+      ({cart}) => {
+        localStorage.setItem(`cart_guest`, JSON.stringify(cart));
+      },
+      {cart: SEEDED_CART }
+    );
 
     await page.goto("/cart");
 
@@ -163,12 +163,12 @@ test.describe("E-Commerce Flow", () => {
     
     // Arrange
     // Prefill cart
-    await page.addInitScript(() => {
-      localStorage.setItem("cart_guest", JSON.stringify([
-        { _id: "1", name: "Product A", price: 10, description: "desc" },
-        { _id: "2", name: "Product B", price: 20, description: "desc" }
-      ]));
-    });
+    await page.addInitScript(
+      ({cart}) => {
+        localStorage.setItem(`cart_guest`, JSON.stringify(cart));
+      },
+      {cart: SEEDED_CART }
+    );
 
     await page.goto("/cart");
 
@@ -197,12 +197,12 @@ test.describe("E-Commerce Flow", () => {
     await login(page, TEST_USER_EMAIL, TEST_PASSWORD);
     const storedAuth = await page.evaluate(() => JSON.parse(localStorage.getItem("auth") || "null"));
     const userId = storedAuth?.user?._id;
-    await page.addInitScript((uid) => {
-      localStorage.setItem(`cart_${uid}`, JSON.stringify([
-        { _id: "1", name: "Product A", price: 10, description: "desc" },
-        { _id: "2", name: "Product B", price: 20, description: "desc" }
-      ]));
-    }, userId);
+    await page.addInitScript(
+      ({ uid, cart }) => {
+        localStorage.setItem(`cart_${uid}`, JSON.stringify(cart));
+      },
+      { uid: userId, cart: SEEDED_CART }
+    );
 
     const storedUserName = storedAuth?.user?.name || TEST_USER_NAME;
 
