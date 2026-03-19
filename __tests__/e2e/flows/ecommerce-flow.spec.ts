@@ -10,6 +10,16 @@ import {
 
 test.describe("E-Commerce Flow", () => {
 
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/");
+
+    // Clear localStorage
+    await page.evaluate(() => {
+      localStorage.clear();
+    });
+  });
+  
+
   test("should load home page and display products successfully", async ({ page }) => {
 
     // Act
@@ -66,7 +76,6 @@ test.describe("E-Commerce Flow", () => {
 
     // Assert
     const cartItems = page.locator('.cart-page .row.card');
-    console.log(cartItems)
     await expect(cartItems).toHaveCount(3);
     
     const firstMatches = cartItems.filter({has: page.locator('p').filter({ hasText: firstProductName })});
