@@ -90,7 +90,6 @@ test.describe("E-Commerce Flow", () => {
 
     // Assert
     const cartItems = page.locator('.cart-page .row.card');
-    console.log(cartItems)
     await expect(cartItems).toHaveCount(3);
     
     const firstMatches = cartItems.filter({has: page.locator('p').filter({ hasText: firstProductName })});
@@ -238,18 +237,6 @@ test.describe("E-Commerce Flow", () => {
     // Pre-login
     await login(page, TEST_USER_EMAIL, TEST_PASSWORD);
     await seedLoggedInCart(page);
-    await page.route("**/api/v1/product/braintree/payment", async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({
-          success: true,
-          message: "Payment completed successfully.",
-          transaction: { success: true },
-          orderId: "e2e-order",
-        }),
-      });
-    });
 
     const tokenResponsePromise = page.waitForResponse(
       (resp) =>

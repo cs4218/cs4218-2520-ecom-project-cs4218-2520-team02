@@ -11,7 +11,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [auth, setAuth] = useAuth();
-  const [setCart] = useCart();
+  const [, setCart] = useCart();
   const [errors, setErrors] = useState({});
 
   const navigate = useNavigate();
