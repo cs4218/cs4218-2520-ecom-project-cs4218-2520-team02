@@ -55,13 +55,10 @@ test.describe("Product Exploration Flow", () => {
     const relatedProductName = (await relatedProductCard.locator('.card-name-price > .card-title').first().textContent())?.trim();
     const relatedProductPrice = (await relatedProductCard.locator('.card-price').textContent())?.trim();
     const relatedProductImageAlt = relatedProductName;
-    console.log(relatedProductImageAlt)
 
     // Act
     // 1. Click "More Details" on related product
     await relatedProductCard.locator('text=More Details').click();
-
-    const productName = (await page.locator('.card-title').first().textContent())?.trim();
 
     // Assert
     const mainSection = page.locator('.product-details-info');
