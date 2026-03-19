@@ -1,24 +1,38 @@
 // Yap Zhao Yi, A0277540B
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import {logout, login } from "../helpers/auth";
 import {
   TEST_PASSWORD,
   TEST_USER_EMAIL,
   TEST_USER_NAME,
-  TEST_USER_ID,
 } from "../helpers/auth";
 
+const SEEDED_CART = [
+  { _id: "1", name: "Product A", price: 10, description: "desc" },
+  { _id: "2", name: "Product B", price: 20, description: "desc" },
+];
+
+async function getStoredAuth(page: Page) {
+  return page.evaluate(() => JSON.parse(localStorage.getItem("auth") || "null"));
+}
+
+async function seedLoggedInCart(page: Page) {
+  const storedAuth = await getStoredAuth(page);
+  const userId = storedAuth?.user?._id;
+
+  expect(userId, "expected login() to persist auth.user._id in localStorage").toBeTruthy();
+
+  await page.evaluate(
+    ({ uid, cart }) => {
+      localStorage.setItem(`cart_${uid}`, JSON.stringify(cart));
+    },
+    { uid: userId, cart: SEEDED_CART },
+  );
+
+  return storedAuth;
+}
+
 test.describe("E-Commerce Flow", () => {
-
-  test.beforeEach(async ({ page }) => {
-    await page.goto("/");
-
-    // Clear localStorage
-    await page.evaluate(() => {
-      localStorage.clear();
-    });
-  });
-  
 
   test("should load home page and display products successfully", async ({ page }) => {
 
@@ -76,6 +90,7 @@ test.describe("E-Commerce Flow", () => {
 
     // Assert
     const cartItems = page.locator('.cart-page .row.card');
+    console.log(cartItems)
     await expect(cartItems).toHaveCount(3);
     
     const firstMatches = cartItems.filter({has: page.locator('p').filter({ hasText: firstProductName })});
@@ -199,14 +214,8 @@ test.describe("E-Commerce Flow", () => {
     // Arrange
     // Pre-login
     await login(page, TEST_USER_EMAIL, TEST_PASSWORD);
-    
-    // Prefill cart
-    await page.addInitScript((uid) => {
-      localStorage.setItem(`cart_${uid}`, JSON.stringify([
-        { _id: "1", name: "Product A", price: 10, description: "desc" },
-        { _id: "2", name: "Product B", price: 20, description: "desc" }
-      ]));
-    }, TEST_USER_ID);
+    const storedAuth = await seedLoggedInCart(page);
+    const storedUserName = storedAuth?.user?.name || TEST_USER_NAME;
 
     // Act
     // 1. Go to cart page
@@ -216,11 +225,11 @@ test.describe("E-Commerce Flow", () => {
     const cartItems = page.locator('.cart-page .row.card');
 
     await expect(cartItems).toHaveCount(2);
-    await expect(page.locator('.cart-page h1.text-center.bg-light').filter({ hasText: `Hello ${TEST_USER_NAME}` })).toBeVisible();
+    await expect(page.locator('.cart-page h1.text-center.bg-light').filter({ hasText: `Hello ${storedUserName}` })).toBeVisible();
     await expect(page.getByRole("button", { name: "Make Payment" })).toBeVisible();
 
     // Clean up
-    await logout(page, TEST_USER_NAME);
+    await logout(page, storedUserName);
   });
 
   test('should be able to complete a payment successfully', async ({ page }) => {
@@ -228,27 +237,33 @@ test.describe("E-Commerce Flow", () => {
     // Arrange
     // Pre-login
     await login(page, TEST_USER_EMAIL, TEST_PASSWORD);
-    
-    // Prefill cart
-    await page.addInitScript((uid) => {
-      localStorage.setItem(`cart_${uid}`, JSON.stringify([
-        { _id: "1", name: "Product A", price: 10, description: "desc" },
-        { _id: "2", name: "Product B", price: 20, description: "desc" }
-      ]));
-    }, TEST_USER_ID);
+    await seedLoggedInCart(page);
+    await page.route("**/api/v1/product/braintree/payment", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          success: true,
+          message: "Payment completed successfully.",
+          transaction: { success: true },
+          orderId: "e2e-order",
+        }),
+      });
+    });
 
-    await page.goto("/cart");
-    
-    // Ensure braintree works
-    const tokenResponse = await page.waitForResponse(
+    const tokenResponsePromise = page.waitForResponse(
       (resp) =>
         resp.url().includes("/api/v1/product/braintree/token") && resp.ok()
     );
+    await page.goto("/cart");
+    
+    // Ensure braintree works
+    const tokenResponse = await tokenResponsePromise;
     expect(tokenResponse.ok()).toBeTruthy();
 
     await expect(
       page.getByRole("button", { name: "Make Payment" })
-    ).toBeVisible();
+    ).toBeEnabled();
 
     // Act
     // 1. Click paying with card
