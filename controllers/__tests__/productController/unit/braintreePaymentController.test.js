@@ -1,6 +1,6 @@
 // Yap Zhao Yi, A0277540B
 import { jest } from "@jest/globals";
-await import("../../__mocks__/jest.mocks.js");
+await import("../../../__mocks__/jest.mocks.js");
 
 // Mock braintree
 let saleImplementation = null;
@@ -22,9 +22,9 @@ await jest.unstable_mockModule("braintree", () => ({
 
 // Imports
 const { braintreePaymentController } = await import(
-  "../../../controllers/productController.js"
+  "../../../productController.js"
 );
-const { default: orderModel } = await import("../../../models/orderModel.js");
+const { default: orderModel } = await import("../../../../models/orderModel.js");
 
 describe("Product Controller Unit Tests", () => {
   let req, res;
@@ -296,7 +296,7 @@ describe("Product Controller Unit Tests", () => {
 
     // Success case already covered in Cart Validation (BVA)
     describe("Transaction (EP)", () => {
-      it("should return 500 if transaction sale fails", async () => {
+      it("should return 500 if transaction sale throws an error", async () => {
         
         // Arrange
         req.body = { nonce: "nonce123", cart: [{ price: 10 }] };
@@ -322,7 +322,7 @@ describe("Product Controller Unit Tests", () => {
 
     // Success case already covered in Cart Validation (BVA)
     describe("Saving (EP)", () => {
-      it("should return 500 if saving the order fails", async () => {
+      it("should return 500 if saving the order throws an error", async () => {
         // Arrange
         req.body = { nonce: "nonce123", cart: [{ price: 10 }] };
 

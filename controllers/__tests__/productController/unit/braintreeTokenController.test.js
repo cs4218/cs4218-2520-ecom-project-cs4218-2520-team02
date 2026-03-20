@@ -1,6 +1,6 @@
 // Yap Zhao Yi, A0277540B
 import { jest } from "@jest/globals";
-await import("../../__mocks__/jest.mocks.js");
+await import("../../../__mocks__/jest.mocks.js");
 
 // Mock braintree
 const mockGenerate = jest.fn();
@@ -21,7 +21,7 @@ await jest.unstable_mockModule("braintree", () => ({
 // Imports
 const {
   braintreeTokenController,
-} = await import("../../../controllers/productController.js");
+} = await import("../../../productController.js");
 
 describe("Product Controller Unit Tests", () => {
   let req, res;

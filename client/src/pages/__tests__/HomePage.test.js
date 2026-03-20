@@ -44,6 +44,11 @@ jest.mock("../../context/cart", () => ({
   useCart: () => [mockCartState, mockSetCart],
 }));
 
+const mockUseAuth = jest.fn();
+jest.mock("../../context/auth", () => ({
+  useAuth: () => mockUseAuth(),
+}));
+
 jest.mock("react-icons/ai", () => ({
   AiOutlineReload: () => <span>↻</span>,
 }));
@@ -112,6 +117,20 @@ const silenceConsole = () => {
   return () => spy.mockRestore();
 };
 
+const silenceActWarning = () => {
+  const spy = jest.spyOn(console, "error").mockImplementation((...args) => {
+    const joinedMessage = args
+      .map((value) => (typeof value === "string" ? value : String(value)))
+      .join(" ");
+
+    if (joinedMessage.includes("not wrapped in act")) {
+      return;
+    }
+  });
+
+  return () => spy.mockRestore();
+};
+
 const setupAxios = ({
   total = 10,
   products = mockProducts,
@@ -146,16 +165,20 @@ const waitForProductsToRender = async () => {
 // =============== Tests ===============
 describe("HomePage", () => {
   let restoreConsole;
+  let restoreConsoleError;
 
   beforeEach(() => {
     jest.resetAllMocks();
     restoreConsole = silenceConsole();
+    restoreConsoleError = silenceActWarning();
     mockCartState = [];
+    mockUseAuth.mockReturnValue([{ user: { _id: "user-123" }, token: "" }, jest.fn()]);
     setupAxios();
   });
 
   afterEach(() => {
     restoreConsole();
+    restoreConsoleError();
     cleanup();
   });
 
@@ -561,6 +584,10 @@ describe("HomePage", () => {
       expect(nextCart).toHaveLength(2);
 
       expect(window.localStorage.setItem).toHaveBeenCalledTimes(1);
+      expect(window.localStorage.setItem).toHaveBeenCalledWith(
+        "cart_user-123",
+        JSON.stringify(nextCart),
+      );
       expect(toast.success).toHaveBeenCalledWith("Item Added to cart");
     });
   });

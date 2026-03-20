@@ -9,6 +9,8 @@ export const TEST_PASSWORD = process.env.TEST_PASSWORD!;
 export const TEST_ADMIN_NAME = "E2E Admin";
 export const TEST_USER_NAME = "E2E User";
 
+export const TEST_USER_ID = "69a3da283028829578d56758";
+
 type User = {
   name: string;
   email: string;

@@ -101,7 +101,7 @@ describe("useCategory Hook Unit Tests", () => {
   });
 
   describe("Request failure (EP)", () => {
-    it("should log error and retain initial empty array when request fails", async () => {
+    it("should log error and retain initial empty array when request throws an error", async () => {
       
       // Arrange
       axios.get.mockRejectedValueOnce(new Error("Request has failed."));

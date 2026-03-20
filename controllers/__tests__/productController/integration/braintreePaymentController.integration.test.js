@@ -6,9 +6,9 @@ import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import slugify from "slugify";
 
-import productModel from "../../../models/productModel.js";
-import categoryModel from "../../../models/categoryModel.js";
-import orderModel from "../../../models/orderModel.js";
+import productModel from "../../../../models/productModel.js";
+import categoryModel from "../../../../models/categoryModel.js";
+import orderModel from "../../../../models/orderModel.js";
 
 // Mocks
 const mockTransactionSale = jest.fn();
@@ -21,7 +21,7 @@ await jest.unstable_mockModule("braintree", () => ({
   },
 }));
 
-const { braintreePaymentController } = await import("../../../controllers/productController.js");
+const { braintreePaymentController } = await import("../../../productController.js");
 
 const mockAuthMiddleware = (req, res, next) => {
   req.user = { _id: new mongoose.Types.ObjectId().toString() };

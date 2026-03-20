@@ -26,6 +26,7 @@ export default {
     "helpers/**",
     "!**/*.test.js",
     "!**/*.integration.test.js",
+    "!controllers/__tests__/**/**/utils/**" // Ignore util files
   ],
   coverageThreshold: {
     global: {

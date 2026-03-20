@@ -14,6 +14,7 @@ const mockNavigate = jest.fn();
 const mockParams = { slug: "electronics" };
 const mockSetCart = jest.fn();
 let mockCart = [];
+const mockUseAuth = jest.fn();
 
 jest.mock("react-router-dom", () => ({
     ...jest.requireActual("react-router-dom"),
@@ -23,6 +24,10 @@ jest.mock("react-router-dom", () => ({
 
 jest.mock("../context/cart", () => ({
     useCart: () => [mockCart, mockSetCart],
+}));
+
+jest.mock("../context/auth", () => ({
+    useAuth: () => mockUseAuth(),
 }));
 
 jest.mock("../components/Layout", () => ({ children }) => (
@@ -75,6 +80,7 @@ describe("CategoryProduct Page", () => {
         jest.clearAllMocks();
         mockParams.slug = "electronics";
         mockCart = [];
+        mockUseAuth.mockReturnValue([{ user: { _id: "user-123" }, token: "" }, jest.fn()]);
         Storage.prototype.setItem = jest.fn();
     });
 
@@ -270,7 +276,7 @@ describe("CategoryProduct Page", () => {
 
             expect(mockSetCart).toHaveBeenCalledWith([mockProducts[0]]);
             expect(localStorage.setItem).toHaveBeenCalledWith(
-                "cart",
+                "cart_user-123",
                 JSON.stringify([mockProducts[0]])
             );
             expect(toast.success).toHaveBeenCalledWith("Item Added to cart");
@@ -294,7 +300,7 @@ describe("CategoryProduct Page", () => {
                 mockProducts[1],
             ]);
             expect(localStorage.setItem).toHaveBeenCalledWith(
-                "cart",
+                "cart_user-123",
                 JSON.stringify([existingItem, mockProducts[1]])
             );
             expect(toast.success).toHaveBeenCalledWith("Item Added to cart");

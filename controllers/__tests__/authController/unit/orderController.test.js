@@ -2,12 +2,12 @@
 import { describe, jest } from "@jest/globals";
 import path from "path";
 import { fileURLToPath } from "url";
-await import("../../__mocks__/jest.mocks.js");
+await import("../../../__mocks__/jest.mocks.js");
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const modelPath = path.resolve(__dirname, "../../../models/orderModel.js");
+const modelPath = path.resolve(__dirname, "../../../../models/orderModel.js");
 
 await jest.unstable_mockModule(modelPath, () => ({
   default: {
@@ -16,9 +16,9 @@ await jest.unstable_mockModule(modelPath, () => ({
   },
 }));
 
-const { default: orderModel } = (await import("../../../models/orderModel.js"));
+const { default: orderModel } = (await import("../../../../models/orderModel.js"));
 const { getOrdersController, getAllOrdersController, updateOrderStatusController } =
-  await import("../../authController.js");
+  await import("../../../authController.js");
 
 // =============== Helpers ===============
 const mockRes = () => ({ status: jest.fn().mockReturnThis(), send: jest.fn() });

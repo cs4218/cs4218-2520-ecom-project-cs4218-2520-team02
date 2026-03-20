@@ -41,7 +41,7 @@ const testProducts = [
     }
 ]
 
-await jest.unstable_mockModule("../../../models/productModel.js", () => ({
+await jest.unstable_mockModule("../../../../models/productModel.js", () => ({
     default: {
         find: jest.fn(),
     },
@@ -50,8 +50,8 @@ await jest.unstable_mockModule("../../../models/productModel.js", () => ({
 const mockRes = () => ({ status: jest.fn().mockReturnThis(), send: jest.fn() }); // Mock response
 
 // =============== Imports ===============
-const { default: productModel } = await import("../../../models/productModel.js");
-const { getProductController } = await import("../../productController.js");
+const { default: productModel } = await import("../../../../models/productModel.js");
+const { getProductController } = await import("../../../productController.js");
 
 const mockFindChain = (resolvedValue, shouldReject = false) => {
     const sortMock = shouldReject

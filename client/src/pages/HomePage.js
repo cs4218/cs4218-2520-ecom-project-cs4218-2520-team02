@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Checkbox, Radio } from "antd";
 import { Prices } from "../components/Prices";
 import { useCart } from "../context/cart";
+import { useAuth } from "../context/auth";
 import axios from "axios";
 import toast from "react-hot-toast";
 import Layout from "./../components/Layout";
@@ -19,7 +20,8 @@ const HomePage = () => {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
-
+  const [auth] = useAuth();
+  const userId = auth?.user?._id || "guest";
   // Get all categories
   const getAllCategory = async () => {
     try {
@@ -38,17 +40,19 @@ const HomePage = () => {
 
   // Load more products
   const loadMore = async () => {
+    if (products.length >= total) { // No more products to load
+      return;
+    }
+
     try {
       setLoading(true);
       const nextPage = page + 1;
-      const { data } = await axios.get(
-        `/api/v1/product/product-list/${nextPage}`,
-      );
-      setLoading(false);
-      setProducts([...products, ...data?.products]);
+      const { data } = await axios.get(`/api/v1/product/product-list/${nextPage}`);
+      setProducts((prev) => [...prev, ...data.products]); // append safely
       setPage(nextPage);
     } catch (error) {
       console.log(error);
+    } finally {
       setLoading(false);
     }
   };
@@ -63,38 +67,29 @@ const HomePage = () => {
     }
     setChecked(all);
   };
-
+  
   useEffect(() => {
-    // Get all products and update count
-    setLoading(true);
+    const fetchInitialProducts = async () => {
+      if (!checked.length && !radio.length && page === 1) {
+        setLoading(true);
+        try {
+          const { data: productsData } = await axios.get(
+            `/api/v1/product/product-list/1`
+          );
+          setProducts(productsData.products);
 
-    const getAllProducts = async () => {
-      try {
-        const { data } = await axios.get(
-          `/api/v1/product/product-list/${page}`,
-        );
-        setProducts(data.products);
-      } catch (error) {
-        console.log(error);
+          const { data: totalData } = await axios.get("/api/v1/product/product-count");
+          setTotal(totalData?.total);
+        } catch (error) {
+          console.log(error);
+        } finally {
+          setLoading(false);
+        }
       }
     };
 
-    const getTotal = async () => {
-      try {
-        const { data } = await axios.get("/api/v1/product/product-count");
-        setTotal(data?.total);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
-    if (!checked.length && !radio.length) {
-      getAllProducts();
-      getTotal();
-    }
-
-    setLoading(false);
-  }, [checked.length, page, radio.length]);
+    fetchInitialProducts();
+  }, [checked.length, radio.length, page]);
 
   useEffect(() => {
     // Get filtered products
@@ -200,7 +195,7 @@ const HomePage = () => {
                       onClick={() => {
                         setCart([...cart, p]);
                         localStorage.setItem(
-                          "cart",
+                          `cart_${userId}`,
                           JSON.stringify([...cart, p]),
                         );
                         toast.success("Item Added to cart");
