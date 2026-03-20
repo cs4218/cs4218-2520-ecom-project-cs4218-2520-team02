@@ -21,7 +21,7 @@ describe("Category Model Unit Tests", () => {
     // Not required to be tested: very long slug
     // Note: slug is optional
     describe("Slug validation (EP)", () => {
-      it("should fail if slug is missing (EP: missing slug)", async () => {
+      it("should accept if slug is missing (EP: missing slug)", async () => {
 
         // Arrange
         const categoryData = { ...defaultCategory};
@@ -36,7 +36,7 @@ describe("Category Model Unit Tests", () => {
         expect(found.slug).toBeUndefined();
       });
 
-      it("should fail if name is null (EP: null)", async () => {
+      it("should accept if name is null (EP: null)", async () => {
 
         // Arrange
         const categoryData = { ...defaultCategory, slug: null};
@@ -50,7 +50,7 @@ describe("Category Model Unit Tests", () => {
         expect(found.slug).toBe(null);
       });
 
-      it("should fail if slug is empty string (EP: \"\")", async () => {
+      it("should accept if slug is empty string (EP: \"\")", async () => {
         
         // Arrange
         const categoryData = { ...defaultCategory, slug: ""};
@@ -64,7 +64,7 @@ describe("Category Model Unit Tests", () => {
         expect(found.slug).toBe("");
       });
 
-      it("should accept name with 1 character (EP: 1 character)", async () => {
+      it("should accept slug with 1 character (EP: 1 character)", async () => {
 
         // Arrange
         const categoryData = { ...defaultCategory, name: "A", slug: "a" };
@@ -79,7 +79,7 @@ describe("Category Model Unit Tests", () => {
 
       });
 
-      it("should convert name to lowercase (EP: lowercase) ", async () => {
+      it("should convert slug to lowercase (EP: lowercase) ", async () => {
 
         // Arrange
         const categoryData = { ...defaultCategory, slug: "TEST"};
@@ -99,7 +99,7 @@ describe("Category Model Unit Tests", () => {
     // Special cases: name is missing, name is null
     // Not required to be tested: very long strings
     describe("Name validation (BVA)", () => {
-      it("should fail if name is missing (Boundary: missing required field)", async () => {
+      it("should throw a validation error if name is missing (Boundary: missing required field)", async () => {
 
         // Arrange
         const categoryData = { ...defaultCategory};
@@ -113,7 +113,7 @@ describe("Category Model Unit Tests", () => {
 
       });
 
-      it("should fail if name is null (Boundary: null)", async () => {
+      it("should throw a validation error if name is null (Boundary: null)", async () => {
 
         // Arrange
         const categoryData = { ...defaultCategory, name: null};
@@ -125,7 +125,7 @@ describe("Category Model Unit Tests", () => {
         await expect(category.validate()).rejects.toThrow(mongoose.Error.ValidationError);
       });
 
-      it("should fail if name is empty string (Below Boundary: \"\")", async () => {
+      it("should throw a validation error if name is empty string (Below Boundary: \"\")", async () => {
         
         // Arrange
         const categoryData = { ...defaultCategory, name: ""};

@@ -133,19 +133,44 @@ To begin unit testing with Jest in your project, follow these steps:
    Execute your tests using Jest to ensure that your components meet the expected behaviour.  
    You can run the tests by using the following command in the root of the directory:
 
-   - **Frontend tests**
+   - **Frontend unit tests**
 
      ```bash
      npm run test:frontend
      ```
 
-   - **Backend tests**
+   - **Frontend integration tests**
+
+     ```bash
+     npm run test:frontend-integration
+     ```
+
+   - **Backend unit tests**
 
      ```bash
      npm run test:backend
      ```
 
+   - **Backend integration tests**
+
+     ```bash
+     npm run test:backend-integration
+     ```
+   
+   - **All the unit tests**
+  
+      ```bash
+      npm run test:unit
+      ```
+   
+    - **All the integration tests**
+
+      ```bash
+      npm run test:unit
+      ```
+
    - **All the tests**
+  
      ```bash
      npm run test
      ```
@@ -191,11 +216,10 @@ To begin unit testing with Jest in your project, follow these steps:
 
 ### Yap Zhao Yi (A0277540B)
 **Backend Unit Tests**:
-- models/categoryModel.js
+- models/categoryModel.test.js
 - controllers/categoryController.test.js
-- controllers/productController.js
-   - braintreePaymentController
-   - braintreeTokenController
+- controllers/\_\_tests\_\_/productController/unit/braintreePaymentController.test.js
+- controllers/\_\_tests\_\_/productController/unit/braintreeTokenController.test.js
 
 **Frontend Unit Tests**:
 - client/src/components/Footer.test.js
@@ -209,6 +233,20 @@ To begin unit testing with Jest in your project, follow these steps:
 - client/src/pages/Pagenotfound.test.js
 - client/src/pages/Policy.test.js
 
+**Backend Integration Tests**:
+- controllers/categoryController.integration.test.js
+- controllers/\_\_tests\_\_/productController/integration/braintreePaymentController.integration.test.js
+- controllers/\_\_tests\_\_/productController/integration/braintreeTokenController.integration.test.js
+
+**Frontend Integration Tests**:
+- client/src/pages/Categories.integration.test.js
+- client/src/pages/ProductDetails.integration.test.js
+
+**E2E Tests**:
+- \_\_tests\_\_/e2e/ecommerce-flow.spec.ts
+- \_\_tests\_\_/e2e/home-browsing.spec.ts
+- \_\_tests\_\_/e2e/product-exploration-flow.spec.ts
+
 **Enhancements:**
 - Added validation for parameters being supplied into `categoryController.js`
 - Renamed `brainTreePaymentController()` to `braintreePaymentController()` to standardize with reference of braintree
@@ -217,11 +255,15 @@ To begin unit testing with Jest in your project, follow these steps:
 - Renamed `singleCategoryController()` and `categoryController()` to `getCategoryController()` and `getAllCategoriesController()` respectively. 
 - Fixed various minor spelling errors such as ‘errro’ instead of ‘error’, note that these spelling errors did not cause any logical errors in the execution of the code.
 - Use `.reduce()` instead of `.map()` to sum prices in cart for `braintreePaymentController()`
+- Added add to cart in `productDetails.js` for related items
 
 **Bugs Identified and Squashed:**
 - React `map()` in `header.js` does not have the required key for each `<li>` element
 - Transactions within `braintreePaymentController()` expects a 2 decimal point string rather than a raw float
-
+- Fixed fast double clicks when adding to cart resulting in incorrect carts being saved in `Homepage.js` and `ProductDetails.js`
+- Fixed different users using the same shared cart for all users by adding account-specific carts, with guest carts automatically transferred to the first logged-in user. Updated `Homepage.js`, `cart.js`, `CartPage.js`, `ProductDetails.js`, `Login.js` as well as affected unit and integration tests.
+- Fixed the "Load more" button being visible when there were no items remaining in `Homepage.js`. 
+- Fixed "Load more” button replacing previously loaded products with newly loaded ones instead of appending them in `Homepage.js`.
 
 ### Censon Lee Lemuel John Alejo (A0273436B)
 **Backend Unit Tests**:
