@@ -130,7 +130,7 @@ describe("ProductDetails Page Integration Test", () => {
       });
     });
 
-    it("should handle product fetch failure gracefully", async () => {
+    it("should handle product fetch errors gracefully", async () => {
       // Arrange
       axios.get.mockRejectedValueOnce(new Error("Network error"));
 
@@ -175,7 +175,7 @@ describe("ProductDetails Page Integration Test", () => {
       expect(screen.getByText("No Similar Products found")).toBeInTheDocument();
     });
 
-    it("should handle related product fetch failure gracefully", async () => {
+    it("should handle related product fetch errors gracefully", async () => {
       // Arrange
       axios.get.mockImplementation((url) => {
         if (url.includes("get-product/producta")) {
