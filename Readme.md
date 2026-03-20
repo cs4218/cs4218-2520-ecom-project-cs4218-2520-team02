@@ -168,7 +168,7 @@ To begin unit testing with Jest in your project, follow these steps:
       ```bash
       npm run test:unit
       ```
-      
+
    - **All the tests**
   
      ```bash
@@ -262,7 +262,7 @@ To begin unit testing with Jest in your project, follow these steps:
 - Transactions within `braintreePaymentController()` expects a 2 decimal point string rather than a raw float
 - Fixed fast double clicks when adding to cart resulting in incorrect carts being saved in `Homepage.js` and `ProductDetails.js`
 - Fixed different users using the same shared cart for all users by adding account-specific carts, with guest carts automatically transferred to the first logged-in user. Updated `Homepage.js`, `cart.js`, `CartPage.js`, `ProductDetails.js`, `Login.js` as well as affected unit and integration tests.
-- Fixed the "Load more" button being visible when there were no items remaining in `Homepage.js`, 
+- Fixed the "Load more" button being visible when there were no items remaining in `Homepage.js`. 
 - Fixed "Load more” button replacing previously loaded products with newly loaded ones instead of appending them in `Homepage.js`.
 
 ### Censon Lee Lemuel John Alejo (A0273436B)
