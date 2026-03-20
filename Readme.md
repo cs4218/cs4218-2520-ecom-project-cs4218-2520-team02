@@ -133,19 +133,44 @@ To begin unit testing with Jest in your project, follow these steps:
    Execute your tests using Jest to ensure that your components meet the expected behaviour.  
    You can run the tests by using the following command in the root of the directory:
 
-   - **Frontend tests**
+   - **Frontend unit tests**
 
      ```bash
      npm run test:frontend
      ```
 
-   - **Backend tests**
+   - **Frontend integration tests**
+
+     ```bash
+     npm run test:frontend-integration
+     ```
+
+   - **Backend unit tests**
 
      ```bash
      npm run test:backend
      ```
 
+   - **Backend integration tests**
+
+     ```bash
+     npm run test:backend-integration
+     ```
+   
+   - **All the unit tests**
+  
+      ```bash
+      npm run test:unit
+      ```
+   
+    - **All the integration tests**
+
+      ```bash
+      npm run test:unit
+      ```
+      
    - **All the tests**
+  
      ```bash
      npm run test
      ```
