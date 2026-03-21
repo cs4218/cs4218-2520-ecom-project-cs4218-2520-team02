@@ -227,7 +227,7 @@ describe("CartPage", () => {
     // Assert
     expect(await screen.findByText("Laptop")).toBeInTheDocument();
     expect(screen.getByText("A powerful laptop")).toBeInTheDocument();
-    expect(screen.getByText("Price : 1200")).toBeInTheDocument();
+    expect(screen.getByText("Price : 1,200")).toBeInTheDocument();
 
     expect(screen.getByText("NUS T-shirt")).toBeInTheDocument();
     expect(screen.getByText("Plain NUS T-shirt for sale")).toBeInTheDocument();
