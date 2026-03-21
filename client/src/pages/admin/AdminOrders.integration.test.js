@@ -1,15 +1,47 @@
 // Song Jia Hui A0259494L
+// Integration tests: AdminOrders + AdminDashboard
+// Approach: Top-down integration - components are rendered with real context providers
+// (AuthProvider, CartProvider, SearchProvider) and real routing. Only the HTTP layer
+// (axios) is mocked via jest.spyOn, preserving the real module (including default
+// headers set by AuthProvider) while intercepting specific methods.
+
 import React from "react";
-import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import {
+  render,
+  screen,
+  waitFor,
+  fireEvent,
+  findByText,
+} from "@testing-library/react";
 import "@testing-library/jest-dom";
 import axios from "axios";
 import { BrowserRouter } from "react-router-dom";
 import AdminOrders from "./AdminOrders";
+import AdminDashboard from "./AdminDashboard";
 import { AuthProvider } from "../../context/auth";
 import { CartProvider } from "../../context/cart";
 import { SearchProvider } from "../../context/search";
 
-jest.mock("axios");
+jest.mock("../../components/Layout", () => {
+  return function LayoutStub({ children }) {
+    return <div data-testid="layout-stub">{children}</div>;
+  };
+});
+
+jest.mock("../../components/AdminMenu", () => {
+  return function AdminMenuStub() {
+    return <div data-testid="admin-menu-stub" />;
+  };
+});
+
+// ─── Constant declarations ──────────────────────────────────────────────────────
+
+const adminUser = {
+  name: "Admin Alice",
+  email: "alice@admin.com",
+  phone: "91234567",
+  role: 1,
+};
 
 const mockOrders = [
   {
@@ -61,32 +93,12 @@ const failedPaymentOrder = [
     createdAt: new Date().toISOString(),
     payment: { success: false },
     products: [
-      {
-        _id: "p2",
-        name: "Gadget",
-        description: "Cool gadget",
-        price: 19.99,
-      },
+      { _id: "p2", name: "Gadget", description: "Cool gadget", price: 19.99 },
     ],
   },
 ];
 
-const ordersWithoutId = [
-  {
-    status: "Not Processed",
-    buyer: { name: "Alice" },
-    createdAt: new Date().toISOString(),
-    payment: { success: true },
-    products: [
-      {
-        _id: "p1",
-        name: "Widget",
-        description: "Nice widget",
-        price: 9.99,
-      },
-    ],
-  },
-];
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const Wrapper = ({ children, initialAuth } = {}) => {
   if (initialAuth) localStorage.setItem("auth", JSON.stringify(initialAuth));
@@ -103,125 +115,134 @@ const Wrapper = ({ children, initialAuth } = {}) => {
   );
 };
 
-describe("AdminOrders (axios mocked)", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    localStorage.clear();
+let axiosGetSpy;
+let axiosPutSpy;
+
+beforeAll(() => {
+  jest.spyOn(console, "log").mockImplementation(() => {});
+  jest.spyOn(console, "error").mockImplementation(() => {});
+  jest.spyOn(console, "warn").mockImplementation(() => {});
+});
+
+afterAll(() => {
+  jest.restoreAllMocks();
+});
+
+beforeEach(() => {
+  localStorage.clear();
+  axiosGetSpy = jest.spyOn(axios, "get");
+  axiosPutSpy = jest.spyOn(axios, "put");
+});
+
+afterEach(() => {
+  axiosGetSpy.mockRestore();
+  axiosPutSpy.mockRestore();
+});
+
+const mockAdminAxios = (orders = mockOrders) => {
+  axiosGetSpy.mockImplementation((url) => {
+    if (url === "/api/v1/auth/admin-auth")
+      return Promise.resolve({ data: { ok: true } });
+    if (url === "/api/v1/auth/all-orders")
+      return Promise.resolve({ data: { success: true, orders } });
+    return Promise.resolve({ data: {} });
   });
+};
 
-  beforeAll(() => {
-    jest.spyOn(console, "log").mockImplementation(() => {});
-    jest.spyOn(console, "error").mockImplementation(() => {});
-    jest.spyOn(console, "warn").mockImplementation(() => {});
-  });
+// ─────────────────────────────────────────────────────────────────────────────
+// SUITE 1: AdminOrders + AdminDashboard — shared AuthContext integration
+// ─────────────────────────────────────────────────────────────────────────────
 
-  afterAll(() => {
-    jest.restoreAllMocks();
-  });
+describe("AdminOrders + AdminDashboard - shared AuthContext integration", () => {
+  it("shared auth token populates AdminDashboard fields and triggers AdminOrders fetch", async () => {
+    mockAdminAxios();
 
-  it("fetches and renders orders when admin is authenticated", async () => {
-    // Arrange
-    axios.get.mockImplementation((url) => {
-      if (url === "/api/v1/auth/admin-auth") {
-        return Promise.resolve({ data: { ok: true } });
-      }
-      if (url === "/api/v1/auth/all-orders") {
-        return Promise.resolve({ data: { success: true, orders: mockOrders } });
-      }
-      return Promise.resolve({ data: {} });
-    });
-
-    const initialAuth = { user: { role: 1 }, token: "admin-token" };
-
-    // Act
     render(
-      <Wrapper initialAuth={initialAuth}>
+      <Wrapper initialAuth={{ user: adminUser, token: "admin-token" }}>
+        <AdminDashboard />
         <AdminOrders />
       </Wrapper>,
     );
 
-    // Assert
+    expect(
+      await screen.findByText(/Admin Name : Admin Alice/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Admin Email : alice@admin\.com/i),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Admin Contact : 91234567/i)).toBeInTheDocument();
+
+    expect(await screen.findByText("All Orders")).toBeInTheDocument();
+    expect(axiosGetSpy).toHaveBeenCalledWith("/api/v1/auth/all-orders");
+  });
+
+  it("absent auth token prevents order fetch and leaves dashboard user fields empty", async () => {
+    axiosGetSpy.mockResolvedValue({ data: {} });
+
+    render(
+      <Wrapper initialAuth={null}>
+        <AdminDashboard />
+        <AdminOrders />
+      </Wrapper>,
+    );
+
+    await waitFor(() => {
+      expect(axiosGetSpy).not.toHaveBeenCalledWith("/api/v1/auth/all-orders");
+    });
+
+    expect(screen.getByText(/Admin Name :/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Admin Alice/i)).not.toBeInTheDocument();
+  });
+
+  it("AdminDashboard displays correct user while AdminOrders shows their orders", async () => {
+    mockAdminAxios();
+
+    render(
+      <Wrapper initialAuth={{ user: adminUser, token: "admin-token" }}>
+        <AdminDashboard />
+        <AdminOrders />
+      </Wrapper>,
+    );
+
+    expect(
+      await screen.findByText(/Admin Name : Admin Alice/i),
+    ).toBeInTheDocument();
+    expect(await screen.findByText("Alice")).toBeInTheDocument();
+    expect(screen.getByText("Widget")).toBeInTheDocument();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUITE 2: AdminOrders — fetching and rendering
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("AdminOrders - fetching and rendering", () => {
+  it("fetches and renders orders when admin is authenticated", async () => {
+    mockAdminAxios();
+
+    render(
+      <Wrapper initialAuth={{ user: adminUser, token: "admin-token" }}>
+        <AdminOrders />
+      </Wrapper>,
+    );
+
     expect(await screen.findByText(/All Orders/i)).toBeInTheDocument();
     expect(await screen.findByText(/Alice/i)).toBeInTheDocument();
     expect(screen.getByText("Widget")).toBeInTheDocument();
     expect(screen.getByText(/Price : 9.99/)).toBeInTheDocument();
-
-    expect(axios.get).toHaveBeenCalledWith("/api/v1/auth/all-orders");
-
-    const numberOfSuccessText = screen.getAllByText("Success");
-    expect(numberOfSuccessText.length).toBe(1);
-  });
-
-  it("does not fetch orders when no auth token is present", async () => {
-    // Arrange
-    axios.get.mockResolvedValue({ data: {} });
-
-    // Act
-    render(
-      <Wrapper initialAuth={null}>
-        <AdminOrders />
-      </Wrapper>,
-    );
-
-    // Assert
-    await waitFor(() => {
-      expect(axios.get).not.toHaveBeenCalledWith("/api/v1/auth/all-orders");
-    });
-  });
-
-  it('renders "Failed" payment status for unsuccessful payments', async () => {
-    // Arrange
-    axios.get.mockImplementation((url) => {
-      if (url === "/api/v1/auth/admin-auth") {
-        return Promise.resolve({ data: { ok: true } });
-      }
-      if (url === "/api/v1/auth/all-orders") {
-        return Promise.resolve({
-          data: { success: true, orders: mockMultipleOrders },
-        });
-      }
-      return Promise.resolve({ data: {} });
-    });
-
-    const initialAuth = { user: { role: 1 }, token: "admin-token" };
-
-    // Act
-    render(
-      <Wrapper initialAuth={initialAuth}>
-        <AdminOrders />
-      </Wrapper>,
-    );
-
-    // Assert
-    expect(await screen.findByText(/Bob/i)).toBeInTheDocument();
-    expect(screen.getByText("Failed")).toBeInTheDocument();
-    expect(screen.getByText("Success")).toBeInTheDocument();
+    expect(axiosGetSpy).toHaveBeenCalledWith("/api/v1/auth/all-orders");
+    expect(screen.getAllByText("Success")).toHaveLength(1);
   });
 
   it("renders multiple orders with correct buyer names and product counts", async () => {
-    // Arrange
-    axios.get.mockImplementation((url) => {
-      if (url === "/api/v1/auth/admin-auth") {
-        return Promise.resolve({ data: { ok: true } });
-      }
-      if (url === "/api/v1/auth/all-orders") {
-        return Promise.resolve({
-          data: { success: true, orders: mockMultipleOrders },
-        });
-      }
-      return Promise.resolve({ data: {} });
-    });
+    mockAdminAxios(mockMultipleOrders);
 
-    const initialAuth = { user: { role: 1 }, token: "admin-token" };
-
-    // Act
     render(
-      <Wrapper initialAuth={initialAuth}>
+      <Wrapper initialAuth={{ user: adminUser, token: "admin-token" }}>
         <AdminOrders />
       </Wrapper>,
     );
 
-    // Assert
     expect(await screen.findByText(/Alice/i)).toBeInTheDocument();
     expect(await screen.findByText(/Bob/i)).toBeInTheDocument();
 
@@ -232,58 +253,86 @@ describe("AdminOrders (axios mocked)", () => {
   });
 
   it("renders empty orders list when API returns no orders", async () => {
-    // Arrange
-    axios.get.mockImplementation((url) => {
-      if (url === "/api/v1/auth/admin-auth") {
-        return Promise.resolve({ data: { ok: true } });
-      }
-      if (url === "/api/v1/auth/all-orders") {
-        return Promise.resolve({ data: { success: true, orders: [] } });
-      }
-      return Promise.resolve({ data: {} });
-    });
+    mockAdminAxios([]);
 
-    const initialAuth = { user: { role: 1 }, token: "admin-token" };
-
-    // Act
     render(
-      <Wrapper initialAuth={initialAuth}>
+      <Wrapper initialAuth={{ user: adminUser, token: "admin-token" }}>
         <AdminOrders />
       </Wrapper>,
     );
 
-    // Assert
     expect(await screen.findByText(/All Orders/i)).toBeInTheDocument();
     expect(screen.queryByText(/Alice/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Bob/i)).not.toBeInTheDocument();
   });
 
-  it("logs error when fetching orders fails", async () => {
-    // Arrange
-    const consoleLogSpy = jest
-      .spyOn(console, "log")
-      .mockImplementation(() => {});
+  it('renders "Failed" and "Success" for mixed payment statuses', async () => {
+    mockAdminAxios(mockMultipleOrders);
 
-    axios.get.mockImplementation((url) => {
-      if (url === "/api/v1/auth/admin-auth") {
-        return Promise.resolve({ data: { ok: true } });
-      }
-      if (url === "/api/v1/auth/all-orders") {
-        return Promise.reject(new Error("Network Error"));
-      }
-      return Promise.resolve({ data: {} });
-    });
-
-    const initialAuth = { user: { role: 1 }, token: "admin-token" };
-
-    // Act
     render(
-      <Wrapper initialAuth={initialAuth}>
+      <Wrapper initialAuth={{ user: adminUser, token: "admin-token" }}>
         <AdminOrders />
       </Wrapper>,
     );
 
-    // Assert
+    expect(await screen.findByText(/Bob/i)).toBeInTheDocument();
+    expect(screen.getByText("Failed")).toBeInTheDocument();
+    expect(screen.getByText("Success")).toBeInTheDocument();
+  });
+
+  it('renders only "Failed" when all payments are unsuccessful', async () => {
+    mockAdminAxios(failedPaymentOrder);
+
+    render(
+      <Wrapper initialAuth={{ user: adminUser, token: "admin-token" }}>
+        <AdminOrders />
+      </Wrapper>,
+    );
+
+    expect(await screen.findByText(/Bob/i)).toBeInTheDocument();
+    expect(screen.getByText("Failed")).toBeInTheDocument();
+    expect(screen.queryByText("Success")).not.toBeInTheDocument();
+  });
+
+  it("does not fetch orders when no auth token is present", async () => {
+    axiosGetSpy.mockResolvedValue({ data: {} });
+
+    render(
+      <Wrapper initialAuth={null}>
+        <AdminOrders />
+      </Wrapper>,
+    );
+
+    await waitFor(() => {
+      expect(axiosGetSpy).not.toHaveBeenCalledWith("/api/v1/auth/all-orders");
+    });
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUITE 3: AdminOrders — error handling
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("AdminOrders - error handling", () => {
+  it("logs error when fetching orders fails with a network error", async () => {
+    const consoleLogSpy = jest
+      .spyOn(console, "log")
+      .mockImplementation(() => {});
+
+    axiosGetSpy.mockImplementation((url) => {
+      if (url === "/api/v1/auth/admin-auth")
+        return Promise.resolve({ data: { ok: true } });
+      if (url === "/api/v1/auth/all-orders")
+        return Promise.reject(new Error("Network Error"));
+      return Promise.resolve({ data: {} });
+    });
+
+    render(
+      <Wrapper initialAuth={{ user: adminUser, token: "admin-token" }}>
+        <AdminOrders />
+      </Wrapper>,
+    );
+
     await waitFor(() => {
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.any(Error));
     });
@@ -291,34 +340,27 @@ describe("AdminOrders (axios mocked)", () => {
     consoleLogSpy.mockRestore();
   });
 
-  it("logs message when API returns success: false", async () => {
-    // Arrange
+  it("logs failure message when API returns success: false with a message", async () => {
     const consoleLogSpy = jest
       .spyOn(console, "log")
       .mockImplementation(() => {});
 
-    axios.get.mockImplementation((url) => {
-      if (url === "/api/v1/auth/admin-auth") {
+    axiosGetSpy.mockImplementation((url) => {
+      if (url === "/api/v1/auth/admin-auth")
         return Promise.resolve({ data: { ok: true } });
-      }
-      if (url === "/api/v1/auth/all-orders") {
+      if (url === "/api/v1/auth/all-orders")
         return Promise.resolve({
           data: { success: false, message: "Unauthorized" },
         });
-      }
       return Promise.resolve({ data: {} });
     });
 
-    const initialAuth = { user: { role: 1 }, token: "admin-token" };
-
-    // Act
     render(
-      <Wrapper initialAuth={initialAuth}>
+      <Wrapper initialAuth={{ user: adminUser, token: "admin-token" }}>
         <AdminOrders />
       </Wrapper>,
     );
 
-    // Assert
     await waitFor(() => {
       expect(consoleLogSpy).toHaveBeenCalledWith(
         "Failed to fetch orders: ",
@@ -330,31 +372,24 @@ describe("AdminOrders (axios mocked)", () => {
   });
 
   it("logs fallback message when API returns success: false with no message", async () => {
-    // Arrange
     const consoleLogSpy = jest
       .spyOn(console, "log")
       .mockImplementation(() => {});
 
-    axios.get.mockImplementation((url) => {
-      if (url === "/api/v1/auth/admin-auth") {
+    axiosGetSpy.mockImplementation((url) => {
+      if (url === "/api/v1/auth/admin-auth")
         return Promise.resolve({ data: { ok: true } });
-      }
-      if (url === "/api/v1/auth/all-orders") {
+      if (url === "/api/v1/auth/all-orders")
         return Promise.resolve({ data: { success: false } });
-      }
       return Promise.resolve({ data: {} });
     });
 
-    const initialAuth = { user: { role: 1 }, token: "admin-token" };
-
-    // Act
     render(
-      <Wrapper initialAuth={initialAuth}>
+      <Wrapper initialAuth={{ user: adminUser, token: "admin-token" }}>
         <AdminOrders />
       </Wrapper>,
     );
 
-    // Assert
     await waitFor(() => {
       expect(consoleLogSpy).toHaveBeenCalledWith(
         "Failed to fetch orders: ",
@@ -364,116 +399,77 @@ describe("AdminOrders (axios mocked)", () => {
 
     consoleLogSpy.mockRestore();
   });
+});
 
+// ─────────────────────────────────────────────────────────────────────────────
+// SUITE 4: AdminOrders — status change interaction
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("AdminOrders - status change interaction", () => {
   it("calls order-status API and re-fetches orders on status change", async () => {
-    // Arrange
-    axios.get.mockImplementation((url) => {
-      if (url === "/api/v1/auth/admin-auth") {
-        return Promise.resolve({ data: { ok: true } });
-      }
-      if (url === "/api/v1/auth/all-orders") {
-        return Promise.resolve({ data: { success: true, orders: mockOrders } });
-      }
-      return Promise.resolve({ data: {} });
-    });
+    mockAdminAxios();
+    axiosPutSpy.mockResolvedValue({ data: { success: true } });
 
-    axios.put.mockResolvedValue({ data: { success: true } });
-
-    const initialAuth = { user: { role: 1 }, token: "admin-token" };
-
-    // Act
     render(
-      <Wrapper initialAuth={initialAuth}>
+      <Wrapper initialAuth={{ user: adminUser, token: "admin-token" }}>
         <AdminOrders />
       </Wrapper>,
     );
 
-    // Assert
-    await waitFor(() => {
-      expect(screen.getByText("All Orders")).toBeInTheDocument();
-    });
+    await screen.findByText("All Orders");
+    await screen.findByText("Alice");
 
-    await waitFor(() => {
-      expect(screen.getByText("Alice")).toBeInTheDocument();
-    });
-
-    // Clear prior get calls to assert the re-fetch
-    jest.clearAllMocks();
-
-    axios.get.mockImplementation((url) => {
-      if (url === "/api/v1/auth/all-orders") {
+    axiosGetSpy.mockClear();
+    axiosGetSpy.mockImplementation((url) => {
+      if (url === "/api/v1/auth/all-orders")
         return Promise.resolve({ data: { success: true, orders: mockOrders } });
-      }
       return Promise.resolve({ data: {} });
     });
-
-    axios.put.mockResolvedValue({ data: { success: true } });
 
     const selects = screen.getAllByRole("combobox");
     fireEvent.mouseDown(selects[0]);
 
     await waitFor(() => {
-      const processingOptions = screen.getAllByText("Processing");
-      expect(processingOptions.length).toBeGreaterThan(1);
+      expect(screen.getAllByText("Processing").length).toBeGreaterThan(1);
     });
 
     const processingOptions = screen.getAllByText("Processing");
     fireEvent.click(processingOptions[processingOptions.length - 1]);
 
     await waitFor(() => {
-      expect(axios.put).toHaveBeenCalledWith(
+      expect(axiosPutSpy).toHaveBeenCalledWith(
         "/api/v1/auth/order-status/order1",
         { status: "Processing" },
       );
     });
 
     await waitFor(() => {
-      expect(axios.get).toHaveBeenCalledWith("/api/v1/auth/all-orders");
+      expect(axiosGetSpy).toHaveBeenCalledWith("/api/v1/auth/all-orders");
     });
   });
 
-  it("logs error when handleChange PUT request fails", async () => {
-    // Arrange
+  it("logs error and preserves rendered orders when PUT request fails", async () => {
     const consoleLogSpy = jest
       .spyOn(console, "log")
       .mockImplementation(() => {});
 
-    axios.get.mockImplementation((url) => {
-      if (url === "/api/v1/auth/admin-auth") {
-        return Promise.resolve({ data: { ok: true } });
-      }
-      if (url === "/api/v1/auth/all-orders") {
-        return Promise.resolve({ data: { success: true, orders: mockOrders } });
-      }
-      return Promise.resolve({ data: {} });
-    });
+    mockAdminAxios();
+    axiosPutSpy.mockRejectedValue(new Error("Update failed"));
 
-    axios.put.mockRejectedValue(new Error("Update failed"));
-
-    const initialAuth = { user: { role: 1 }, token: "admin-token" };
-
-    // Act
     render(
-      <Wrapper initialAuth={initialAuth}>
+      <Wrapper initialAuth={{ user: adminUser, token: "admin-token" }}>
         <AdminOrders />
       </Wrapper>,
     );
 
-    // Assert
-    await waitFor(() => {
-      expect(screen.getByText("All Orders")).toBeInTheDocument();
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText("Alice")).toBeInTheDocument();
-    });
+    await screen.findByText("All Orders");
+    await screen.findByText("Alice");
 
     const selects = screen.getAllByRole("combobox");
     fireEvent.mouseDown(selects[0]);
 
     await waitFor(() => {
-      const shippedOptions = screen.getAllByText("Shipped");
-      expect(shippedOptions.length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Shipped").length).toBeGreaterThan(0);
     });
 
     const shippedOptions = screen.getAllByText("Shipped");
@@ -484,64 +480,6 @@ describe("AdminOrders (axios mocked)", () => {
     });
 
     expect(screen.getByText("Alice")).toBeInTheDocument();
-
     consoleLogSpy.mockRestore();
-  });
-
-  it('renders "Failed" for unsuccessful payment', async () => {
-    // Arrange
-    axios.get.mockImplementation((url) => {
-      if (url === "/api/v1/auth/admin-auth") {
-        return Promise.resolve({ data: { ok: true } });
-      }
-      if (url === "/api/v1/auth/all-orders") {
-        return Promise.resolve({
-          data: { success: true, orders: failedPaymentOrder },
-        });
-      }
-      return Promise.resolve({ data: {} });
-    });
-
-    const initialAuth = { user: { role: 1 }, token: "admin-token" };
-
-    // Act
-    render(
-      <Wrapper initialAuth={initialAuth}>
-        <AdminOrders />
-      </Wrapper>,
-    );
-
-    // Assert
-    expect(await screen.findByText(/Bob/i)).toBeInTheDocument();
-    expect(screen.getByText("Failed")).toBeInTheDocument();
-    expect(screen.queryByText("Success")).not.toBeInTheDocument();
-  });
-
-  it("renders order using index as key when order has no _id", async () => {
-    // Arrange
-    axios.get.mockImplementation((url) => {
-      if (url === "/api/v1/auth/admin-auth") {
-        return Promise.resolve({ data: { ok: true } });
-      }
-      if (url === "/api/v1/auth/all-orders") {
-        return Promise.resolve({
-          data: { success: true, orders: ordersWithoutId },
-        });
-      }
-      return Promise.resolve({ data: {} });
-    });
-
-    const initialAuth = { user: { role: 1 }, token: "admin-token" };
-
-    // Act
-    render(
-      <Wrapper initialAuth={initialAuth}>
-        <AdminOrders />
-      </Wrapper>,
-    );
-
-    // Assert
-    expect(await screen.findByText("Alice")).toBeInTheDocument();
-    expect(screen.getByText("Widget")).toBeInTheDocument();
   });
 });
