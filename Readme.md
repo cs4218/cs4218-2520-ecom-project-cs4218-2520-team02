@@ -3,7 +3,7 @@
 
  [Click me to get to the MS1 CI Action Link](https://github.com/cs4218/cs4218-2520-ecom-project-cs4218-2520-team02/actions/runs/22280090963/job/64449235183)
 
-To see the test results, either expand `Run Frontend Tests` or `Run Backend Tests`.
+To see the test results, expand the workflow steps (e.g. `Run Frontend Tests`, `Run Backend Tests`, `Run Frontend Integration Tests`, `Run Backend Integration Tests`).
 
 ## 1. Project Introduction
 
@@ -159,15 +159,15 @@ To begin unit testing with Jest in your project, follow these steps:
    
    - **All the unit tests**
   
-      ```bash
-      npm run test:unit
-      ```
+     ```bash
+     npm run test:unit
+     ```
    
-    - **All the integration tests**
+   - **All the integration tests**
 
-      ```bash
-      npm run test:unit
-      ```
+     ```bash
+     npm run test:integration
+     ```
 
    - **All the tests**
   
