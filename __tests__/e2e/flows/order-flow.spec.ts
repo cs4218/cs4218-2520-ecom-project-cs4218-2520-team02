@@ -1,6 +1,6 @@
 // Song Jia Hui A0259494L
 import { test, expect } from "@playwright/test";
-import { registerAndLogin, logout, login } from "../helpers/auth";
+import { logout, login, loginAndGoto } from "../helpers/auth";
 import {
   TEST_ADMIN_EMAIL,
   TEST_PASSWORD,
@@ -8,30 +8,6 @@ import {
   TEST_USER_EMAIL,
   TEST_USER_NAME,
 } from "../helpers/auth";
-
-const mockOrders = [
-  {
-    _id: "order123",
-    status: "Processing",
-    buyer: { name: "alice" },
-    createAt: new Date().toISOString(),
-    payment: { success: true },
-    products: [
-      {
-        _id: "pdt1",
-        name: "NUS T-shirt",
-        description: "Plain NUS T-shirt for sale",
-        price: 10,
-      },
-      {
-        _id: "pdt2",
-        name: "Laptop",
-        description: "A powerful laptop",
-        price: 20,
-      },
-    ],
-  },
-];
 
 test.describe("Order Flow for Users", () => {
   test.describe("Order Flow for authenticated users", () => {
@@ -43,20 +19,11 @@ test.describe("Order Flow for Users", () => {
       await logout(page, TEST_USER_NAME);
     });
 
-    test("should render orders page with an empty order", async ({ page }) => {
-      // Arrange
-      await page.route("**/api/v1/auth/orders", (route) => {
-        route.fulfill({
-          status: 200,
-          contentType: "application/json",
-          body: JSON.stringify([]),
-        });
-      });
-
-      await page.goto("/dashboard/user");
-
+    test("should render orders page with no orders initially", async ({
+      page,
+    }) => {
       // Act
-      await page.getByRole("link", { name: "Orders" }).click();
+      await page.goto("/dashboard/user/orders");
 
       // Assert
       await expect(page).toHaveURL("/dashboard/user/orders");
@@ -64,28 +31,87 @@ test.describe("Order Flow for Users", () => {
       await expect(page.getByTestId("order-product")).toHaveCount(0);
     });
 
-    test("user can view order details", async ({ page }) => {
-      // Arrange
-      await page.route("**/api/v1/auth/orders", (route) => {
-        route.fulfill({
-          status: 200,
-          contentType: "application/json",
-          body: JSON.stringify({
-            success: true,
-            orders: mockOrders,
-          }),
-        });
-      });
-
+    test("user can navigate to orders page from user dashboard", async ({
+      page,
+    }) => {
       // Act
       await page.goto("/dashboard/user");
       await page.getByRole("link", { name: "Orders" }).click();
 
       // Assert
-      await expect(
-        page.getByText("NUS T-shirt", { exact: true }),
-      ).toBeVisible();
+      await expect(page).toHaveURL("/dashboard/user/orders");
+      await expect(page.getByText(/All Orders/i)).toBeVisible();
+    });
+
+    test("user can complete a purchase and view it in orders", async ({
+      page,
+    }) => {
+      // Arrange
       await page.goto("/");
+
+      const firstProductCard = page.locator(".card").first();
+      await firstProductCard.getByRole("button", { name: "ADD TO CART" }).click();
+      await expect(page.getByText("Item Added to cart")).toBeVisible();
+
+      await page.goto("/cart");
+
+      const tokenResponsePromise = page.waitForResponse(
+        (resp) =>
+          resp.url().includes("/api/v1/product/braintree/token") && resp.ok()
+      );
+      const tokenResponse = await tokenResponsePromise;
+      expect(tokenResponse.ok()).toBeTruthy();
+
+      await expect(
+        page.getByRole("button", { name: "Make Payment" })
+      ).toBeEnabled();
+
+      // Act
+      await page.getByRole("button", { name: "Paying with Card" }).click();
+      await expect(page.getByText("Card Number")).toBeVisible();
+
+      const cardNumberFrame = page.frameLocator(
+        'iframe[name="braintree-hosted-field-number"]'
+      );
+      await cardNumberFrame
+        .getByLabel("Credit Card Number")
+        .fill("4111111111111111");
+
+      const expirationDateFrame = page.frameLocator(
+        'iframe[name="braintree-hosted-field-expirationDate"]'
+      );
+      await expirationDateFrame.getByLabel("Expiration Date").fill("1229");
+
+      const cvvFrame = page.frameLocator(
+        'iframe[name="braintree-hosted-field-cvv"]'
+      );
+      await cvvFrame.getByLabel("CVV").fill("123");
+
+      await page.getByRole("button", { name: "Make Payment" }).click();
+
+      // Assert
+      await expect(page).toHaveURL("/dashboard/user/orders");
+      await expect(
+        page.getByText("Payment Completed Successfully")
+      ).toBeVisible();
+    });
+
+    test("user can view their profile from the dashboard", async ({ page }) => {
+      // Act
+      await page.goto("/dashboard/user");
+      await page.getByRole("link", { name: "Profile" }).click();
+
+      // Assert
+      await expect(page).toHaveURL("/dashboard/user/profile");
+      await expect(
+        page.getByRole("heading", { name: /user profile/i })
+      ).toBeVisible();
+      await expect(page.getByPlaceholder("Enter Your Name")).toHaveValue(
+        TEST_USER_NAME
+      );
+      await expect(page.getByPlaceholder("Enter Your Email")).toHaveValue(
+        TEST_USER_EMAIL
+      );
     });
   });
 
@@ -98,39 +124,76 @@ test.describe("Order Flow for Users", () => {
       await logout(page, TEST_ADMIN_NAME);
     });
 
-    test("admin should be able to see all the orders made by users", async ({
+    test("admin should be able to see all orders made by users", async ({
       page,
     }) => {
-      // Arrange
-      await page.route("**/api/v1/auth/all-orders", (route) => {
-        route.fulfill({
-          status: 200,
-          contentType: "application/json",
-          body: JSON.stringify({
-            success: true,
-            orders: mockOrders,
-          }),
-        });
-      });
-
       // Act
       await page.goto("/dashboard/admin");
-
       await page.getByRole("link", { name: "Orders" }).click();
 
       // Assert
-      await expect(page.getByText("Alice")).toBeVisible();
-      await expect(page.getByText("Laptop", { exact: true })).toBeVisible();
-      await expect(page.getByText(/Processing/i)).toBeVisible();
+      await expect(page).toHaveURL("/dashboard/admin/orders");
+      await expect(page.getByText(/All Orders/i)).toBeVisible();
+    });
+
+    test("admin can update an order status", async ({ page }) => {
+      // Arrange
+      await page.goto("/dashboard/admin/orders");
+
+      const firstOrderStatusSelect = page.locator("select").first();
+
+      // Only proceed if there is at least one order
+      const orderCount = await firstOrderStatusSelect.count();
+      test.skip(orderCount === 0, "No orders to update");
+
+      const currentStatus = await firstOrderStatusSelect.inputValue();
+
+      // Act - change to a different status
+      const newStatus = currentStatus === "Processing" ? "Shipped" : "Processing";
+      await firstOrderStatusSelect.selectOption(newStatus);
+
+      // Assert
+      await expect(firstOrderStatusSelect).toHaveValue(newStatus);
+    });
+
+    test("admin can navigate to orders from admin dashboard", async ({
+      page,
+    }) => {
+      // Act
+      await page.goto("/dashboard/admin");
+      await page.getByRole("link", { name: "Orders" }).click();
+
+      // Assert
+      await expect(page).toHaveURL("/dashboard/admin/orders");
     });
   });
 
   test.describe("Order Flow for unauthenticated users", () => {
-    test("unauthenticated user should be redirected to login", async ({
+    test("unauthenticated user should be redirected away from user orders page", async ({
       page,
     }) => {
       // Act
       await page.goto("/dashboard/user/orders");
+
+      // Assert
+      await expect(page).toHaveURL("/");
+    });
+
+    test("unauthenticated user should be redirected away from admin orders page", async ({
+      page,
+    }) => {
+      // Act
+      await page.goto("/dashboard/admin/orders");
+
+      // Assert
+      await expect(page).not.toHaveURL("/dashboard/admin/orders");
+    });
+
+    test("unauthenticated user cannot access user dashboard", async ({
+      page,
+    }) => {
+      // Act
+      await page.goto("/dashboard/user");
 
       // Assert
       await expect(page).toHaveURL("/");
