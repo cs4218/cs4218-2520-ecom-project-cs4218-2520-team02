@@ -312,8 +312,25 @@ To begin unit testing with Jest in your project, follow these steps:
    - getSingleProductController
    - productPhotoController
 
+**Backend Integration Tests**:
+- `controllers/__tests__/productController/integration/getProductController.integration.test.js`
+- `controllers/__tests__/productController/integration/getSingleProductController.integration.test.js`
+- `controllers/__tests__/productController/integration/productPhotoController.integration.test.js`
+- `controllers/__tests__/productController/integration/createProductController.integration.test.js`
+- `controllers/__tests__/productController/integration/updateProductController.integration.test.js`
+- `controllers/__tests__/productController/integration/deleteProductController.integration.test.js`
+
 **Frontend Unit Tests**:
-- client/src/pages/admin/CreateProduct.js
+- `client/src/pages/admin/CreateProduct.js`
+- `client/src/pages/admin/UpdateProduct.js`
+- `client/src/pages/admin/Products.js`
+- `client/src/pages/CategoryProduct.js`
+- `client/src/pages/ProductDetails.js`
+
+**Frontend Integration Tests**:
+- `client/src/pages/admin/Products.integration.test.js`
+- `client/src/pages/admin/CreateProduct.integration.test.js`
+- `client/src/pages/admin/UpdateProduct.integration.test.js`
 
 **Enhancements**
 - Added input validation to `productPhotoController()`, `getSingleProductController()`, and `deleteProductController()`
