@@ -1,4 +1,9 @@
 // Song Jia Hui A0259494L
+// Integration tests: Users + UserList + AdminMenu + Layout
+// Approach: Top-down integration - the Users page is rendered inside real
+// context providers (AuthProvider, SearchProvider, CartProvider) and real
+// routing. 
+
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
@@ -9,10 +14,7 @@ import { AuthProvider } from "../../context/auth";
 import { CartProvider } from "../../context/cart";
 import { SearchProvider } from "../../context/search";
 import toast from "react-hot-toast";
-import { afterEach } from "node:test";
 
-// ====== Mocks =====
-jest.mock("axios");
 jest.mock("react-hot-toast", () => ({
   __esModule: true,
   default: {
@@ -21,10 +23,10 @@ jest.mock("react-hot-toast", () => ({
   },
   Toaster: () => <div data-testid="toaster" />,
 }));
-jest.mock("../../hooks/useCategory", () => ({
-  __esModule: true,
-  default: jest.fn(() => []),
-}));
+
+// ─── Fixtures ────────────────────────────────────────────────────────────────
+
+const adminUser = { role: 1, name: "Admin" };
 
 const mockUsers = [
   {
@@ -43,7 +45,13 @@ const mockUsers = [
   },
 ];
 
-// ====== Render Routes =====
+const mockCategories = [
+  { _id: "cat1", name: "Electronics", slug: "electronics" },
+  { _id: "cat2", name: "Clothing", slug: "clothing" },
+];
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
 const renderUsers = (initialAuth = null) => {
   if (initialAuth) localStorage.setItem("auth", JSON.stringify(initialAuth));
   else localStorage.removeItem("auth");
@@ -61,92 +69,112 @@ const renderUsers = (initialAuth = null) => {
   );
 };
 
-// ====== Tests =====
-describe("Users Page", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    localStorage.clear();
-    axios.get.mockResolvedValue({ data: { category: [] } });
-  });
+// ─── Spies ───────────────────────────────────────────────────────────────────
 
-  afterEach(() => {
-    localStorage.clear();
-  });
+let axiosGetSpy;
 
-  beforeAll(() => {
-    jest.spyOn(console, "log").mockImplementation(() => {});
-  });
-  afterAll(() => {
-    jest.restoreAllMocks();
-  });
+beforeAll(() => {
+  jest.spyOn(console, "log").mockImplementation(() => {});
+  jest.spyOn(console, "error").mockImplementation(() => {});
+  jest.spyOn(console, "warn").mockImplementation(() => {});
+});
 
-  it("renders page title and admin menu", async () => {
-    // Arrange - mock empty users
-    axios.get.mockImplementation((url) => {
-      if (url === "/api/v1/user/all") {
+afterAll(() => {
+  jest.restoreAllMocks();
+});
+
+beforeEach(() => {
+  localStorage.clear();
+  jest.clearAllMocks();
+  axiosGetSpy = jest.spyOn(axios, "get");
+});
+
+afterEach(() => {
+  axiosGetSpy.mockRestore();
+  localStorage.clear();
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUITE 1: Users + AdminMenu 
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("Users + AdminMenu - real nav link integration", () => {
+  it("renders Admin Panel heading and all AdminMenu nav links", async () => {
+    axiosGetSpy.mockImplementation((url) => {
+      if (url === "/api/v1/user/all")
         return Promise.resolve({ data: { success: true, users: [] } });
-      }
-      return Promise.resolve({ data: { category: [] } });
+      if (url === "/api/v1/category/get-category")
+        return Promise.resolve({ data: { category: [] } });
+      return Promise.resolve({ data: {} });
     });
 
-    // Act
-    const initialAuth = {
-      token: "admin-token",
-      user: { role: 1, name: "Admin" },
-    };
-    renderUsers(initialAuth);
+    renderUsers({ token: "admin-token", user: adminUser });
 
-    // Assert
-    expect(await screen.findByText("All Users")).toBeInTheDocument();
+    expect(await screen.findByText("Admin Panel")).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: /create category/i }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: /create product/i }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /^products$/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /^orders$/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /^users$/i })).toBeInTheDocument();
   });
 
-  it("shows loading state then renders users table", async () => {
-    // Arrange - mock users
-    axios.get.mockImplementation((url) => {
-      if (url === "/api/v1/user/all") {
-        return Promise.resolve({ data: { success: true, users: mockUsers } });
-      }
-      return Promise.resolve({ data: { category: [] } });
+  it("renders page heading alongside AdminMenu confirming Users + AdminMenu layout", async () => {
+    axiosGetSpy.mockImplementation((url) => {
+      if (url === "/api/v1/user/all")
+        return Promise.resolve({ data: { success: true, users: [] } });
+      if (url === "/api/v1/category/get-category")
+        return Promise.resolve({ data: { success: true, category: [] } });
+      return Promise.resolve({ data: {} });
     });
 
-    // Act
-    const initialAuth = {
-      token: "admin-token",
-      user: { role: 1, name: "Admin" },
-    };
-    renderUsers(initialAuth);
+    renderUsers({ token: "admin-token", user: adminUser });
 
-    // Assert - loading state shown initially
+    expect(await screen.findByText("All Users")).toBeInTheDocument();
+    expect(screen.getByText("Admin Panel")).toBeInTheDocument();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUITE 2: Users + UserList - data fetching and rendering
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("Users + UserList - data fetching and rendering", () => {
+  it("shows loading state then renders user table after fetch completes", async () => {
+    axiosGetSpy.mockImplementation((url) => {
+      if (url === "/api/v1/user/all")
+        return Promise.resolve({ data: { success: true, users: mockUsers } });
+      if (url === "/api/v1/category/get-category")
+        return Promise.resolve({ data: { category: [] } });
+      return Promise.resolve({ data: {} });
+    });
+
+    renderUsers({ token: "admin-token", user: adminUser });
+
     expect(screen.getByText("Loading...")).toBeInTheDocument();
 
-    // Table appears after data loads
     expect(await screen.findByTestId("user-list-table")).toBeInTheDocument();
     expect(screen.queryByText("Loading...")).not.toBeInTheDocument();
+
+    expect(axiosGetSpy).toHaveBeenCalledWith("/api/v1/user/all");
   });
 
-  it("renders all users with correct details", async () => {
-    // Arrange - mock users
-    axios.get.mockImplementation((url) => {
-      if (url === "/api/v1/user/all") {
+  it("renders all user fields correctly in UserList table", async () => {
+    axiosGetSpy.mockImplementation((url) => {
+      if (url === "/api/v1/user/all")
         return Promise.resolve({ data: { success: true, users: mockUsers } });
-      }
-      return Promise.resolve({ data: { category: [] } });
+      if (url === "/api/v1/category/get-category")
+        return Promise.resolve({ data: { category: [] } });
+      return Promise.resolve({ data: {} });
     });
 
-    // Act
-    const initialAuth = {
-      token: "admin-token",
-      user: { role: 1, name: "Admin" },
-    };
-    renderUsers(initialAuth);
+    renderUsers({ token: "admin-token", user: adminUser });
 
-    // Assert - all user details rendered correctly
     expect(await screen.findByText("Alice Tan")).toBeInTheDocument();
     expect(screen.getByText("alice@example.com")).toBeInTheDocument();
     expect(screen.getByText("91234567")).toBeInTheDocument();
@@ -158,26 +186,19 @@ describe("Users Page", () => {
     expect(screen.getByText("456 Elm Avenue")).toBeInTheDocument();
   });
 
-  it("renders empty table when no users exist", async () => {
-    // Arrange - mock empty users
-    axios.get.mockImplementation((url) => {
-      if (url === "/api/v1/user/all") {
+  it("renders empty table with headers but no rows when API returns no users", async () => {
+    axiosGetSpy.mockImplementation((url) => {
+      if (url === "/api/v1/user/all")
         return Promise.resolve({ data: { success: true, users: [] } });
-      }
-      return Promise.resolve({ data: { category: [] } });
+      if (url === "/api/v1/category/get-category")
+        return Promise.resolve({ data: { category: [] } });
+      return Promise.resolve({ data: {} });
     });
 
-    // Act
-    const initialAuth = {
-      token: "admin-token",
-      user: { role: 1, name: "Admin" },
-    };
-    renderUsers(initialAuth);
+    renderUsers({ token: "admin-token", user: adminUser });
 
-    // Assert - table renders but no user rows
     expect(await screen.findByTestId("user-list-table")).toBeInTheDocument();
 
-    // Table headers present but no data rows
     expect(
       screen.getByRole("columnheader", { name: /name/i }),
     ).toBeInTheDocument();
@@ -187,54 +208,48 @@ describe("Users Page", () => {
     expect(screen.queryByText("Alice Tan")).not.toBeInTheDocument();
     expect(screen.queryByText("Bob Lee")).not.toBeInTheDocument();
   });
+});
 
-  it("shows error toast when API returns success: false", async () => {
-    // Arrange - mock API failure response
-    axios.get.mockImplementation((url) => {
-      if (url === "/api/v1/user/all") {
+// ─────────────────────────────────────────────────────────────────────────────
+// SUITE 3: Users + UserList - error handling
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("Users + UserList - error handling", () => {
+  it("fires error toast and renders empty table when API returns success: false", async () => {
+    axiosGetSpy.mockImplementation((url) => {
+      if (url === "/api/v1/user/all")
         return Promise.resolve({ data: { success: false } });
-      }
-      return Promise.resolve({ data: { category: [] } });
+      if (url === "/api/v1/category/get-category")
+        return Promise.resolve({ data: { category: [] } });
+      return Promise.resolve({ data: {} });
     });
 
-    // Act
-    const initialAuth = {
-      token: "admin-token",
-      user: { role: 1, name: "Admin" },
-    };
-    renderUsers(initialAuth);
+    renderUsers({ token: "admin-token", user: adminUser });
 
-    // Assert - error toast shown
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith("Failed to fetch users");
     });
 
-    // Table still renders (loading done) but no users shown
+    // finally block in UserList sets loading=false - table still renders
     expect(await screen.findByTestId("user-list-table")).toBeInTheDocument();
     expect(screen.queryByText("Alice Tan")).not.toBeInTheDocument();
   });
 
-  it("shows error toast and logs error on network failure", async () => {
-    // Arrange - mock network error
+  it("fires error toast and logs error on network failure", async () => {
     const consoleLogSpy = jest
       .spyOn(console, "log")
       .mockImplementation(() => {});
 
-    axios.get.mockImplementation((url) => {
-      if (url === "/api/v1/user/all") {
+    axiosGetSpy.mockImplementation((url) => {
+      if (url === "/api/v1/user/all")
         return Promise.reject(new Error("Network Error"));
-      }
-      return Promise.resolve({ data: { category: [] } });
+      if (url === "/api/v1/category/get-category")
+        return Promise.resolve({ data: { category: [] } });
+      return Promise.resolve({ data: {} });
     });
 
-    // Act
-    const initialAuth = {
-      token: "admin-token",
-      user: { role: 1, name: "Admin" },
-    };
-    renderUsers(initialAuth);
+    renderUsers({ token: "admin-token", user: adminUser });
 
-    // Assert - error toast shown
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith("Something went wrong");
     });
@@ -243,10 +258,55 @@ describe("Users Page", () => {
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.any(Error));
     });
 
-    // Table renders (finally block ran) but no users
     expect(await screen.findByTestId("user-list-table")).toBeInTheDocument();
     expect(screen.queryByText("Alice Tan")).not.toBeInTheDocument();
 
     consoleLogSpy.mockRestore();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUITE 4: Users + Layout - real render chain
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("Users + Layout - real render chain", () => {
+  it("renders correct page title, navbar and footer via real Layout", async () => {
+    axiosGetSpy.mockImplementation((url) => {
+      if (url === "/api/v1/user/all")
+        return Promise.resolve({ data: { success: true, users: [] } });
+      if (url === "/api/v1/category/get-category")
+        return Promise.resolve({ data: { success: true, category: [] } });
+      return Promise.resolve({ data: {} });
+    });
+
+    renderUsers({ token: "admin-token", user: adminUser });
+
+    await waitFor(() => {
+      expect(document.title).toBe("Dashboard - All Users");
+    });
+
+    expect(screen.getByText("Home")).toBeInTheDocument();
+    expect(screen.getByText("Logout")).toBeInTheDocument();
+
+    expect(screen.getByText("About")).toBeInTheDocument();
+    expect(screen.getByText("Contact")).toBeInTheDocument();
+  });
+
+  it("Layout header fetches and renders categories in navbar dropdown", async () => {
+    axiosGetSpy.mockResolvedValueOnce({
+      data: {
+        success: true,
+        categories: mockCategories,
+      },
+    });
+
+    renderUsers({ token: "admin-token", user: adminUser });
+
+    await waitFor(() => {
+      expect(axiosGetSpy).toHaveBeenCalledWith("/api/v1/category/get-category");
+    });
+
+    expect(await screen.findByText("Electronics")).toBeInTheDocument();
+    expect(screen.getByText("Clothing")).toBeInTheDocument();
   });
 });
