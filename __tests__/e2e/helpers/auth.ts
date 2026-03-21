@@ -1,5 +1,6 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
+import mongoose from "mongoose";
 
 export const TEST_ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL!;
 export const TEST_USER_EMAIL = process.env.TEST_USER_EMAIL!;
@@ -65,8 +66,14 @@ export async function loginAndGoto(
 }
 
 export async function logout(page: Page, userName: string) {
-  await page.getByText(userName, { exact: true }).click();
-  await page.getByText("Logout", { exact: true }).click();
+  await page.getByRole('button', { name: userName }).click();
+  await page.getByRole('link', { name: 'Logout' }).click();
   await page.waitForURL("/login", { timeout: 60000 });
+}
+
+export async function deleteUserByEmail(email: string): Promise<void> {
+  const conn = await mongoose.connect(process.env.MONGO_URL!);
+  await conn.connection.collection("users").deleteOne({ email });
+  await mongoose.disconnect();
 }
 
