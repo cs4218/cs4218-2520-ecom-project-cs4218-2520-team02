@@ -69,11 +69,9 @@ const CategoryProduct = () => {
                       <button
                         className="btn btn-dark ms-1"
                         onClick={() => {
-                          setCart(prevCart => {
-                            const updatedCart = [...prevCart, p];
-                            localStorage.setItem(`cart_${userId}`, JSON.stringify(updatedCart));
-                            return updatedCart;
-                          });
+                          const updatedCart = [...cart, p];
+                          setCart(updatedCart);
+                          localStorage.setItem(`cart_${userId}`, JSON.stringify(updatedCart));
                           toast.success("Item Added to cart");
                         }}
                       >
