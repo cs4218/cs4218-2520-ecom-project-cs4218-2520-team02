@@ -15,7 +15,7 @@ describe("getSingleProductController integration", () => {
     test("returns the product matching the slug with populated category and no photo", async () => {
         const category = await seedCategory({ name: "Audio", slug: "audio" });
 
-        const [target, other] = await seedProducts([
+        const [target] = await seedProducts([
             {
                 name: "Wireless Headphones",
                 slug: "wireless-headphones",
