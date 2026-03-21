@@ -46,8 +46,13 @@ router.get("/get-product/:slug", getSingleProductController);
 //get photo
 router.get("/product-photo/:pid", productPhotoController);
 
-//delete rproduct
-router.delete("/delete-product/:pid", deleteProductController);
+//delete product
+router.delete(
+    "/delete-product/:pid",
+    requireSignIn,
+    isAdmin,
+    deleteProductController
+);
 
 //filter product
 router.post("/product-filters", productFiltersController);
