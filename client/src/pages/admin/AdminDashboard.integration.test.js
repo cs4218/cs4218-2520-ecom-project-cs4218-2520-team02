@@ -62,6 +62,7 @@ describe("Admin Dashboard Integration", () => {
     jest.clearAllMocks();
     localStorage.clear();
     axios.get.mockResolvedValue({});
+    jest.spyOn(console, "error").mockImplementation(() => {});
   });
 
   it("renders admin dashboard when admin auth succeeds", async () => {
