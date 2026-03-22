@@ -8,7 +8,7 @@ on:
 
 jobs:
   test:
-    name: Run tests and collect coverage
+    name: Run unit and integration tests
     runs-on: ubuntu-latest
 
 
@@ -30,3 +30,9 @@ jobs:
 
       - name: Run Backend Tests
         run: npm run test:backend
+
+      - name: Run Frontend Integration Tests
+        run: npm run test:frontend-integration
+
+      - name: Run Backend Integration Tests
+        run: npm run test:backend-integration
