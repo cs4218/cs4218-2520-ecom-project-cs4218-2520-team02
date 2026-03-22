@@ -15,7 +15,6 @@ const Spinner = ({ path = "login" }) => {
     return () => clearInterval(interval);
   }, [count, navigate, location]);
   return (
-    <>
       <div
         className="d-flex flex-column justify-content-center align-items-center"
         style={{ height: "100vh" }}
@@ -25,7 +24,6 @@ const Spinner = ({ path = "login" }) => {
           <span className="visually-hidden">Loading...</span>
         </div>
       </div>
-    </>
   );
 };
 

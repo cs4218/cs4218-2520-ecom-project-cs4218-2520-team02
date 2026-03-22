@@ -25,7 +25,6 @@ import CartPage from "./pages/CartPage";
 import AdminOrders from "./pages/admin/AdminOrders";
 function App() {
   return (
-    <>
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/product/:slug" element={<ProductDetails />} />
@@ -54,7 +53,6 @@ function App() {
         <Route path="/policy" element={<Policy />} />
         <Route path="*" element={<Pagenotfound />} />
       </Routes>
-    </>
   );
 }
 

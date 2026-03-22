@@ -21,7 +21,6 @@ const Header = () => {
     toast.success("Logout Successfully");
   };
   return (
-    <>
       <nav className="navbar navbar-expand-lg bg-body-tertiary">
         <div className="container-fluid">
           <button
@@ -87,7 +86,6 @@ const Header = () => {
                   </li>
                 </>
               ) : (
-                <>
                   <li className="nav-item dropdown">
                     <NavLink
                       className="nav-link dropdown-toggle"
@@ -120,7 +118,6 @@ const Header = () => {
                       </li>
                     </ul>
                   </li>
-                </>
               )}
               <li className="nav-item">
                 <Badge count={cart?.length} showZero>
@@ -133,7 +130,6 @@ const Header = () => {
           </div>
         </div>
       </nav>
-    </>
   );
 };
 
