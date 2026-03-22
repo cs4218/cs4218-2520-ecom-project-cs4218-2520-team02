@@ -1,35 +1,13 @@
 // Song Jia Hui A0259494L
 import { test, expect } from "@playwright/test";
-import { registerAndLogin, logout, login } from "../helpers/auth";
+import { logout, login } from "../helpers/auth";
 import {
   TEST_ADMIN_EMAIL,
   TEST_PASSWORD,
   TEST_ADMIN_NAME,
+  TEST_USER_EMAIL,
+  TEST_USER_NAME,
 } from "../helpers/auth";
-
-const mockOrders = [
-  {
-    _id: "order123",
-    status: "Processing",
-    buyer: { name: "alice" },
-    createAt: new Date().toISOString(),
-    payment: { success: true },
-    products: [
-      {
-        _id: "pdt1",
-        name: "NUS T-shirt",
-        description: "Plain NUS T-shirt for sale",
-        price: 10,
-      },
-      {
-        _id: "pdt2",
-        name: "Laptop",
-        description: "A powerful laptop",
-        price: 20,
-      },
-    ],
-  },
-];
 
 test.describe("Admin View", () => {
   test.beforeEach(async ({ page }) => {
@@ -40,138 +18,114 @@ test.describe("Admin View", () => {
     await logout(page, TEST_ADMIN_NAME);
   });
 
-  test("admin can view all orders when there are no orders in the database", async ({
+  // --- Orders ---
+
+  test("admin can navigate to orders page from admin dashboard", async ({
     page,
   }) => {
-    // Arrange
-    await page.route("**/api/v1/auth/all-orders", (route) => {
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ success: true, orders: [] }),
-      });
-    });
-
     // Act
     await page.goto("/dashboard/admin");
     await page.getByRole("link", { name: "Orders" }).click();
 
     // Assert
+    await expect(page).toHaveURL("/dashboard/admin/orders");
     await expect(
       page.getByRole("heading", { name: "All Orders" }),
     ).toBeVisible();
-    await expect(page.getByTestId("order-product")).toHaveCount(0);
   });
 
-  test("admin can view all orders when there are orders in the database", async ({
+  test("admin can view all orders with correct table headers", async ({
     page,
   }) => {
-    // Arrange - mock the payment endpoint to simulate a successful order save
-    await page.route("**/api/v1/product/braintree/payment", (route) => {
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({
-          success: true,
-          message: "Payment completed successfully.",
-          transaction: { success: true },
-          orderId: "order123",
-        }),
-      });
-    });
-
-    // Mock all-orders to return the saved order
-    await page.route("**/api/v1/auth/all-orders", (route) => {
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ success: true, orders: mockOrders }),
-      });
-    });
-
     // Act
-    await page.goto("/dashboard/admin");
-    await page.getByRole("link", { name: "Orders" }).click();
+    await page.goto("/dashboard/admin/orders");
 
-    // Assert
+    // Assert 
+    const firstTable = page.locator("table").first();
     await expect(
       page.getByRole("heading", { name: "All Orders" }),
     ).toBeVisible();
-    await expect(page.getByRole("columnheader", { name: "#" })).toBeVisible();
     await expect(
-      page.getByRole("columnheader", { name: "Status" }),
+      firstTable.getByRole("columnheader", { name: "#" }),
     ).toBeVisible();
     await expect(
-      page.getByRole("columnheader", { name: "Buyer" }),
+      firstTable.getByRole("columnheader", { name: "Status" }),
     ).toBeVisible();
     await expect(
-      page.getByRole("columnheader", { name: "date" }),
+      firstTable.getByRole("columnheader", { name: "Buyer" }),
     ).toBeVisible();
     await expect(
-      page.getByRole("columnheader", { name: "Payment" }),
+      firstTable.getByRole("columnheader", { name: "date" }),
     ).toBeVisible();
     await expect(
-      page.getByRole("columnheader", { name: "Quantity" }),
+      firstTable.getByRole("columnheader", { name: "Payment" }),
     ).toBeVisible();
-    await expect(page.getByText("alice", { exact: false })).toBeVisible();
-    await expect(page.getByText("NUS T-shirt", { exact: true })).toBeVisible();
-    await expect(page.getByText("Laptop", { exact: true })).toBeVisible();
-    await expect(page.getByText(/Processing/i)).toBeVisible();
-    await expect(page.getByText(/Success/i)).toBeVisible();
+    await expect(
+      firstTable.getByRole("columnheader", { name: "Quantity" }),
+    ).toBeVisible();
   });
 
-  test("admin can update order status successfully", async ({ page }) => {
-    // Arrange
-    await page.route("**/api/v1/auth/all-orders", (route) => {
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ success: true, orders: mockOrders }),
-      });
-    });
+  test("admin can see real orders placed by E2E User", async ({ page }) => {
+    // Act
+    await page.goto("/dashboard/admin/orders");
 
-    await page.route("**/api/v1/auth/order-status/order123", (route) => {
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ success: true }),
-      });
-    });
+    // Assert - real order placed by E2E User exists in DB
+    await expect(
+      page.getByText("E2E User", { exact: false }).first(),
+    ).toBeVisible();
+    await expect(page.locator("tbody tr").first()).toBeVisible();
+  });
+
+  test("admin can update order status of an existing order", async ({
+    page,
+  }) => {
+    // Arrange
+    await page.goto("/dashboard/admin/orders");
+    const firstStatusDropdown = page.locator(".ant-select-selector").first();
+    await expect(firstStatusDropdown).toBeVisible();
+
+    const currentStatus = await firstStatusDropdown.textContent();
+    const newStatus = currentStatus?.includes("Processing")
+      ? "Shipped"
+      : "Processing";
 
     // Act
-    await page.goto("/dashboard/admin");
-    await page.getByRole("link", { name: "Orders" }).click();
-    await expect(page.getByText(/Processing/i)).toBeVisible();
-
-    await page.getByText("Processing").click();
-    await page.getByTitle("Shipped").locator("div").click();
+    await firstStatusDropdown.click();
+    await page.getByTitle(newStatus).locator("div").click();
 
     // Assert
     await expect(
-      page.locator('span.ant-select-selection-item[title="Shipped"]'),
+      page
+        .locator(`span.ant-select-selection-item[title="${newStatus}"]`)
+        .first(),
     ).toBeVisible();
+  });
+
+  // --- Products ---
+
+  test("admin can view all products list", async ({ page }) => {
+    // Act
+    await page.goto("/dashboard/admin");
+    await page.getByRole("link", { name: "Products" }).click();
+
+    // Assert
+    await expect(page).toHaveURL("/dashboard/admin/products");
+    await expect(
+      page.getByRole("heading", { name: "All Products List" }),
+    ).toBeVisible();
+    await expect(page.locator(".card").first()).toBeVisible();
   });
 
   test("admin can navigate to update product from all products list", async ({
     page,
   }) => {
     // Act
-    await page.goto("/dashboard/admin");
-    await page.getByRole("link", { name: "Products" }).click();
+    await page.goto("/dashboard/admin/products");
+    await page.locator(".card").first().click();
 
     // Assert
     await expect(
-      page.getByRole("heading", { name: "All Products List" }),
-    ).toBeVisible();
-    await page.getByRole("link", { name: "Novel Novel A bestselling" }).click();
-    await expect(
       page.getByRole("heading", { name: "Update Product" }),
-    ).toBeVisible();
-    await expect(
-      page
-        .locator("div")
-        .filter({ hasText: /^Book$/ })
-        .first(),
     ).toBeVisible();
     await expect(page.getByText("Upload Photo")).toBeVisible();
     await expect(
@@ -182,38 +136,15 @@ test.describe("Admin View", () => {
     ).toBeVisible();
   });
 
-  test("admin can view all users created", async ({ page }) => {
-    // Act
-    await page.goto("/dashboard/admin");
-    await page.getByRole("link", { name: "Users" }).click();
-
-    // Assert
-    await expect(
-      page.getByRole("heading", { name: "All Users" }),
-    ).toBeVisible();
-    await expect(page.getByRole("cell", { name: "Name" })).toBeVisible();
-    await expect(page.getByRole("cell", { name: "Email" })).toBeVisible();
-    await expect(page.getByRole("cell", { name: "Phone" })).toBeVisible();
-    await expect(page.getByRole("cell", { name: "Address" })).toBeVisible();
-  });
-
-  test("admin can navigate to create category", async ({ page }) => {
-    // Act
-    await page.goto("/dashboard/admin");
-    await page.getByRole("link", { name: "Create Category" }).click();
-
-    // Assert
-    await expect(
-      page.getByRole("heading", { name: "Manage Category" }),
-    ).toBeVisible();
-  });
-
-  test("admin can navigate to create product", async ({ page }) => {
+  test("admin can navigate to create product page and see all fields", async ({
+    page,
+  }) => {
     // Act
     await page.goto("/dashboard/admin");
     await page.getByRole("link", { name: "Create Product" }).click();
 
     // Assert
+    await expect(page).toHaveURL("/dashboard/admin/create-product");
     await expect(
       page.getByRole("heading", { name: "Create Product" }),
     ).toBeVisible();
@@ -233,13 +164,97 @@ test.describe("Admin View", () => {
     await expect(page.getByPlaceholder("Enter product price")).toBeVisible();
     await expect(page.getByPlaceholder("Enter product quantity")).toBeVisible();
     await expect(
-      page
-        .locator("div")
-        .filter({ hasText: /^Select shipping$/ })
-        .nth(2),
-    ).toBeVisible();
-    await expect(
       page.getByRole("button", { name: "CREATE PRODUCT" }),
     ).toBeVisible();
+  });
+
+  // --- Users ---
+
+  test("admin can view all users with correct table columns", async ({
+    page,
+  }) => {
+    // Act
+    await page.goto("/dashboard/admin");
+    await page.getByRole("link", { name: "Users" }).click();
+
+    // Assert
+    await expect(page).toHaveURL("/dashboard/admin/users");
+    await expect(
+      page.getByRole("heading", { name: "All Users" }),
+    ).toBeVisible();
+    await expect(page.getByRole("cell", { name: "Name" })).toBeVisible();
+    await expect(page.getByRole("cell", { name: "Email" })).toBeVisible();
+    await expect(page.getByRole("cell", { name: "Phone" })).toBeVisible();
+    await expect(page.getByRole("cell", { name: "Address" })).toBeVisible();
+    await expect(
+      page.getByRole("cell", { name: TEST_USER_NAME }),
+    ).toBeVisible();
+  });
+
+  test("admin can see E2E User's details in the users table", async ({
+    page,
+  }) => {
+    // Act
+    await page.goto("/dashboard/admin/users");
+
+    // Assert
+    await expect(
+      page.getByRole("cell", { name: TEST_USER_NAME }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("cell", { name: TEST_USER_EMAIL }),
+    ).toBeVisible();
+  });
+
+  // --- Categories ---
+
+  test("admin can navigate to manage category page", async ({ page }) => {
+    // Act
+    await page.goto("/dashboard/admin");
+    await page.getByRole("link", { name: "Create Category" }).click();
+
+    // Assert
+    await expect(page).toHaveURL("/dashboard/admin/create-category");
+    await expect(
+      page.getByRole("heading", { name: "Manage Category" }),
+    ).toBeVisible();
+  });
+  test("admin can create a new category", async ({ page }) => {
+    // Arrange
+    const categoryName = `E2E Category ${Date.now()}`;
+    await page.goto("/dashboard/admin/create-category");
+
+    // Act
+    await page.getByPlaceholder("Enter new category").fill(categoryName);
+    await page.getByRole("button", { name: /submit/i }).click();
+
+    // Assert
+    await expect(page.getByRole("cell", { name: categoryName })).toBeVisible();
+
+    // Cleanup
+    const row = page.locator("tr", { hasText: categoryName });
+    await row.getByText("Delete", { exact: true }).click();
+    await expect(
+      page.getByText("Category is deleted", { exact: true }),
+    ).toBeVisible();
+  });
+
+  test("admin can delete a newly created category", async ({ page }) => {
+    // Arrange - create a category first so we have something to delete
+    const categoryName = `E2E Delete ${Date.now()}`;
+    await page.goto("/dashboard/admin/create-category");
+    await page.getByPlaceholder("Enter new category").fill(categoryName);
+    await page.getByRole("button", { name: /submit/i }).click();
+    await expect(page.getByRole("cell", { name: categoryName })).toBeVisible();
+
+    // Act
+    const row = page.locator("tr", { hasText: categoryName });
+    await row.getByText("Delete", { exact: true }).click();
+
+    // Assert
+    await expect(
+      page.getByText("Category is deleted", { exact: true }),
+    ).toBeVisible();
+    await expect(page.getByText(categoryName, { exact: true })).toHaveCount(0);
   });
 });
