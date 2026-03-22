@@ -16,9 +16,13 @@ await jest.unstable_mockModule(modelPath, () => ({
   },
 }));
 
-const { default: orderModel } = (await import("../../../../models/orderModel.js"));
-const { getOrdersController, getAllOrdersController, updateOrderStatusController } =
-  await import("../../../authController.js");
+const { default: orderModel } =
+  await import("../../../../models/orderModel.js");
+const {
+  getOrdersController,
+  getAllOrdersController,
+  updateOrderStatusController,
+} = await import("../../../orderController.js");
 
 // =============== Helpers ===============
 const mockRes = () => ({ status: jest.fn().mockReturnThis(), send: jest.fn() });
@@ -80,10 +84,8 @@ function mockPopulateSortChainReject(error) {
   };
 }
 
-
 // =============== Tests ===============
 describe("getOrdersController", () => {
-
   beforeAll(() => {
     jest.spyOn(console, "log").mockImplementation(() => {});
     jest.spyOn(console, "error").mockImplementation(() => {});
@@ -197,7 +199,6 @@ describe("getOrdersController", () => {
 });
 
 describe("getAllOrdersController", () => {
-
   beforeAll(() => {
     jest.spyOn(console, "log").mockImplementation(() => {});
     jest.spyOn(console, "error").mockImplementation(() => {});
@@ -218,7 +219,9 @@ describe("getAllOrdersController", () => {
     const req = {};
     const res = mockRes();
     const orders = [{ orderId: 1 }, { orderId: 2 }];
-    jest.spyOn(orderModel, "find").mockReturnValue(mockPopulateSortChain(orders));
+    jest
+      .spyOn(orderModel, "find")
+      .mockReturnValue(mockPopulateSortChain(orders));
 
     // Act
     await getAllOrdersController(req, res);
@@ -247,9 +250,9 @@ describe("getAllOrdersController", () => {
     // Arrange
     const req = {};
     const res = mockRes();
-    jest.spyOn(orderModel, "find").mockReturnValue(
-      mockPopulateSortChainReject(new Error("DB error"))
-    );
+    jest
+      .spyOn(orderModel, "find")
+      .mockReturnValue(mockPopulateSortChainReject(new Error("DB error")));
 
     // Act
     await getAllOrdersController(req, res);
@@ -264,7 +267,9 @@ describe("getAllOrdersController", () => {
     // Arrange
     const req = {};
     const res = mockRes();
-    jest.spyOn(orderModel, "find").mockReturnValue(mockPopulateSortChainReject({}));
+    jest
+      .spyOn(orderModel, "find")
+      .mockReturnValue(mockPopulateSortChainReject({}));
 
     // Act
     await getAllOrdersController(req, res);
@@ -280,7 +285,6 @@ describe("getAllOrdersController", () => {
 });
 
 describe("updateOrderStatusController", () => {
-
   beforeAll(() => {
     jest.spyOn(console, "log").mockImplementation(() => {});
     jest.spyOn(console, "error").mockImplementation(() => {});
@@ -315,7 +319,7 @@ describe("updateOrderStatusController", () => {
     expect(findByIdAndUpdateMock).toHaveBeenCalledWith(
       "order-id",
       { status: "Shipped" },
-      { new: true }
+      { new: true },
     );
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.send).toHaveBeenCalledWith({
