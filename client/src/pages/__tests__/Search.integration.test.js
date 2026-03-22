@@ -11,7 +11,7 @@ import { SearchProvider, useSearch } from "../../context/search";
 
 jest.mock("../../hooks/useCategory", () => jest.fn(() => []));
 
-// =============== Helpers ===============
+// ================= Helpers =================
 const SeedResults = ({ results }) => {
   const [values, setValues] = useSearch();
 
@@ -39,7 +39,7 @@ const renderSearchRoute = (results) =>
     </AuthProvider>,
   );
 
-// =============== Tests ===============
+// ================= Tests =================
 describe("Search route integration (/search) with real Layout", () => {
   afterEach(() => {
     jest.clearAllMocks();

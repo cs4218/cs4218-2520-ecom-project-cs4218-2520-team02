@@ -6,7 +6,7 @@ const { default: productModel } =
   await import("../../../../models/productModel.js");
 const { productFiltersController } = await import("../../../productController.js");
 
-// =============== Mock Data ===============
+// ================= Mock Data =================
 const MOCK_PRODUCTS = [
   { _id: "p1", name: "99-c1", description: "cheap", price: 99, category: "c1" },
   {
@@ -56,7 +56,7 @@ const applyFind = (args) => {
   });
 };
 
-// =============== Helpers ===============
+// ================= Helpers =================
 const mockRes = () => ({ status: jest.fn().mockReturnThis(), send: jest.fn() });
 
 const silenceConsole = () => {
@@ -83,7 +83,7 @@ const expect400 = (res) => {
   );
 };
 
-// =============== Tests ===============
+// ================= Tests =================
 describe("productFiltersController", () => {
   let restoreConsole;
 

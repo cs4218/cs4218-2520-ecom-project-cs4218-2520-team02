@@ -5,7 +5,7 @@ import "@testing-library/jest-dom/extend-expect";
 import Search from "../Search";
 import * as searchContext from "../../context/search";
 
-// =============== Mocks ===============
+// ================= Mocks =================
 jest.mock("../../components/Layout", () => {
   return function Layout({ children }) {
     return <div data-testid="layout">{children}</div>;
@@ -14,7 +14,7 @@ jest.mock("../../components/Layout", () => {
 
 jest.mock("../../context/search");
 
-// =============== Mock data ===============
+// ================= Mock Data =================
 const oneProduct = [
   {
     _id: "1",
@@ -51,7 +51,7 @@ const fourProducts = [
   },
 ];
 
-// =============== Tests ===============
+// ================= Tests =================
 describe("Search Page", () => {
   afterEach(() => {
     jest.clearAllMocks();

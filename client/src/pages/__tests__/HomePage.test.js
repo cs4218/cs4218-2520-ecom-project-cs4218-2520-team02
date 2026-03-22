@@ -13,6 +13,7 @@ import toast from "react-hot-toast";
 import "@testing-library/jest-dom/extend-expect";
 import HomePage from "../HomePage";
 
+// ================= Mocks =================
 jest.mock("axios");
 jest.mock("react-hot-toast", () => ({
   success: jest.fn(),
@@ -72,7 +73,7 @@ window.matchMedia =
     };
   };
 
-// =============== Mock data ===============
+// ================= Mock Data =================
 const mockCategories = [
   { _id: "1", name: "Electronics" },
   { _id: "2", name: "Clothing" },
@@ -104,7 +105,7 @@ const product3 = {
   slug: "book",
 };
 
-// =============== Helpers ===============
+// ================= Helpers =================
 const renderHome = () =>
   render(
     <MemoryRouter>
@@ -162,7 +163,7 @@ const waitForProductsToRender = async () => {
   await screen.findByText("Laptop");
 };
 
-// =============== Tests ===============
+// ================= Tests =================
 describe("HomePage", () => {
   let restoreConsole;
   let restoreConsoleError;

@@ -12,7 +12,7 @@ import { AuthProvider } from "../../context/auth";
 import { SearchProvider } from "../../context/search";
 import { CartProvider, useCart } from "../../context/cart";
 
-// =============== Mocks ===============
+// ================= Mocks =================
 jest.mock("axios");
 jest.mock("react-hot-toast", () => ({
   success: jest.fn(),
@@ -34,7 +34,7 @@ jest.mock("../../components/Form/SearchInput", () => () => (
   <div data-testid="search-input" />
 ));
 
-// =============== Test environment shims ===============
+// Browser API test doubles used by HomePage during rendering.
 Object.defineProperty(window, "localStorage", {
   value: {
     setItem: jest.fn(),
@@ -74,7 +74,7 @@ const silenceActWarning = () => {
   return () => spy.mockRestore();
 };
 
-// =============== Mock data ===============
+// ================= Mock Data =================
 const mockCategories = [
   { _id: "1", name: "Electronics" },
   { _id: "2", name: "Clothing" },
@@ -104,13 +104,12 @@ const p3 = {
   slug: "book",
 };
 
-// =============== Probes ===============
+// ================= Helpers =================
 const CartProbe = () => {
   const [cart] = useCart();
   return <div data-testid="cart-len">{cart.length}</div>;
 };
 
-// =============== Helpers ===============
 const renderHomeRoute = () =>
   render(
     <AuthProvider>
@@ -171,7 +170,7 @@ const waitForPage1 = async () => {
   await screen.findByText("NUS T-shirt");
 };
 
-// =============== Tests ===============
+// ================= Tests =================
 describe("HomePage integration", () => {
   let restoreConsole;
   let restoreConsoleError;

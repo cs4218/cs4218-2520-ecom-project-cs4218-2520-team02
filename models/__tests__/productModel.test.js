@@ -5,7 +5,9 @@ import { jest } from "@jest/globals";
 
 const { default: Product } = await import("../productModel.js");
 
+// ================= Tests =================
 describe("Products model", () => {
+  // ================= Helpers =================
   const oid = () => new mongoose.Types.ObjectId();
 
   const base = (overrides = {}) => ({
