@@ -269,114 +269,8 @@ describe("CartPage + AuthProvider - guest vs authenticated rendering", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders cart items with name, description and price", async () => {
-    // Arrange
-    axios.get.mockImplementation((url) => {
-      if (url === "/api/v1/product/braintree/token") {
-        return Promise.resolve({
-          data: { success: true, token: "fake-client-token" },
-        });
-      }
-      return Promise.resolve({ data: { category: [] } });
-    });
-
-    // Act
-    const initialAuth = {
-      token: "user-token",
-      user: mockedUser,
-    };
-
-    renderCartPage(initialAuth, mockCartItems);
-
-    // Assert
-    expect(await screen.findByText("Laptop")).toBeInTheDocument();
-    expect(screen.getByText("A powerful laptop")).toBeInTheDocument();
-    expect(screen.getByText("Price : 1,200")).toBeInTheDocument();
-
-    expect(screen.getByText("NUS T-shirt")).toBeInTheDocument();
-    expect(screen.getByText("Plain NUS T-shirt for sale")).toBeInTheDocument();
-    expect(screen.getByText("Price : 50")).toBeInTheDocument();
-  });
-
-  it("displays correct total price", async () => {
-    // Arrange
-    axios.get.mockImplementation((url) => {
-      if (url === "/api/v1/product/braintree/token") {
-        return Promise.resolve({
-          data: { success: true, token: "fake-client-token" },
-        });
-      }
-      return Promise.resolve({ data: { category: [] } });
-    });
-
-    // Act
-    const initialAuth = {
-      token: "user-token",
-      user: mockedUser,
-    };
-
-    renderCartPage(initialAuth, mockCartItems);
-
-    // Assert - total sum of product prices
-    expect(await screen.findByText(/Total : \$1,250\.00/i)).toBeInTheDocument();
-  });
-
-  it("removes item from cart when Remove button is clicked", async () => {
-    // Arrange
-    axios.get.mockImplementation((url) => {
-      if (url === "/api/v1/product/braintree/token") {
-        return Promise.resolve({
-          data: { success: true, token: "fake-client-token" },
-        });
-      }
-      return Promise.resolve({ data: { category: [] } });
-    });
-
-    // Act
-    const initialAuth = {
-      token: "user-token",
-      user: mockedUser,
-    };
-
-    renderCartPage(initialAuth, mockCartItems);
-
-    // Assert
-    expect(await screen.findByText("NUS T-shirt")).toBeInTheDocument();
-
-    const removeButtons = screen.getAllByRole("button", { name: /remove/i });
-    fireEvent.click(removeButtons[0]);
-
-    await waitFor(() => {
-      expect(screen.queryByText("NUS T-shirt")).not.toBeInTheDocument();
-    });
-
-    // Laptop still in cart
-    expect(screen.getByText("Laptop")).toBeInTheDocument();
-
-    // localStorage updated
-    const stored = JSON.parse(localStorage.getItem(`cart_guest`));
-    expect(stored).toHaveLength(1);
-    expect(stored[0]._id).toBe("p2");
-  });
-
-  // ── Address handling ─────────────────────────────────────────────────────────
-
-  it("shows current address and update button when address is set", async () => {
-    // Arrange
-    axios.get.mockImplementation((url) => {
-      if (url === "/api/v1/product/braintree/token") {
-        return Promise.resolve({
-          data: { success: true, token: "fake-client-token" },
-        });
-      }
-      return Promise.resolve({ data: { category: [] } });
-    });
-
-    // Act
-    const initialAuth = {
-      token: "user-token",
-      user: mockedUser,
-    };
+  it("shows current address and update button when auth user has address", async () => {
+    mockAxiosGet();
 
     renderCartPage({ token: "user-token", user: mockedUser }, mockCartItems);
 
@@ -429,7 +323,7 @@ describe("CartPage + CartProvider - cart state integration", () => {
 
     expect(await screen.findByText("NUS T-shirt")).toBeInTheDocument();
     expect(screen.getByText("Plain NUS T-shirt for sale")).toBeInTheDocument();
-    expect(screen.getByText("Price : 1200")).toBeInTheDocument();
+    expect(screen.getByText("Price : 1,200")).toBeInTheDocument();
 
     expect(screen.getByText("Laptop")).toBeInTheDocument();
     expect(screen.getByText("A powerful laptop")).toBeInTheDocument();
