@@ -24,3 +24,30 @@ export async function deleteCategory(page: Page, categoryName: string): Promise<
   await expect(page.getByText("Category is deleted", { exact: true })).toBeVisible();
   await expect(page.locator("tr", { hasText: categoryName })).toHaveCount(0);
 }
+
+export async function navigateToCategory(
+  page: Page,
+  categoryName: string
+): Promise<void> {
+  await page.goto("/");
+
+  const categoriesDropdown = page.locator(".nav-link.dropdown-toggle", {
+    hasText: "Categories",
+  });
+  await categoriesDropdown.click();
+
+  const dropdownMenu = page.locator(".dropdown-menu").filter({
+    has: page.getByText("All Categories"),
+  });
+  await expect(dropdownMenu).toBeVisible();
+
+  const categoryLink = dropdownMenu
+    .locator(".dropdown-item")
+    .getByText(categoryName);
+  await expect(categoryLink).toBeVisible();
+  await categoryLink.click();
+
+  await expect(
+    page.getByRole("heading", { name: `Category - ${categoryName}` })
+  ).toBeVisible();
+}
