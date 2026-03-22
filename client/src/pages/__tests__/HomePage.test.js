@@ -294,6 +294,36 @@ describe("HomePage", () => {
   });
 
   describe("Pagination and Load More (EP)", () => {
+    test("does not request the next page when loadMore sees products.length already at total", async () => {
+      // Arrange
+      let lengthReads = 0;
+      const staleProducts = {
+        map: (callback) => [mockProducts[0]].map(callback),
+        get length() {
+          lengthReads += 1;
+          return lengthReads === 1 ? 1 : 2;
+        },
+      };
+
+      setupAxios({ total: 2, products: staleProducts });
+
+      // Act
+      renderHome();
+      await screen.findByText("Laptop");
+      const loadMoreButton = await screen.findByText(/Load more/i);
+
+      axios.get.mockClear();
+      fireEvent.click(loadMoreButton);
+
+      // Assert
+      await waitFor(() =>
+        expect(axios.get).not.toHaveBeenCalledWith(
+          "/api/v1/product/product-list/2",
+        ),
+      );
+      expect(screen.queryByText("Loading ...")).not.toBeInTheDocument();
+    });
+
     test("shows loading text while Load more is in progress", async () => {
       // Arrange
       let resolveLoadMore;
@@ -587,6 +617,25 @@ describe("HomePage", () => {
       expect(window.localStorage.setItem).toHaveBeenCalledTimes(1);
       expect(window.localStorage.setItem).toHaveBeenCalledWith(
         "cart_user-123",
+        JSON.stringify(nextCart),
+      );
+      expect(toast.success).toHaveBeenCalledWith("Item Added to cart");
+    });
+
+    test("ADD TO CART persists guest carts under the guest key when no authenticated user exists", async () => {
+      // Arrange
+      mockUseAuth.mockReturnValue([null, jest.fn()]);
+
+      // Act
+      renderHome();
+      await waitForProductsToRender();
+      fireEvent.click((await screen.findAllByText("ADD TO CART"))[0]);
+
+      // Assert
+      await waitFor(() => expect(mockSetCart).toHaveBeenCalledTimes(1));
+      const nextCart = mockSetCart.mock.calls[0][0];
+      expect(window.localStorage.setItem).toHaveBeenCalledWith(
+        "cart_guest",
         JSON.stringify(nextCart),
       );
       expect(toast.success).toHaveBeenCalledWith("Item Added to cart");

@@ -1,0 +1,62 @@
+export default {
+  projects: [
+    {
+      displayName: "backend-sonar",
+      testEnvironment: "node",
+      testMatch: [
+        "<rootDir>/**/__tests__/**/*.test.js",
+        "<rootDir>/**/__tests__/**/*.integration.test.js",
+        "<rootDir>/controllers/*.test.js",
+        "<rootDir>/controllers/*.integration.test.js",
+        "<rootDir>/helpers/*.test.js",
+        "<rootDir>/helpers/*.integration.test.js",
+        "<rootDir>/middlewares/*.test.js",
+        "<rootDir>/middlewares/*.integration.test.js",
+        "<rootDir>/models/*.test.js",
+        "<rootDir>/models/*.integration.test.js",
+        "<rootDir>/routes/*.integration.test.js",
+      ],
+      testPathIgnorePatterns: ["<rootDir>/client/"],
+      collectCoverageFrom: [
+        "controllers/**",
+        "middlewares/**",
+        "models/**",
+        "routes/**",
+        "helpers/**",
+        "!**/*.test.js",
+        "!**/*.integration.test.js",
+        "!controllers/__tests__/**/utils/**",
+      ],
+    },
+    {
+      displayName: "frontend-sonar",
+      testEnvironment: "jest-environment-jsdom",
+      transform: {
+        "^.+\\.jsx?$": "babel-jest",
+      },
+      moduleNameMapper: {
+        "\\.(css|scss)$": "identity-obj-proxy",
+      },
+      transformIgnorePatterns: ["/node_modules/(?!(styleMock\\.js)$)"],
+      testMatch: [
+        "<rootDir>/client/src/**/*.test.js",
+        "<rootDir>/client/src/**/*.integration.test.js",
+      ],
+      testPathIgnorePatterns: ["<rootDir>/client/src/_site/"],
+      collectCoverageFrom: [
+        "client/src/pages/**",
+        "client/src/components/**",
+        "client/src/hooks/**",
+        "client/src/context/**",
+        "!client/src/_site/**",
+        "!client/**/*.test.js",
+        "!client/**/*.integration.test.js",
+        "!client/**/*.unit.test.js",
+      ],
+      setupFilesAfterEnv: ["<rootDir>/client/src/setupTests.js"],
+    },
+  ],
+  collectCoverage: true,
+  coverageDirectory: "<rootDir>/coverage/sonar",
+  coverageReporters: ["lcov", "text-summary"],
+};
