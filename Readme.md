@@ -312,14 +312,42 @@ To begin unit testing with Jest in your project, follow these steps:
    - getSingleProductController
    - productPhotoController
 
-**Frontend Unit Tests**:
-- client/src/pages/admin/CreateProduct.js
+**Backend Integration Tests**:
+- `controllers/__tests__/productController/integration/getProductController.integration.test.js`
+- `controllers/__tests__/productController/integration/getSingleProductController.integration.test.js`
+- `controllers/__tests__/productController/integration/productPhotoController.integration.test.js`
+- `controllers/__tests__/productController/integration/createProductController.integration.test.js`
+- `controllers/__tests__/productController/integration/updateProductController.integration.test.js`
+- `controllers/__tests__/productController/integration/deleteProductController.integration.test.js`
 
-**Enhancements**
-- Added input validation to `productPhotoController()`, `getSingleProductController()`, and `deleteProductController()`
-- Replaced loose field access (switch (true) / case !name) with explicit trimming and proper type-safe validation in `createProductController()` and `updateProductController()`
-- Added input validation to `CreateProduct.js` to check for missing fields and show error messages instead of crashing the form.
-- Fix typos and enhance comments in `productController.js` and `CreateProduct.js`
+**Frontend Unit Tests**:
+- `client/src/pages/admin/CreateProduct.js`
+- `client/src/pages/admin/UpdateProduct.js`
+- `client/src/pages/admin/Products.js`
+- `client/src/pages/CategoryProduct.js`
+- `client/src/pages/ProductDetails.js`
+
+**Frontend Integration Tests**:
+- `client/src/pages/admin/Products.integration.test.js`
+- `client/src/pages/admin/CreateProduct.integration.test.js`
+- `client/src/pages/admin/UpdateProduct.integration.test.js`
+
+**E2E Tests (Playwright)**:
+- `__tests__/e2e/flows/category-product-browsing.spec.ts`
+- `__tests__/e2e/flows/auth-flow.spec.ts`
+
+**Enhancements**:
+- Implemented **Add to Cart** on `CategoryProduct.js` and `ProductDetails.js`.
+- Clearer error messaging when product/category fetches fail on admin **Products** and **UpdateProduct**; user feedback when categories are missing or product load fails.
+- Added input validation to `productPhotoController()`, `getSingleProductController()`, and `deleteProductController()`.
+- Replaced loose field checks with explicit trimming and type-safe validation in `createProductController()` and `updateProductController()`.
+- Added input validation to `CreateProduct.js` for missing fields with visible errors; improved comments and typos in `productController.js` and `CreateProduct.js`.
+- `CartPage.js`: format each line-item price with `toLocaleString("en-US")` so cart rows match catalog/currency formatting
+
+**Bugs Identified and Squashed**:
+- `UpdateProduct.js`: missing `await` on `axios.put` in `handleUpdate` (error handling unreachable); **shipping** omitted from update FormData; shipping select values (`"yes"`/`"No"`) did not match options — use `"1"`/`"0"`; `onChange` now maps to boolean via `value === "1"` so “No” works.
+- `UpdateProduct.js`: `getAllCategory` now checks `data.categories.length` instead of `data?.success`; Layout title corrected from “Create Product” to “Update Product”; toast/delete-prompt typos fixed; toast on product fetch failure; removed duplicate `setPrice` in `getSingleProduct`.
+- `routes/productRoutes.js`: `DELETE /delete-product/:pid` had no auth — added `requireSignIn` and `isAdmin` (aligned with create/update).
 
 ### Gavin Sin Fu Chen (A0273285X)
 **Backend Unit Tests**:
