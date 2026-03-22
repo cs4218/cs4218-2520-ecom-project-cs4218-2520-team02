@@ -354,7 +354,7 @@ describe("CartPage + AuthProvider - guest vs authenticated rendering", () => {
     expect(screen.getByText("Laptop")).toBeInTheDocument();
 
     // localStorage updated
-    const stored = JSON.parse(localStorage.getItem(`cart_guest`));
+    const stored = JSON.parse(localStorage.getItem(`cart_${mockedUser._id}`));
     expect(stored).toHaveLength(1);
     expect(stored[0]._id).toBe("p2");
   });
@@ -429,7 +429,7 @@ describe("CartPage + CartProvider - cart state integration", () => {
 
     expect(await screen.findByText("NUS T-shirt")).toBeInTheDocument();
     expect(screen.getByText("Plain NUS T-shirt for sale")).toBeInTheDocument();
-    expect(screen.getByText("Price : 1200")).toBeInTheDocument();
+    expect(screen.getByText("Price : 1,200")).toBeInTheDocument();
 
     expect(screen.getByText("Laptop")).toBeInTheDocument();
     expect(screen.getByText("A powerful laptop")).toBeInTheDocument();
