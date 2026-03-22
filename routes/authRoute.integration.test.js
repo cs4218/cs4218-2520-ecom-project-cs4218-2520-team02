@@ -17,6 +17,7 @@ describe("Auth Route Integration", () => {
   let app;
 
   beforeAll(async () => {
+    process.env.JWT_SECRET = "testsecret";
     mongoServer = await MongoMemoryServer.create();
     await mongoose.connect(mongoServer.getUri());
 
@@ -35,6 +36,8 @@ describe("Auth Route Integration", () => {
 
   beforeEach(async () => {
     await userModel.deleteMany({});
+    // Suppress console log
+    jest.spyOn(console, "log").mockImplementation(() => {});
   });
 
   afterAll(async () => {
