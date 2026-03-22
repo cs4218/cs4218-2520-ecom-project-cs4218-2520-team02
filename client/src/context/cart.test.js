@@ -1,15 +1,14 @@
 // Song Jia Hui A0259494L
 import React from "react";
 import { render, screen, act, renderHook } from "@testing-library/react";
-import { CartProvider, useCart } from "./cart";
+import { CartProvider, useCart, mergeGuestCartIntoUserCart, getStoredCart } from "./cart";
 import "@testing-library/jest-dom";
+import { useAuth } from "../context/auth";
 
 jest.mock("../context/auth", () => ({
   __esModule: true,
   useAuth: jest.fn(),
 }));
-
-import { useAuth } from "../context/auth";
 
 const CartConsumer = () => {
   const [cart] = useCart();
@@ -20,7 +19,7 @@ const renderWithCartProvider = () => {
   return render(
     <CartProvider>
       <CartConsumer />
-    </CartProvider>
+    </CartProvider>,
   );
 };
 
@@ -33,7 +32,6 @@ describe("CartContext", () => {
       { user: null }, // guest user
       jest.fn(),
     ]);
-
   });
 
   beforeAll(() => {
@@ -68,7 +66,9 @@ describe("CartContext", () => {
     renderWithCartProvider();
 
     // Assert
-    expect(screen.getByTestId("cart").textContent).toBe(JSON.stringify(storedCart));
+    expect(screen.getByTestId("cart").textContent).toBe(
+      JSON.stringify(storedCart),
+    );
   });
 
   it("[EP] provides setCart to consumers and updates cart state correctly", () => {
@@ -86,7 +86,7 @@ describe("CartContext", () => {
     render(
       <CartProvider>
         <CartUpdater />
-      </CartProvider>
+      </CartProvider>,
     );
 
     // Act
@@ -95,7 +95,9 @@ describe("CartContext", () => {
     });
 
     // Assert
-    expect(screen.getByTestId("cart").textContent).toBe(JSON.stringify([newItem]));
+    expect(screen.getByTestId("cart").textContent).toBe(
+      JSON.stringify([newItem]),
+    );
   });
 
   it("[EP] ignores unrelated localStorage keys and initialises cart as empty array", () => {
@@ -113,7 +115,7 @@ describe("CartContext", () => {
     // Arrange
     localStorage.setItem("cart_guest", "not-valid-json");
 
-    // Act & Assert 
+    // Act & Assert
     expect(() => renderWithCartProvider()).not.toThrow();
   });
 
@@ -134,6 +136,100 @@ describe("CartContext", () => {
     expect(cart.length).toBe(2);
     expect(cart[0]).toEqual(duplicateItem);
     expect(cart[1]).toEqual(duplicateItem);
+  });
+
+  describe("getStoredCart", () => {
+    it("[EP] returns parsed cart when valid JSON exists for userId", () => {
+      // Arrange
+      const storedCart = [{ _id: "1", name: "Product A", price: 100 }];
+      localStorage.setItem("cart_user123", JSON.stringify(storedCart));
+
+      // Act
+      const result = getStoredCart("user123");
+
+      // Assert
+      expect(result).toEqual(storedCart);
+    });
+
+    it("[EP] returns empty array when no cart key exists for userId", () => {
+      // Arrange - localStorage is cleared in beforeEach
+
+      // Act
+      const result = getStoredCart("user123");
+
+      // Assert
+      expect(result).toEqual([]);
+    });
+
+    it("[EP] returns empty array when cart value is malformed JSON", () => {
+      // Arrange
+      localStorage.setItem("cart_user123", "not-valid-json");
+
+      // Act
+      const result = getStoredCart("user123");
+
+      // Assert
+      expect(result).toEqual([]);
+    });
+
+    it("[EP] defaults to guest key when no userId is provided", () => {
+      // Arrange
+      const guestCart = [{ _id: "g1", name: "Guest Product", price: 50 }];
+      localStorage.setItem("cart_guest", JSON.stringify(guestCart));
+
+      // Act
+      const result = getStoredCart();
+
+      // Assert
+      expect(result).toEqual(guestCart);
+    });
+  });
+
+  describe("mergeGuestCartIntoUserCart", () => {
+    it("[EP] merges guest cart into user cart and removes guest key", () => {
+      // Arrange
+      const guestCart = [{ _id: "g1", name: "Guest Item", price: 50 }];
+      const userCart = [{ _id: "u1", name: "User Item", price: 100 }];
+      localStorage.setItem("cart_guest", JSON.stringify(guestCart));
+      localStorage.setItem("cart_user123", JSON.stringify(userCart));
+
+      // Act
+      const result = mergeGuestCartIntoUserCart("user123");
+
+      // Assert
+      expect(result).toEqual([...userCart, ...guestCart]);
+      expect(localStorage.getItem("cart_guest")).toBeNull();
+      expect(JSON.parse(localStorage.getItem("cart_user123"))).toEqual([
+        ...userCart,
+        ...guestCart,
+      ]);
+    });
+
+    it("[EP] merges when only guest cart exists (empty user cart)", () => {
+      // Arrange
+      const guestCart = [{ _id: "g1", name: "Guest Item", price: 50 }];
+      localStorage.setItem("cart_guest", JSON.stringify(guestCart));
+
+      // Act
+      const result = mergeGuestCartIntoUserCart("user123");
+
+      // Assert
+      expect(result).toEqual(guestCart);
+      expect(localStorage.getItem("cart_guest")).toBeNull();
+    });
+
+    it("[EP] merges when only user cart exists (empty guest cart)", () => {
+      // Arrange
+      const userCart = [{ _id: "u1", name: "User Item", price: 100 }];
+      localStorage.setItem("cart_user123", JSON.stringify(userCart));
+
+      // Act
+      const result = mergeGuestCartIntoUserCart("user123");
+
+      // Assert
+      expect(result).toEqual(userCart);
+      expect(localStorage.getItem("cart_guest")).toBeNull();
+    });
   });
 
   // ========================================
@@ -392,7 +488,9 @@ describe("CartContext", () => {
           localStorage.setItem("cart_guest", JSON.stringify(initialCart));
         }
 
-        const { result } = renderHook(() => useCart(), { wrapper: CartProvider });
+        const { result } = renderHook(() => useCart(), {
+          wrapper: CartProvider,
+        });
 
         // Act
         operation(result);

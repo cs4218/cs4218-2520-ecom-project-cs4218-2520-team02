@@ -10,18 +10,13 @@ import toast from "react-hot-toast";
 import "../styles/CartStyles.css";
 
 export const removeCartItemState = (cart, pid, setCart, userId = "guest") => {
-  
-  const index = cart.findIndex((item) => item?._id === pid);
+  const exists = cart.some((item) => item?._id === pid);
+  if (!exists) return cart;
 
-  if (index !== -1) { // TRUE branch
-    const updatedCart = [...cart];
-    updatedCart.splice(index, 1);
-    setCart(updatedCart);
-    localStorage.setItem(`cart_${userId}`, JSON.stringify(updatedCart));
-    return updatedCart;
-  }
-
-  return cart; // FALSE branch
+  const updatedCart = cart.filter((item) => item?._id !== pid);
+  setCart(updatedCart);
+  localStorage.setItem(`cart_${userId}`, JSON.stringify(updatedCart));
+  return updatedCart;
 };
 
 const CartPage = () => {
@@ -119,7 +114,7 @@ const CartPage = () => {
           <div className="row ">
             <div className="col-md-7  p-0 m-0">
               {cart?.map((p, index) => (
-                <div className="row card flex-row" key={index}>
+                <div className="row card flex-row" key={`${p._id}-${index}`}>
                   <div className="col-md-4">
                     <img
                       src={`/api/v1/product/product-photo/${p._id}`}
