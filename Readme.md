@@ -177,23 +177,35 @@ To begin unit testing with Jest in your project, follow these steps:
 
 ## 6. Project Member Contributions
 ### Song Jia Hui (A0259494L)
+
 **Backend Unit Tests**:
-- models/orderModel.js
-- middlewares/authMiddleware.js
-- controllers/authController.js
-   - testController
-   - getOrdersController
-   - getAllOrdersController
-   - orderStatusController
+- models/orderModel.test.js
+- middlewares/authMiddleware.test.js
+- controllers/\_\_tests\_\_/orderController/integration/orderController.integration.test.js
+- controllers/testController.test.js
 
 **Frontend Unit Tests**:
-- client/src/pages/admin/AdminOrders.js
-- client/src/pages/user/Orders.js 
-- client/src/components/Routes/Private.js 
-- client/src/components/UserMenu.js 
-- client/src/pages/user/Dashboard.js 
-- client/src/context/cart.js
-- pages/cartpage.js 
+- client/src/pages/admin/AdminOrders.test.js
+- client/src/pages/user/Orders.test.js 
+- client/src/components/Routes/Private.test.js 
+- client/src/components/UserMenu.test.js 
+- client/src/pages/user/Dashboard.test.js 
+- client/src/context/cart.test.js
+- client/src/pages/CartPage.test.js
+
+**Backend Integration Tests**:
+- controllers/\_\_tests\_\_/orderController/integration/orderController.integration.test.js
+
+**Frontend Integration Tests**:
+- client/src/pages/CartPage.integration.test.js
+- client/src/pages/admin/AdminOrders.integration.test.js
+- client/src/pages/admin/Users.integration.test.js
+- client/src/pages/user/Dashboard.integration.test.js
+- client/src/components/Routes/Private.integration.test.js
+
+**E2E Tests**:
+- \_\_tests\_\_/e2e/flows/admin-view-flow.spec.ts
+- \_\_tests\_\_/e2e/flows/order-flow.spec.ts
 
 **Enhancements:**
 - authMiddleware (requireSignIn): Added missing header guard returning 401 when Authorization is absent; strips Bearer prefix before verification; wraps JWT.verify in try/catch to return 401 on invalid or expired tokens.
@@ -201,6 +213,7 @@ To begin unit testing with Jest in your project, follow these steps:
 - AdminOrders.js and orderModel.js: Corrected status value "Not Process" to "Not Processed" to match the Order schema enum.
 - CartPage.js: Added toast.error() on payment failure; fixed variable naming typos; improved error messages.
 - CartPage.js (totalPrice): Replaced .map() with .reduce() for accumulation; safely casts price with Number() and guards against NaN; skips null or undefined cart items with a warning.
+- Created a separate file for OrderController to separate the functionality of the controllers from the original AuthController file
 
 
 **Bugs Identified and Squashed:**
@@ -211,7 +224,8 @@ To begin unit testing with Jest in your project, follow these steps:
 - Orders.js and AdminOrders.js: Fixed o?.createAt to o?.createdAt 
 - CartPage.js (removeCartItem): Replaced findIndex and splice with .filter(). Or else, when the item was not found, splice(-1, 1) would silently remove the last cart item instead.
 - CartPage.js (duplicate items): Changed cart .map() key from p._id to `${p._id}-${i}`. Since duplicate products shared the same key, React might incorrectly remove both items when only one was deleted.
-
+- Homepage.js and CategoryProduct.js: Fixed race conditions on fast double clicks when user adds to cart 
+- Homepage.js, cart.js, CategoryProduct.js: Fixed shared cart issue to allow for users to have carts specific to their account. Guest user will have their carts transferred to the first user that logs in.
 
 
 ### Yap Zhao Yi (A0277540B)
@@ -390,6 +404,10 @@ To begin unit testing with Jest in your project, follow these steps:
    - comparePassword
 - controllers/userController.js (self-added)
 
+**Backend Integration Tests**:
+- routes/authRoute.integration.test.js
+- controllers/authController.integration.test.js
+
 **Frontend Unit Tests**:
 - client/src/pages/Auth/Register.js
 - client/src/pages/Auth/Login.js
@@ -399,6 +417,15 @@ To begin unit testing with Jest in your project, follow these steps:
 - client/src/pages/user/Profile.js
 - client/src/pages/admin/Users.js
 - client/src/components/UserList.js (self-added)
+
+**Frontend Integration Tests**:
+- client/src/pages/Auth/Login.integration.test.js
+- client/src/pages/Auth/Register.integration.test.js
+- client/src/pages/user/Profile.integration.test.js
+- client/src/pages/admin/AdminDashboard.integration.test.js
+
+**E2E Tests**:
+- \_\_tests\_\_/e2e/profile-crud.spec.ts
 
 **Enhancements**
 - Added input type string validation for `comparePassword` function

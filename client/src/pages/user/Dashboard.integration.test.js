@@ -1,4 +1,8 @@
 // Song Jia Hui A0259494L
+// Integration tests: Dashboard + Layout + UserMenu
+// Approach: Top-down integration - Dashboard is rendered inside real context
+// providers (AuthProvider, SearchProvider, CartProvider) and real routing.
+
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
@@ -9,7 +13,7 @@ import { AuthProvider } from "../../context/auth";
 import { CartProvider } from "../../context/cart";
 import { SearchProvider } from "../../context/search";
 
-jest.mock("axios");
+// ─── Fixtures ────────────────────────────────────────────────────────────────
 
 const mockedUser = {
   name: "Alice Tan",
@@ -19,6 +23,11 @@ const mockedUser = {
   phone: "12345678",
 };
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+/**
+ * Renders Dashboard directly (no PrivateRoute wrapper) inside real providers.
+ */
 const renderDashboard = (initialAuth = null) => {
   if (initialAuth) localStorage.setItem("auth", JSON.stringify(initialAuth));
   else localStorage.removeItem("auth");
@@ -38,71 +47,77 @@ const renderDashboard = (initialAuth = null) => {
   );
 };
 
-describe("User Dashboard", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    localStorage.clear();
-    axios.get.mockResolvedValue({ data: { category: [] } });
-  });
+// ─── Spies ───────────────────────────────────────────────────────────────────
 
-  afterEach(() => {
-    localStorage.clear();
-  });
+let axiosGetSpy;
 
-  beforeAll(() => {
-    jest.spyOn(console, "log").mockImplementation(() => {});
-  });
-  afterAll(() => {
-    jest.restoreAllMocks();
-  });
+beforeAll(() => {
+  jest.spyOn(console, "log").mockImplementation(() => {});
+  jest.spyOn(console, "error").mockImplementation(() => {});
+  jest.spyOn(console, "warn").mockImplementation(() => {});
+});
 
-  it("renders user name, email and address when authenticated", async () => {
-    // Arrange - set authenticated state with mocked user
-    const initialAuth = {
-      token: "user-token",
-      user: mockedUser,
-    };
+afterAll(() => {
+  jest.restoreAllMocks();
+});
 
-    // Act
-    renderDashboard(initialAuth);
+beforeEach(() => {
+  localStorage.clear();
+  axiosGetSpy = jest.spyOn(axios, "get");
+  axiosGetSpy.mockResolvedValue({ data: { success: true, categories: [] } });
+});
 
-    // Assert
+afterEach(() => {
+  axiosGetSpy.mockRestore();
+  localStorage.clear();
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUITE 1: Dashboard + AuthProvider - user field rendering
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("Dashboard + AuthProvider - user field rendering", () => {
+  it("renders user name, email and address from shared auth context", async () => {
+    renderDashboard({ token: "user-token", user: mockedUser });
+
     const name = await screen.findAllByText("Alice Tan");
-
     expect(name[0]).toBeInTheDocument();
     expect(screen.getByText("alice@example.com")).toBeInTheDocument();
     expect(screen.getByText("123 Main Street")).toBeInTheDocument();
   });
 
-  it("renders nothing for user fields when not authenticated", async () => {
-    // Act - no auth state
+  it("renders empty user fields when no auth state is present", async () => {
     renderDashboard(null);
 
-    // Assert
     await waitFor(() => {
       expect(screen.queryByText("Alice Tan")).not.toBeInTheDocument();
     });
-
-    await waitFor(() => {
-      expect(screen.queryByText("alice@example.com")).not.toBeInTheDocument();
-    });
-
-    await waitFor(() => {
-      expect(screen.queryByText("123 Main Street")).not.toBeInTheDocument();
-    });
+    expect(screen.queryByText("alice@example.com")).not.toBeInTheDocument();
+    expect(screen.queryByText("123 Main Street")).not.toBeInTheDocument();
   });
 
-  it("renders dashboard layout with correct layout, footer and header", async () => {
-    // Arrange - set authenticated state with mocked user
-    const initialAuth = {
-      token: "user-token",
-      user: mockedUser,
-    };
+  it("renders only available fields when user object is incomplete", async () => {
+    renderDashboard({ token: "user-token", user: { name: "Bob" } });
 
-    // Act
-    renderDashboard(initialAuth);
+    const allNames = await screen.findAllByText("Bob");
+    expect(allNames.length).toBeGreaterThan(0);
 
-    // Assert
+    const headings = screen.getAllByRole("heading", { level: 3 });
+    expect(headings).toHaveLength(3);
+    expect(headings[0]).toHaveTextContent("Bob");
+    expect(headings[1]).toHaveTextContent("");
+    expect(headings[2]).toHaveTextContent("");
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUITE 2: Dashboard + Layout - real render chain
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("Dashboard + Layout - real render chain", () => {
+  it("renders correct page title, navbar and footer via real Layout", async () => {
+    renderDashboard({ token: "user-token", user: mockedUser });
+
     await waitFor(() => {
       expect(document.title).toBe("Dashboard - Ecommerce App");
     });
@@ -114,45 +129,50 @@ describe("User Dashboard", () => {
     expect(screen.getByText("Contact")).toBeInTheDocument();
   });
 
-  it("renders user menu links", async () => {
-    // Arrange - set authenticated state with mocked user
-    const initialAuth = {
-      token: "user-token",
-      user: mockedUser,
-    };
+  it("Layout's header fetches categories and renders them when available", async () => {
+    const mockCategories = [
+      { _id: "cat1", name: "Electronics", slug: "electronics" },
+      { _id: "cat2", name: "Clothing", slug: "clothing" },
+    ];
 
-    // Act
-    renderDashboard(initialAuth);
+    axiosGetSpy.mockResolvedValueOnce({
+      data: {
+        success: true,
+        categories: mockCategories,
+      },
+    });
 
-    // Assert
-    const allNames = await screen.findAllByText("Alice Tan");
-    expect(allNames.length).toBeGreaterThan(0);
+    renderDashboard({ token: "user-token", user: mockedUser });
 
-    expect(screen.getByRole("link", { name: /profile/i })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(axiosGetSpy).toHaveBeenCalledWith("/api/v1/category/get-category");
+    });
+
+    // Categories rendered in Layout's navbar dropdown - not Dashboard
+    expect(await screen.findByText("Electronics")).toBeInTheDocument();
+    expect(screen.getByText("Clothing")).toBeInTheDocument();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUITE 3: Dashboard + UserMenu - nav link integration
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("Dashboard + UserMenu - nav link integration", () => {
+  it("renders Profile and Orders nav links via real UserMenu", async () => {
+    renderDashboard({ token: "user-token", user: mockedUser });
+
+    expect(
+      await screen.findByRole("link", { name: /profile/i }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /orders/i })).toBeInTheDocument();
   });
 
-  it("renders partially when user is missing optional fields", async () => {
-    // Arrange
-    const initialAuth = {
-      token: "user-token",
-      user: {
-        name: "Bob",
-      },
-    };
+  it("user name appears in both Dashboard card and UserMenu from same auth context", async () => {
 
-    // Act
-    renderDashboard(initialAuth);
+    renderDashboard({ token: "user-token", user: mockedUser });
 
-    // Assert
-    const allNames = await screen.findAllByText("Bob");
-    expect(allNames.length).toBeGreaterThan(0);
-
-    // email and address render but are empty
-    const headings = screen.getAllByRole("heading", { level: 3 });
-    expect(headings.length).toBe(3);
-    expect(headings[0]).toHaveTextContent("Bob");
-    expect(headings[1]).toHaveTextContent("");
-    expect(headings[2]).toHaveTextContent("");
+    const allNames = await screen.findAllByText("Alice Tan");
+    expect(allNames.length).toBeGreaterThan(1);
   });
 });
