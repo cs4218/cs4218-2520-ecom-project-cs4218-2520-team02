@@ -6,7 +6,7 @@ const { default: productModel } =
   await import("../../../../models/productModel.js");
 const { relatedProductController } = await import("../../../productController.js");
 
-// =============== Helpers ===============
+// ================= Helpers =================
 const mockRes = () => ({
   status: jest.fn().mockReturnThis(),
   send: jest.fn(),
@@ -42,7 +42,7 @@ const makeQueryChain = (finalProducts = []) => ({
   populate: jest.fn().mockResolvedValue(finalProducts),
 });
 
-// =============== Tests ===============
+// ================= Tests =================
 describe("relatedProductController", () => {
   let restoreConsole;
 

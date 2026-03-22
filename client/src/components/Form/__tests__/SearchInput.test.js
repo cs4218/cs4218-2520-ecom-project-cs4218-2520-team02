@@ -11,7 +11,7 @@ import "@testing-library/jest-dom/extend-expect";
 import axios from "axios";
 import SearchInput from "../SearchInput";
 
-// =============== Mocks ===============
+// ================= Mocks =================
 jest.mock("axios");
 
 const mockNavigate = jest.fn();
@@ -27,7 +27,7 @@ jest.mock("../../../context/search", () => ({
   useSearch: () => [mockValues, mockSetValues],
 }));
 
-// =============== Helpers ===============
+// ================= Helpers =================
 const renderSearch = () => render(<SearchInput />);
 
 const silenceConsole = () => {
@@ -35,7 +35,7 @@ const silenceConsole = () => {
   return () => logSpy.mockRestore();
 };
 
-// =============== Tests ===============
+// ================= Tests =================
 describe("SearchInput", () => {
   let restoreConsole;
 

@@ -13,7 +13,7 @@ import { AuthProvider } from "../../../context/auth";
 import { SearchProvider } from "../../../context/search";
 import { CartProvider } from "../../../context/cart";
 
-// =============== Mocks ===============
+// ================= Mocks =================
 jest.mock("axios");
 jest.mock("react-hot-toast", () => ({
   success: jest.fn(),
@@ -32,7 +32,7 @@ jest.mock("../../../components/Spinner", () => () => (
   <div data-testid="spinner">Spinner</div>
 ));
 
-// =============== localStorage shim ===============
+// Browser API test doubles used by AdminRoute and auth storage access.
 Object.defineProperty(window, "localStorage", {
   value: {
     setItem: jest.fn(),
@@ -53,13 +53,13 @@ const setAuthInStorage = (authObjOrNull) => {
   );
 };
 
-// =============== Mock data ===============
+// ================= Mock Data =================
 const mockCategories = [
   { _id: "1", name: "Electronics" },
   { _id: "2", name: "Clothing" },
 ];
 
-// =============== Render with real AdminRoute nesting ===============
+// ================= Helpers =================
 const renderAdminCreateCategoryRoute = () =>
   render(
     <AuthProvider>
@@ -83,6 +83,7 @@ const waitForInitialRows = async () => {
   await screen.findByText("Clothing");
 };
 
+// ================= Tests =================
 describe("CreateCategory integration (AdminRoute gate + CRUD)", () => {
   let restoreConsole;
 

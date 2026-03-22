@@ -6,7 +6,7 @@ const { default: productModel } =
   await import("../../../../models/productModel.js");
 const { productCountController } = await import("../../../productController.js");
 
-// =============== Helpers ===============
+// ================= Helpers =================
 const mockRes = () => ({
   status: jest.fn().mockReturnThis(),
   send: jest.fn(),
@@ -38,7 +38,7 @@ const expect400 = (res) => {
   });
 };
 
-// =============== Tests ===============
+// ================= Tests =================
 describe("productCountController", () => {
   let restoreConsole;
 

@@ -1,7 +1,7 @@
 // Censon Lee Lemuel John Alejo, A0273436B
 import {test, expect} from "@playwright/test";
 
-// =============== Tests ===============
+// ================= Tests =================
 test.describe("Search", () => {
   test('should show intended results', async ({ page }) => { 
     await page.goto("/")

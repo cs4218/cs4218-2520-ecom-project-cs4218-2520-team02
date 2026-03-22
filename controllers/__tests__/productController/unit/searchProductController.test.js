@@ -6,7 +6,7 @@ const { default: productModel } =
   await import("../../../../models/productModel.js");
 const { searchProductController } = await import("../../../productController.js");
 
-// =============== Helpers ===============
+// ================= Helpers =================
 const mockRes = () => ({
   status: jest.fn().mockReturnThis(),
   send: jest.fn(),
@@ -51,7 +51,7 @@ const makeQuery = (finalResults = []) => ({
   select: jest.fn().mockResolvedValue(finalResults), // await ...select()
 });
 
-// =============== Tests ===============
+// ================= Tests =================
 describe("searchProductController", () => {
   let restoreConsole;
 

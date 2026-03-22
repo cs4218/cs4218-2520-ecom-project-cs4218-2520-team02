@@ -5,7 +5,7 @@ import { TEST_ADMIN_NAME} from "../helpers/auth";
 import { logout } from "../helpers/auth";
 import { uniqueName, gotoCreateCategory, createCategory } from "../helpers/category";
 
-// =============== Tests ===============
+// ================= Tests =================
 
 test.describe("Admin Category CRUD", () => {
   test.beforeEach(async ({ page }) => {

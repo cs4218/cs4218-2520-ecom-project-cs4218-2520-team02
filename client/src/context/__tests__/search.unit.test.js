@@ -4,7 +4,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
 import { SearchProvider, useSearch } from "../search";
 
-// =============== Mocks ===============
+// ================= Mocks =================
 const Consumer = () => {
   const [state, setState] = useSearch();
 
@@ -29,7 +29,7 @@ const Consumer = () => {
   );
 };
 
-// =============== Tests ===============
+// ================= Tests =================
 describe("SearchContext", () => {
   describe("Smoke", () => {
     test("renders children inside SearchProvider", () => {

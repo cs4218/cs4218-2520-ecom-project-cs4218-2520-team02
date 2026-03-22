@@ -13,7 +13,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import CreateCategory from "../CreateCategory";
 
-// =============== Mocks ===============
+// ================= Mocks =================
 jest.mock("axios");
 
 jest.mock("react-hot-toast", () => ({
@@ -58,13 +58,13 @@ jest.mock("antd", () => ({
     ) : null,
 }));
 
-// =============== Mock data ===============
+// ================= Mock Data =================
 const mockCategories = [
   { _id: "1", name: "Electronics" },
   { _id: "2", name: "Clothing" },
 ];
 
-// =============== Helpers ===============
+// ================= Helpers =================
 const setupAxios = ({
   get = { success: true, categories: mockCategories },
   post = { success: true },
@@ -82,7 +82,7 @@ const silenceConsole = () => {
   return () => logSpy.mockRestore();
 };
 
-// =============== Tests ===============
+// ================= Tests =================
 describe("CreateCategory", () => {
   let restoreConsole;
 

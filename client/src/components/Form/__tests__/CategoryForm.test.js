@@ -4,7 +4,7 @@ import { render, fireEvent, screen, cleanup } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
 import CategoryForm from "../CategoryForm";
 
-// =============== Helpers ===============
+// ================= Helpers =================
 const renderCategoryForm = (props = {}) => {
   const defaults = {
     handleSubmit: jest.fn((e) => e.preventDefault()),
@@ -15,7 +15,7 @@ const renderCategoryForm = (props = {}) => {
   return render(<CategoryForm {...defaults} {...props} />);
 };
 
-// =============== Tests ===============
+// ================= Tests =================
 describe("CategoryForm", () => {
   afterEach(() => cleanup());
 

@@ -10,6 +10,7 @@ import {
   deleteProduct,
 } from "../helpers/product";
 
+// ================= Tests =================
 test.describe("Admin Product CRUD", () => {
   test.afterEach(async ({ page }) => {
     await logout(page, TEST_ADMIN_NAME);
