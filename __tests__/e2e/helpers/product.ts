@@ -51,7 +51,7 @@ export async function createProduct(
 
   await page.getByPlaceholder("Enter product name").fill(productName);
   await page.getByPlaceholder("Enter product description").fill("E2E description");
-  await page.getByPlaceholder("Enter product price").fill("10");
+  await page.getByPlaceholder("Enter product price").fill("10.99");
   await page.getByPlaceholder("Enter product quantity").fill("3");
   await selectAntdOption(page, "Select shipping", "Yes");
 

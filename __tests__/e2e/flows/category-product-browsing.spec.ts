@@ -115,7 +115,6 @@ test.describe("Category to Product Browsing Flow", () => {
 
       const cartItem = cartItems.first();
       await expect(cartItem.locator("p").first()).toHaveText(productName);
-      // await expect(cartItem.locator("img")).toHaveAttribute("alt", productName); // Image alt behavior might vary on create
       await expect(cartItem.locator("p").nth(2)).toHaveText(
         `Price : ${productPrice}`
       );
