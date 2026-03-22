@@ -21,6 +21,7 @@ describe("Auth Controller Integration Tests", () => {
   let app;
 
   beforeAll(async () => {
+    process.env.JWT_SECRET = "testsecret";
     mongoServer = await MongoMemoryServer.create();
     await mongoose.connect(mongoServer.getUri());
 
