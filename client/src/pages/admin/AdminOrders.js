@@ -8,16 +8,15 @@ import { Select } from "antd";
 const { Option } = Select;
 
 const AdminOrders = () => {
-  const [status, setStatus] = useState([
+  const [status] = useState([
     "Not Processed",
     "Processing",
     "Shipped",
     "Delivered",
     "Cancelled",
   ]);
-  const [changeStatus, setChangeStatus] = useState("");
   const [orders, setOrders] = useState([]);
-  const [auth, setAuth] = useAuth();
+  const [auth] = useAuth();
   const getOrders = async () => {
     try {
       const { data } = await axios.get("/api/v1/auth/all-orders");
@@ -37,7 +36,7 @@ const AdminOrders = () => {
 
   const handleChange = async (orderId, value) => {
     try {
-      const { data } = await axios.put(`/api/v1/auth/order-status/${orderId}`, {
+      await axios.put(`/api/v1/auth/order-status/${orderId}`, {
         status: value,
       });
       getOrders();
