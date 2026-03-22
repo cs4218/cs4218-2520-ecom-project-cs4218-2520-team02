@@ -404,6 +404,10 @@ To begin unit testing with Jest in your project, follow these steps:
    - comparePassword
 - controllers/userController.js (self-added)
 
+**Backend Integration Tests**:
+- routes/authRoute.integration.test.js
+- controllers/authController.integration.test.js
+
 **Frontend Unit Tests**:
 - client/src/pages/Auth/Register.js
 - client/src/pages/Auth/Login.js
@@ -413,6 +417,15 @@ To begin unit testing with Jest in your project, follow these steps:
 - client/src/pages/user/Profile.js
 - client/src/pages/admin/Users.js
 - client/src/components/UserList.js (self-added)
+
+**Frontend Integration Tests**:
+- client/src/pages/Auth/Login.integration.test.js
+- client/src/pages/Auth/Register.integration.test.js
+- client/src/pages/user/Profile.integration.test.js
+- client/src/pages/admin/AdminDashboard.integration.test.js
+
+**E2E Tests**:
+- \_\_tests\_\_/e2e/profile-crud.spec.ts
 
 **Enhancements**
 - Added input type string validation for `comparePassword` function
