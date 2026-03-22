@@ -11,7 +11,7 @@ import {
 
 const { app } = setupProductIntegrationSuite();
 
-// =============== Helpers ===============
+// ================= Helpers =================
 function buildPagedProducts(category) {
   return seedProducts([
     {

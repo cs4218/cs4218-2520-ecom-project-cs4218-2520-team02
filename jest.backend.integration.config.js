@@ -8,6 +8,7 @@ export default {
   // which test to run
   testMatch: [
     "<rootDir>/**/__tests__/**/*.integration.test.js",
+    "<rootDir>/routes/*.integration.test.js",
     "<rootDir>/controllers/*.integration.test.js",
     "<rootDir>/helpers/*.integration.test.js",
     "<rootDir>/middlewares/*.integration.test.js",

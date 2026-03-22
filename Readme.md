@@ -3,7 +3,7 @@
 
  [Click me to get to the MS1 CI Action Link](https://github.com/cs4218/cs4218-2520-ecom-project-cs4218-2520-team02/actions/runs/22280090963/job/64449235183)
 
-To see the test results, either expand `Run Frontend Tests` or `Run Backend Tests`.
+To see the test results, expand the workflow steps (e.g. `Run Frontend Tests`, `Run Backend Tests`, `Run Frontend Integration Tests`, `Run Backend Integration Tests`).
 
 ## 1. Project Introduction
 
@@ -159,15 +159,15 @@ To begin unit testing with Jest in your project, follow these steps:
    
    - **All the unit tests**
   
-      ```bash
-      npm run test:unit
-      ```
+     ```bash
+     npm run test:unit
+     ```
    
-    - **All the integration tests**
+   - **All the integration tests**
 
-      ```bash
-      npm run test:unit
-      ```
+     ```bash
+     npm run test:integration
+     ```
 
    - **All the tests**
   
@@ -260,47 +260,75 @@ To begin unit testing with Jest in your project, follow these steps:
 **Bugs Identified and Squashed:**
 - React `map()` in `header.js` does not have the required key for each `<li>` element
 - Transactions within `braintreePaymentController()` expects a 2 decimal point string rather than a raw float
-- Fixed fast double clicks when adding to cart resulting in incorrect carts being saved in `Homepage.js` and `ProductDetails.js`
+- Fixed fast double clicks when adding to cart resulting in incorrect carts being saved in `ProductDetails.js`
 - Fixed different users using the same shared cart for all users by adding account-specific carts, with guest carts automatically transferred to the first logged-in user. Updated `Homepage.js`, `cart.js`, `CartPage.js`, `ProductDetails.js`, `Login.js` as well as affected unit and integration tests.
 - Fixed the "Load more" button being visible when there were no items remaining in `Homepage.js`. 
 - Fixed "Load more” button replacing previously loaded products with newly loaded ones instead of appending them in `Homepage.js`.
 
 ### Censon Lee Lemuel John Alejo (A0273436B)
 **Backend Unit Tests**:
-- models/productModel.js
-- controllers/productController.js
-   - productFiltersController
-   - productCountController
-   - productListController
-   - searchProductController
-   - relatedProductController
-   - productCategoryController
+- models/\_\_tests\_\_/productModel.test.js
+- controllers/\_\_tests\_\_/productController/unit/productFiltersController.test.js
+- controllers/\_\_tests\_\_/productController/unit/productCountController.test.js
+- controllers/\_\_tests\_\_/productController/unit/productListController.test.js
+- controllers/\_\_tests\_\_/productController/unit/searchProductController.test.js
+- controllers/\_\_tests\_\_/productController/unit/relatedProductController.test.js
+- controllers/\_\_tests\_\_/productController/unit/productCategoryController.test.js
+
+**Backend Integration Tests**:
+- controllers/\_\_tests\_\_/productController/integration/productFiltersController.integration.test.js
+- controllers/\_\_tests\_\_/productController/integration/productCountController.integration.test.js
+- controllers/\_\_tests\_\_/productController/integration/productListController.integration.test.js
+- controllers/\_\_tests\_\_/productController/integration/searchProductController.integration.test.js
+- controllers/\_\_tests\_\_/productController/integration/relatedProductController.integration.test.js
+- controllers/\_\_tests\_\_/productController/integration/productCategoryController.integration.test.js
 
 **Frontend Unit Tests**:
-- client/src/pages/HomePage.js
-- client/src/pages/admin/CreateProduct.js
-- client/src/components/Form/CategoryForm.js
-- client/src/components/Form/SearchInput.js
+- client/src/components/\_\_tests\_\_/Prices.unit.test.js
+- client/src/components/Form/\_\_tests\_\_/CategoryForm.test.js
+- client/src/components/Form/\_\_tests\_\_/SearchInput.test.js
+- client/src/context/\_\_tests\_\_/search.unit.test.js
+- client/src/pages/\_\_tests\_\_/HomePage.test.js
+- client/src/pages/\_\_tests\_\_/Search.unit.test.js
+- client/src/pages/admin/\_\_tests\_\_/CreateCategory.test.js
+
+**Frontend Integration Tests**:
+- client/src/components/Form/\_\_tests\_\_/SearchInput.integration.test.js
+- client/src/pages/\_\_tests\_\_/HomePage.integration.test.js
+- client/src/pages/\_\_tests\_\_/Search.integration.test.js
+- client/src/pages/admin/\_\_tests\_\_/CreateCategory.integration.test.js
+
+**E2E Tests**:
+- \_\_tests\_\_/e2e/flows/category-crud.spec.ts
+- \_\_tests\_\_/e2e/flows/product-crud.spec.ts
+- \_\_tests\_\_/e2e/flows/search.spec.ts
 
 **Enhancements**
 - Enhance `HomePage.js` reset filter to not refresh page
 - Enhance `HomePage.js` code to remove Eslint issues
 - Add input validation to `productListController()`
-- Add input validation to `productFiltersController()` and escape regex characters.
-- Enhance comments and typos
+- Add input validation to `productFiltersController()` and escape regex characters
+- Fix comments and typos
 - Set up Mockingoose to test mongoose models
-- Add GitHub Actions CI workflows to run frontend and backend tests on pull requests.
+- Add GitHub Actions CI workflows to run frontend and backend tests on pull requests
 
 **Bugs Identified and Fixed**
-- Fix `HomePage.js` crash when clicking on radio filter
-- Fix `HomePage.js` crash when more load more button is visible due to missing react package
-- Fix `HomePage.js` getTotal not setting total state
+- Fix `CategoryProduct.js` deprecated attribute
+- Fix `UpdateProduct.js` issues
+- Fix missing and extra imports in `AdminRoutes.js`
+- Fix missing key prop and incorrect `class` usage instead of `className` in `Search.js`
+- Fix missing React import and wrong state variable name in `search.js` context
+- Fix `CreateCategory.js` not showing error message on failed `getAllCategory()`
+- Fix `HomePage.js` `getTotal` not setting total state
 - Fix `CreateCategory.js` elements not having unique key when in loop
-- Fix `CreateCategory.js` not showing error message on failed getAllCategory()
-- Fix `SearchInput.js` Axios Error when searching with empty term
-- Fix `Login.js` tests failing to run
+- Fix duplicate ids in `Prices.js`
+- Fix `HomePage.js` crash when "Load more" button is visible due to missing React package
+- Fix controller mock scopes
 - Fix `Register.js` tests failing to run
-- Fix `Prices.js` duplicate ids
+- Fix `Login.js` tests failing to run
+- Fix `SearchInput.js` Axios error when searching with empty term
+- Fix `HomePage.js` crash when clicking on radio filter
+- Fix incorrect function name in `productController.js`
 
 ### Jovin Ang Yusheng (A0273460H)
 **Backend Unit Tests**:
@@ -312,14 +340,42 @@ To begin unit testing with Jest in your project, follow these steps:
    - getSingleProductController
    - productPhotoController
 
-**Frontend Unit Tests**:
-- client/src/pages/admin/CreateProduct.js
+**Backend Integration Tests**:
+- `controllers/__tests__/productController/integration/getProductController.integration.test.js`
+- `controllers/__tests__/productController/integration/getSingleProductController.integration.test.js`
+- `controllers/__tests__/productController/integration/productPhotoController.integration.test.js`
+- `controllers/__tests__/productController/integration/createProductController.integration.test.js`
+- `controllers/__tests__/productController/integration/updateProductController.integration.test.js`
+- `controllers/__tests__/productController/integration/deleteProductController.integration.test.js`
 
-**Enhancements**
-- Added input validation to `productPhotoController()`, `getSingleProductController()`, and `deleteProductController()`
-- Replaced loose field access (switch (true) / case !name) with explicit trimming and proper type-safe validation in `createProductController()` and `updateProductController()`
-- Added input validation to `CreateProduct.js` to check for missing fields and show error messages instead of crashing the form.
-- Fix typos and enhance comments in `productController.js` and `CreateProduct.js`
+**Frontend Unit Tests**:
+- `client/src/pages/admin/CreateProduct.js`
+- `client/src/pages/admin/UpdateProduct.js`
+- `client/src/pages/admin/Products.js`
+- `client/src/pages/CategoryProduct.js`
+- `client/src/pages/ProductDetails.js`
+
+**Frontend Integration Tests**:
+- `client/src/pages/admin/Products.integration.test.js`
+- `client/src/pages/admin/CreateProduct.integration.test.js`
+- `client/src/pages/admin/UpdateProduct.integration.test.js`
+
+**E2E Tests (Playwright)**:
+- `__tests__/e2e/flows/category-product-browsing.spec.ts`
+- `__tests__/e2e/flows/auth-flow.spec.ts`
+
+**Enhancements**:
+- Implemented **Add to Cart** on `CategoryProduct.js` and `ProductDetails.js`.
+- Clearer error messaging when product/category fetches fail on admin **Products** and **UpdateProduct**; user feedback when categories are missing or product load fails.
+- Added input validation to `productPhotoController()`, `getSingleProductController()`, and `deleteProductController()`.
+- Replaced loose field checks with explicit trimming and type-safe validation in `createProductController()` and `updateProductController()`.
+- Added input validation to `CreateProduct.js` for missing fields with visible errors; improved comments and typos in `productController.js` and `CreateProduct.js`.
+- `CartPage.js`: format each line-item price with `toLocaleString("en-US")` so cart rows match catalog/currency formatting
+
+**Bugs Identified and Squashed**:
+- `UpdateProduct.js`: missing `await` on `axios.put` in `handleUpdate` (error handling unreachable); **shipping** omitted from update FormData; shipping select values (`"yes"`/`"No"`) did not match options — use `"1"`/`"0"`; `onChange` now maps to boolean via `value === "1"` so “No” works.
+- `UpdateProduct.js`: `getAllCategory` now checks `data.categories.length` instead of `data?.success`; Layout title corrected from “Create Product” to “Update Product”; toast/delete-prompt typos fixed; toast on product fetch failure; removed duplicate `setPrice` in `getSingleProduct`.
+- `routes/productRoutes.js`: `DELETE /delete-product/:pid` had no auth — added `requireSignIn` and `isAdmin` (aligned with create/update).
 
 ### Gavin Sin Fu Chen (A0273285X)
 **Backend Unit Tests**:

@@ -1,8 +1,7 @@
 // Song Jia Hui A0259494L
 import { jest } from "@jest/globals";
-await import("../../../__mocks__/jest.mocks.js");
 
-const { testController } = await import("../../../authController.js");
+const { testController } = await import("./authController.js");
 
 // =============== Helpers ===============
 const mockRes = () => ({ status: jest.fn().mockReturnThis(), send: jest.fn() });

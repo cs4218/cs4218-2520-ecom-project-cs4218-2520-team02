@@ -1,6 +1,7 @@
 // Censon Lee Lemuel John Alejo, A0273436B
 import { Prices } from "../Prices";
 
+// ================= Tests =================
 describe("Prices", () => {
   test("exports expected price bands", () => {
     expect(Array.isArray(Prices)).toBe(true);

@@ -6,7 +6,7 @@ import axios from "axios";
 import SearchInput from "../SearchInput";
 import { SearchProvider, useSearch } from "../../../context/search";
 
-// =============== Mocks ===============
+// ================= Mocks =================
 jest.mock("axios");
 
 const mockNavigate = jest.fn();
@@ -15,7 +15,7 @@ jest.mock("react-router-dom", () => ({
   useNavigate: () => mockNavigate,
 }));
 
-// =============== Helpers ===============
+// ================= Helpers =================
 const silenceConsole = () => {
   const spy = jest.spyOn(console, "log").mockImplementation(() => {});
   return () => spy.mockRestore();
@@ -34,7 +34,7 @@ const renderWithProvider = () =>
     </SearchProvider>,
   );
 
-// =============== Tests ===============
+// ================= Tests =================
 describe("SearchInput integration (SearchInput + SearchProvider)", () => {
   let restoreConsole;
 
