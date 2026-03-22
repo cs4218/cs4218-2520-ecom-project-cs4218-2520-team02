@@ -36,6 +36,8 @@ describe("Auth Route Integration", () => {
 
   beforeEach(async () => {
     await userModel.deleteMany({});
+    // Suppress console log
+    jest.spyOn(console, "log").mockImplementation(() => {});
   });
 
   afterAll(async () => {
