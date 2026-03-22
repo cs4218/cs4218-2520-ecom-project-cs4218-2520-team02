@@ -267,40 +267,68 @@ To begin unit testing with Jest in your project, follow these steps:
 
 ### Censon Lee Lemuel John Alejo (A0273436B)
 **Backend Unit Tests**:
-- models/productModel.js
-- controllers/productController.js
-   - productFiltersController
-   - productCountController
-   - productListController
-   - searchProductController
-   - relatedProductController
-   - productCategoryController
+- models/\_\_tests\_\_/productModel.test.js
+- controllers/\_\_tests\_\_/productController/unit/productFiltersController.test.js
+- controllers/\_\_tests\_\_/productController/unit/productCountController.test.js
+- controllers/\_\_tests\_\_/productController/unit/productListController.test.js
+- controllers/\_\_tests\_\_/productController/unit/searchProductController.test.js
+- controllers/\_\_tests\_\_/productController/unit/relatedProductController.test.js
+- controllers/\_\_tests\_\_/productController/unit/productCategoryController.test.js
+
+**Backend Integration Tests**:
+- controllers/\_\_tests\_\_/productController/integration/productFiltersController.integration.test.js
+- controllers/\_\_tests\_\_/productController/integration/productCountController.integration.test.js
+- controllers/\_\_tests\_\_/productController/integration/productListController.integration.test.js
+- controllers/\_\_tests\_\_/productController/integration/searchProductController.integration.test.js
+- controllers/\_\_tests\_\_/productController/integration/relatedProductController.integration.test.js
+- controllers/\_\_tests\_\_/productController/integration/productCategoryController.integration.test.js
 
 **Frontend Unit Tests**:
-- client/src/pages/HomePage.js
-- client/src/pages/admin/CreateProduct.js
-- client/src/components/Form/CategoryForm.js
-- client/src/components/Form/SearchInput.js
+- client/src/components/\_\_tests\_\_/Prices.unit.test.js
+- client/src/components/Form/\_\_tests\_\_/CategoryForm.test.js
+- client/src/components/Form/\_\_tests\_\_/SearchInput.test.js
+- client/src/context/\_\_tests\_\_/search.unit.test.js
+- client/src/pages/\_\_tests\_\_/HomePage.test.js
+- client/src/pages/\_\_tests\_\_/Search.unit.test.js
+- client/src/pages/admin/\_\_tests\_\_/CreateCategory.test.js
+
+**Frontend Integration Tests**:
+- client/src/components/Form/\_\_tests\_\_/SearchInput.integration.test.js
+- client/src/pages/\_\_tests\_\_/HomePage.integration.test.js
+- client/src/pages/\_\_tests\_\_/Search.integration.test.js
+- client/src/pages/admin/\_\_tests\_\_/CreateCategory.integration.test.js
+
+**E2E Tests**:
+- \_\_tests\_\_/e2e/flows/category-crud.spec.ts
+- \_\_tests\_\_/e2e/flows/product-crud.spec.ts
+- \_\_tests\_\_/e2e/flows/search.spec.ts
 
 **Enhancements**
 - Enhance `HomePage.js` reset filter to not refresh page
 - Enhance `HomePage.js` code to remove Eslint issues
 - Add input validation to `productListController()`
-- Add input validation to `productFiltersController()` and escape regex characters.
-- Enhance comments and typos
+- Add input validation to `productFiltersController()` and escape regex characters
+- Fix comments and typos
 - Set up Mockingoose to test mongoose models
-- Add GitHub Actions CI workflows to run frontend and backend tests on pull requests.
+- Add GitHub Actions CI workflows to run frontend and backend tests on pull requests
 
 **Bugs Identified and Fixed**
-- Fix `HomePage.js` crash when clicking on radio filter
-- Fix `HomePage.js` crash when more load more button is visible due to missing react package
-- Fix `HomePage.js` getTotal not setting total state
+- Fix `CategoryProduct.js` deprecated attribute
+- Fix `UpdateProduct.js` issues
+- Fix missing and extra imports in `AdminRoutes.js`
+- Fix missing key prop and incorrect `class` usage instead of `className` in `Search.js`
+- Fix missing React import and wrong state variable name in `search.js` context
+- Fix `CreateCategory.js` not showing error message on failed `getAllCategory()`
+- Fix `HomePage.js` `getTotal` not setting total state
 - Fix `CreateCategory.js` elements not having unique key when in loop
-- Fix `CreateCategory.js` not showing error message on failed getAllCategory()
-- Fix `SearchInput.js` Axios Error when searching with empty term
-- Fix `Login.js` tests failing to run
+- Fix duplicate ids in `Prices.js`
+- Fix `HomePage.js` crash when "Load more" button is visible due to missing React package
+- Fix controller mock scopes
 - Fix `Register.js` tests failing to run
-- Fix `Prices.js` duplicate ids
+- Fix `Login.js` tests failing to run
+- Fix `SearchInput.js` Axios error when searching with empty term
+- Fix `HomePage.js` crash when clicking on radio filter
+- Fix incorrect function name in `productController.js`
 
 ### Jovin Ang Yusheng (A0273460H)
 **Backend Unit Tests**:
