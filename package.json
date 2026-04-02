@@ -17,6 +17,7 @@
     "test:backend-integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.backend.integration.config.js",
     "test:frontend-integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.frontend.integration.config.js",
     "test:security": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.security.config.js",
+    "test:dast": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.dast.config.js --runInBand",
     "test:unit": "npm run test:backend && npm run test:frontend",
     "test:integration": "npm run test:backend-integration && npm run test:frontend-integration"
   },
@@ -33,6 +34,8 @@
     "dotenv": "^16.4.1",
     "express": "^4.18.2",
     "express-formidable": "^1.2.0",
+    "express-rate-limit": "^8.3.2",
+    "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "mockingoose": "^2.16.2",
     "mongodb": "^6.3.0",

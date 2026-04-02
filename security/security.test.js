@@ -14,9 +14,9 @@
  * Run: npm run test:security
  */
 
-import { readFileSync, statSync, existsSync } from 'fs';
-import { join, relative, extname } from 'path';
-import { execSync } from 'child_process';
+import { readFileSync, statSync, existsSync } from 'node:fs';
+import { join, relative, extname } from 'node:path';
+import { execSync } from 'node:child_process';
 
 const ROOT = process.cwd();
 
@@ -56,8 +56,6 @@ function walkFiles(dir, extensions = ['.js', '.jsx', '.ts', '.tsx'], excludeDirs
   recurse(dir);
   return results;
 }
-
-import { readdirSync } from 'fs';
 
 const SOURCE_DIRS = ['controllers', 'models', 'middlewares', 'helpers', 'routes', 'client/src'];
 const EXCLUDE_DIRS = ['node_modules', '__mocks__', 'coverage', '.git', 'test_utils', '_site', 'build'];
@@ -118,7 +116,7 @@ describe('Security: Hardcoded Secrets', () => {
     {
       name: 'Hardcoded API key or token string (generic high-entropy pattern)',
       // Matches variable names containing key/secret/token/apikey assigned to a long string
-      regex: /\b(api[_-]?key|secret[_-]?key|access[_-]?token|auth[_-]?token)\s*[:=]\s*["'`][A-Za-z0-9+/=_\-]{20,}["'`]/gi,
+      regex: /\b(api[_-]?key|secret[_-]?key|access[_-]?token|auth[_-]?token)\s*[:=]\s*["'`][A-Za-z0-9+/=-]{20,}["'`]/gi,
     },
   ];
 
