@@ -3,6 +3,8 @@ import userModel from "../models/userModel.js";
 import { comparePassword, hashPassword } from "./../helpers/authHelper.js";
 import JWT from "jsonwebtoken";
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export const registerController = async (req, res) => {
   try {
     const { name, email, password, phone, address, answer } = req.body;
@@ -12,6 +14,9 @@ export const registerController = async (req, res) => {
     }
     if (!email) {
       return res.status(400).send({ message: "Email is Required" });
+    }
+    if (!EMAIL_REGEX.test(email)) {
+      return res.status(400).send({ message: "Invalid email format" });
     }
     if (!password) {
       return res.status(400).send({ message: "Password is Required" });
@@ -119,6 +124,9 @@ export const forgotPasswordController = async (req, res) => {
     const { email, answer, newPassword } = req.body;
     if (!email) {
       return res.status(400).send({ message: "Email is required" });
+    }
+    if (!EMAIL_REGEX.test(email)) {
+      return res.status(400).send({ message: "Invalid email format" });
     }
     if (!answer) {
       return res.status(400).send({ message: "Answer is required" });
