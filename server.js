@@ -8,6 +8,7 @@ import categoryRoutes from "./routes/categoryRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import userRoutes from "./routes/userRoute.js";
 import cors from "cors";
+import helmet from "helmet";
 
 // configure env
 dotenv.config();
@@ -18,6 +19,7 @@ connectDB();
 const app = express();
 
 //middlewares
+app.use(helmet());
 app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));

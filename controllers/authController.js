@@ -56,7 +56,6 @@ export const registerController = async (req, res) => {
     res.status(500).send({
       success: false,
       message: "Error in Registeration",
-      error,
     });
   }
 };
@@ -109,7 +108,6 @@ export const loginController = async (req, res) => {
     res.status(500).send({
       success: false,
       message: "Error in login",
-      error,
     });
   }
 };
@@ -148,7 +146,6 @@ export const forgotPasswordController = async (req, res) => {
     res.status(500).send({
       success: false,
       message: "Something went wrong",
-      error,
     });
   }
 };
@@ -192,7 +189,6 @@ export const updateProfileController = async (req, res) => {
     res.status(500).send({
       success: false,
       message: "Error while update profile",
-      error,
     });
   }
 };
