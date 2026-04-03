@@ -19,6 +19,7 @@
     "test:security": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.security.config.js",
     "test:dast": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.dast.config.js --runInBand",
     "test:injection": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.injection.config.js",
+    "test:idor": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.idor.config.js --runInBand",
     "test:unit": "npm run test:backend && npm run test:frontend",
     "test:integration": "npm run test:backend-integration && npm run test:frontend-integration"
   },
