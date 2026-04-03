@@ -76,6 +76,12 @@ export const loginController = async (req, res) => {
         message: "Invalid email or password",
       });
     }
+    if (typeof email !== "string" || typeof password !== "string") {
+      return res.status(400).send({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
     //check user
     const user = await userModel.findOne({ email });
     if (!user) {
