@@ -61,6 +61,7 @@ export const registerController = async (req, res) => {
     res.status(500).send({
       success: false,
       message: "Error in Registeration",
+      error,
     });
   }
 };
@@ -76,7 +77,13 @@ export const loginController = async (req, res) => {
         message: "Invalid email or password",
       });
     }
-    if (typeof email !== "string" || typeof password !== "string") {
+    if (!EMAIL_REGEX.test(email)) {
+      return res.status(400).send({
+        success: false,
+        message: "Invalid email format",
+      });
+    }
+    if (typeof password !== "string") {
       return res.status(400).send({
         success: false,
         message: "Invalid email or password",
@@ -119,6 +126,7 @@ export const loginController = async (req, res) => {
     res.status(500).send({
       success: false,
       message: "Error in login",
+      error,
     });
   }
 };
@@ -160,6 +168,7 @@ export const forgotPasswordController = async (req, res) => {
     res.status(500).send({
       success: false,
       message: "Something went wrong",
+      error,
     });
   }
 };
@@ -203,6 +212,7 @@ export const updateProfileController = async (req, res) => {
     res.status(500).send({
       success: false,
       message: "Error while update profile",
+      error,
     });
   }
 };
