@@ -22,6 +22,7 @@ const app = express();
 //middlewares
 app.use(helmet({
   contentSecurityPolicy: {
+    useDefaults: false,
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'"],
@@ -31,9 +32,16 @@ app.use(helmet({
       fontSrc: ["'self'"],
       objectSrc: ["'none'"],
       frameAncestors: ["'none'"],
+      mediaSrc: ["'none'"],
+      workerSrc: ["'none'"],
+      manifestSrc: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+      "navigate-to": ["'none'"],
     },
   },
 }));
+
 app.use(cors({
   origin: process.env.CLIENT_URL || "http://localhost:3000",
   methods: ["GET", "POST", "PUT", "DELETE"],
