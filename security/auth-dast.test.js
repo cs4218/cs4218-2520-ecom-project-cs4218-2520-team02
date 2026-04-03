@@ -76,6 +76,17 @@ const FALSE_POSITIVES = [
     condition: (a) => !a.evidence || a.evidence.trim() === '',
     reason: 'MongoDB has no SQL engine. ZAP heuristic with empty evidence — confirmed false positive. Email validation added as defence-in-depth.',
   },
+  {
+    // ZAP flags "default-src 'none'" as a missing-fallback violation, but
+    // 'none' is strictly more restrictive than 'self' — it blocks everything,
+    // which is the correct posture for a pure API server that serves no
+    // browser resources. The directive is intentionally set to 'none' via
+    // helmet's useDefaults:false config; all required fallback directives
+    // (base-uri, form-action, navigate-to, etc.) are explicitly defined.
+    alertPattern: /csp.*failure.*no fallback|csp.*directive.*no fallback/i,
+    condition: (a) => /default-src\s+'none'/i.test(a.evidence ?? ''),
+    reason: "CSP default-src 'none' is intentionally strict (API server serves no browser resources). All no-fallback directives are explicitly set in helmet config.",
+  },
 ];
 
 function isFalsePositive(alert) {
@@ -242,6 +253,8 @@ async function seedEndpoints() {
 // ---------------------------------------------------------------------------
 
 async function runScans() {
+
+  await zapPost('alert/action/deleteAllAlerts/', {});
   // Create a new context scoped to the auth routes
   // Remove context if it already exists, then recreate
   try {

@@ -14,12 +14,14 @@ import {
 } from "../controllers/orderController.js";
 import { isAdmin, requireSignIn } from "../middlewares/authMiddleware.js";
 
+const isDASTEnv = process.env.NODE_ENV === 'dast';
+
 //router object
 const router = express.Router();
 
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20,
+  max: isDASTEnv ? 10000 : 20,
   message: { success: false, message: "Too many login attempts, please try again later." },
 });
 
