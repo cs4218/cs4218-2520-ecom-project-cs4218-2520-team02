@@ -345,6 +345,14 @@ export const updateProductController = async (req, res) => {
 export const productFiltersController = async (req, res) => {
   try {
     const { checked, radio } = req.body;
+
+    if (!Array.isArray(checked) || !Array.isArray(radio)) {
+      return res.status(400).send({
+        success: false,
+        message: "Invalid filter parameters",
+      });
+    }
+
     let args = {};
 
     if (checked.length > 0) {
@@ -352,13 +360,17 @@ export const productFiltersController = async (req, res) => {
     }
 
     if (radio.length === 2) {
-      let min = radio[0];
-      let max = radio[1];
+      const min = Number(radio[0]);
+      const max = Number(radio[1]);
 
-      if (min > max) {
-        [min, max] = [max, min];
+      if (!Number.isFinite(min) || !Number.isFinite(max)) {
+        return res.status(400).send({
+          success: false,
+          message: "Invalid price range",
+        });
       }
-      args.price = { $gte: min, $lte: max };
+
+      args.price = { $gte: Math.min(min, max), $lte: Math.max(min, max) };
     }
 
     const products = await productModel.find(args);
@@ -371,7 +383,6 @@ export const productFiltersController = async (req, res) => {
     res.status(400).send({
       success: false,
       message: "Error While Filtering Products",
-      error,
     });
   }
 };
