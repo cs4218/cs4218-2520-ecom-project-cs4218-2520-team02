@@ -1,4 +1,5 @@
 import express from "express";
+import dotenv from 'dotenv';
 import rateLimit from "express-rate-limit";
 import {
   registerController,
@@ -14,6 +15,7 @@ import {
 } from "../controllers/orderController.js";
 import { isAdmin, requireSignIn } from "../middlewares/authMiddleware.js";
 
+dotenv.config();
 const isDASTEnv = process.env.NODE_ENV === 'dast';
 
 //router object

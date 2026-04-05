@@ -1,3 +1,5 @@
+// Song Jia Hui A0259494L
+
 /**
  * Authentication Endpoint DAST Test Suite — Virtual Vault
  *
@@ -27,11 +29,13 @@
  */
 
 import http from 'node:http';
+import dotenv from "dotenv";
 
 // ---------------------------------------------------------------------------
 // Configuration
 // ---------------------------------------------------------------------------
 
+dotenv.config();
 const APP_LOCAL_BASE_URL = process.env.APP_URL ?? 'http://localhost:6060';
 const APP_BASE_URL = process.env.APP_URL ?? 'http://host.docker.internal:6060';
 const ZAP_BASE_URL = process.env.ZAP_URL ?? 'http://localhost:8080';
