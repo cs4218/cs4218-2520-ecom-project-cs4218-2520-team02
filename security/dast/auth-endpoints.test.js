@@ -59,7 +59,7 @@ const FALSE_POSITIVES = [
     alertPattern: /sql.inject/i,
     condition: (a) => !a.evidence || a.evidence.trim() === "",
     reason:
-      "MongoDB has no SQL engine. ZAP heuristic with empty evidence — confirmed false positive. Email validation added as defence-in-depth.",
+      "MongoDB has no SQL engine. ZAP heuristic with empty evidence -- confirmed false positive. Email validation added as defence-in-depth.",
   },
   {
     // ZAP flags "default-src 'none'" as a missing-fallback violation, but
@@ -428,7 +428,7 @@ describe("DAST: High Severity Vulnerabilities", () => {
           acceptedHighAlerts
             .map(
               (a) =>
-                `    [HIGH] ${a.alert} — ${a.url}\n    Reason: ${falsePositiveReason(a)}`,
+                `    [HIGH] ${a.alert} -- ${a.url}\n    Reason: ${falsePositiveReason(a)}`,
             )
             .join("\n"),
       );
@@ -467,7 +467,7 @@ describe("DAST: High Severity Vulnerabilities", () => {
       const report = realSqliAlerts
         .map(
           (a) =>
-            `  [${riskLabel(a)}] ${a.alert} — ${a.url} (param: ${a.param || "n/a"})`,
+            `  [${riskLabel(a)}] ${a.alert} -- ${a.url} (param: ${a.param || "n/a"})`,
         )
         .join("\n");
       throw new Error(
@@ -488,7 +488,7 @@ describe("DAST: High Severity Vulnerabilities", () => {
 
     if (cmdAlerts.length > 0) {
       const report = cmdAlerts
-        .map((a) => `  [${riskLabel(a)}] ${a.alert} — ${a.url}`)
+        .map((a) => `  [${riskLabel(a)}] ${a.alert} -- ${a.url}`)
         .join("\n");
       throw new Error(
         `Command Injection detected on authentication endpoints:\n${report}`,
@@ -535,7 +535,7 @@ describe("DAST: Information Disclosure", () => {
 
     if (pathLeakAlerts.length > 0) {
       const report = pathLeakAlerts
-        .map((a) => `  [${riskLabel(a)}] ${a.alert} — ${a.url}`)
+        .map((a) => `  [${riskLabel(a)}] ${a.alert} -- ${a.url}`)
         .join("\n");
       throw new Error(`Server path / stack trace leakage detected:\n${report}`);
     }
@@ -575,7 +575,7 @@ describe("DAST: Security Headers", () => {
       );
       if (found) {
         missingHeaders.push(
-          `  Missing: ${header} — ${found.alert} (risk: ${riskLabel(found)})`,
+          `  Missing: ${header} -- ${found.alert} (risk: ${riskLabel(found)})`,
         );
       }
     }
@@ -653,7 +653,7 @@ describe("DAST: Authentication-Specific Vulnerabilities", () => {
     if (serverErrors.length > 0) {
       throw new Error(
         `Login endpoint returned ${serverErrors.length} HTTP 500 responses under rapid repeated ` +
-          `requests — indicates missing error handling. No rate limiting (HTTP 429) was detected. ` +
+          `requests -- indicates missing error handling. No rate limiting (HTTP 429) was detected. ` +
           `Implement rate limiting using the "express-rate-limit" package.`,
       );
     }
@@ -723,7 +723,7 @@ describe("DAST: Alert Summary (metrics)", () => {
     if (fpAlerts.length > 0) {
       console.log("  Accepted false positives :");
       for (const fp of fpAlerts) {
-        console.log(`    [ACCEPTED] ${fp.alert} — ${fp.url}`);
+        console.log(`    [ACCEPTED] ${fp.alert} -- ${fp.url}`);
         console.log(`      Reason: ${falsePositiveReason(fp)}`);
       }
     }

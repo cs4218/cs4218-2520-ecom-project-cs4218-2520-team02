@@ -408,7 +408,7 @@ describe("Security: Dependency Vulnerabilities", () => {
     try {
       parsed = JSON.parse(auditResult);
     } catch {
-      // Cannot parse audit output — skip rather than block CI
+      // Cannot parse audit output -- skip rather than block CI
       console.warn(
         "Could not parse npm audit output; skipping dependency vulnerability check.",
       );
@@ -423,7 +423,7 @@ describe("Security: Dependency Vulnerabilities", () => {
         .filter((v) => v.severity === "critical" || v.severity === "high")
         .map(
           (v) =>
-            `  [${v.severity.toUpperCase()}] ${v.name}@${v.range} — ${v.title ?? "see npm advisory"}`,
+            `  [${v.severity.toUpperCase()}] ${v.name}@${v.range} -- ${v.title ?? "see npm advisory"}`,
         )
         .join("\n");
 
