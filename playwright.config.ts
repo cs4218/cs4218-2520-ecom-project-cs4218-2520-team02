@@ -38,6 +38,7 @@ export default defineConfig({
       reuseExistingServer: true,
       timeout: 120_000,
       env: {
+        NODE_ENV: 'e2e',
         DEV_MODE: 'development',
         PORT: '6060',
         MONGO_URL: process.env.MONGO_URL!,

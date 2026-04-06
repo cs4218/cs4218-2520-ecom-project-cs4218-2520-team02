@@ -78,9 +78,16 @@ const expect400 = (res) => {
     expect.objectContaining({
       success: false,
       message: "Error While Filtering Products",
-      error: expect.anything(),
     }),
   );
+};
+
+const expectInvalidParams = (res) => {
+  expect(res.status).toHaveBeenCalledWith(400);
+  expect(res.send).toHaveBeenCalledWith({
+    success: false,
+    message: "Invalid filter parameters",
+  });
 };
 
 // ================= Tests =================
@@ -356,7 +363,7 @@ describe("productFiltersController", () => {
       await productFiltersController(req, res);
 
       // Assert
-      expect400(res);
+      expectInvalidParams(res);
     });
 
     test("returns 400 if 'radio' is missing from the request body", async () => {
@@ -368,7 +375,7 @@ describe("productFiltersController", () => {
       await productFiltersController(req, res);
 
       // Assert
-      expect400(res);
+      expectInvalidParams(res);
     });
   });
 });
