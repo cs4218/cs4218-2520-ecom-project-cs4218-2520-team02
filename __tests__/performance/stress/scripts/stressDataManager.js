@@ -37,6 +37,19 @@ function buildStressPrefix(runId) {
   return `stress-${runId}-`;
 }
 
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function buildStressEmailMatcher(runId) {
+  if (!runId) {
+    return { $regex: /^stress-/ };
+  }
+
+  const prefix = buildStressPrefix(runId);
+  return { $regex: new RegExp(`^${escapeRegex(prefix)}`) };
+}
+
 function buildUserPool(flow, runId, count) {
   return Array.from({ length: count }, (_, index) => ({
     label: `${flow}-user-${index + 1}`,
@@ -113,10 +126,12 @@ export async function prepareStressData(flow, runId) {
     return {
       runId,
       userPool: [],
+      seededUserCount: 0,
     };
   }
 
   await connectToDatabase();
+  await cleanupStressData();
 
   const userPool = buildUserPool(flow, runId, getPoolSize(flow));
   const users = await ensureUsersExist(userPool);
@@ -128,21 +143,29 @@ export async function prepareStressData(flow, runId) {
   return {
     runId,
     userPool,
+    seededUserCount: users.length,
   };
 }
 
 export async function cleanupStressData(runId) {
   await connectToDatabase();
 
-  const prefix = buildStressPrefix(runId);
-  const emailPattern = new RegExp(`^${prefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`);
-  const users = await userModel.find({ email: emailPattern }).select("_id");
+  const users = await userModel.find({ email: buildStressEmailMatcher(runId) }).select("_id email");
   const userIds = users.map((user) => user._id);
+  let deletedOrders = 0;
+  let deletedUsers = 0;
 
   if (userIds.length > 0) {
-    await orderModel.deleteMany({ buyer: { $in: userIds } });
-    await userModel.deleteMany({ _id: { $in: userIds } });
+    const orderResult = await orderModel.deleteMany({ buyer: { $in: userIds } });
+    const userResult = await userModel.deleteMany({ _id: { $in: userIds } });
+    deletedOrders = orderResult.deletedCount || 0;
+    deletedUsers = userResult.deletedCount || 0;
   }
+
+  return {
+    deletedUsers,
+    deletedOrders,
+  };
 }
 
 export async function disconnectStressDatabase() {

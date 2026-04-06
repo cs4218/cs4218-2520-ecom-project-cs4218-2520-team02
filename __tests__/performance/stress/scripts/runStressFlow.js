@@ -32,6 +32,9 @@ let exitCode = 1;
 
 try {
   const seedResult = await prepareStressData(flow, runId);
+  if (seedResult.seededUserCount > 0) {
+    console.log(`[stress:${flow}] Seeded ${seedResult.seededUserCount} stress users for run ${runId}.`);
+  }
   fs.mkdirSync(reportsDir, { recursive: true });
 
   const childEnv = {
@@ -63,7 +66,10 @@ try {
 } finally {
   try {
     if (flowsWithDatabaseFixtures.has(flow)) {
-      await cleanupStressData(runId);
+      const cleanupResult = await cleanupStressData(runId);
+      console.log(
+        `[stress:${flow}] Cleanup removed ${cleanupResult.deletedUsers} users and ${cleanupResult.deletedOrders} orders for run ${runId}.`
+      );
     }
   } finally {
     await disconnectStressDatabase();
