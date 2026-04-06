@@ -182,7 +182,8 @@ test.describe("Admin View", () => {
     await expect(
       page.getByRole("heading", { name: "All Users" }),
     ).toBeVisible();
-    await expect(page.getByRole("cell", { name: "Name" })).toBeVisible();
+    // Wait for async data load to complete before checking column headers
+    await expect(page.getByRole("cell", { name: "Name" })).toBeVisible({ timeout: 15000 });
     await expect(page.getByRole("cell", { name: "Email" })).toBeVisible();
     await expect(page.getByRole("cell", { name: "Phone" })).toBeVisible();
     await expect(page.getByRole("cell", { name: "Address" })).toBeVisible();
@@ -197,10 +198,10 @@ test.describe("Admin View", () => {
     // Act
     await page.goto("/dashboard/admin/users");
 
-    // Assert
+    // Assert — wait for async fetch to populate the table
     await expect(
       page.getByRole("cell", { name: TEST_USER_NAME }),
-    ).toBeVisible();
+    ).toBeVisible({ timeout: 15000 });
     await expect(
       page.getByRole("cell", { name: TEST_USER_EMAIL }),
     ).toBeVisible();
