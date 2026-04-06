@@ -9,7 +9,24 @@ import productRoutes from "./routes/productRoutes.js";
 import userRoutes from "./routes/userRoute.js";
 import cors from "cors";
 import helmet from "helmet";
-import mongoSanitize from "express-mongo-sanitize";
+// express-mongo-sanitize@2.2.0 is incompatible with Express 5 (tries to reassign
+// read-only req.query). Replaced with an inline body-only sanitizer that strips
+// MongoDB operator keys (starting with $) from req.body.
+function sanitizeObject(obj) {
+  if (obj === null || typeof obj !== "object") return obj;
+  for (const key of Object.keys(obj)) {
+    if (key.startsWith("$")) {
+      delete obj[key];
+    } else {
+      sanitizeObject(obj[key]);
+    }
+  }
+  return obj;
+}
+function mongoSanitizeBody(req, _res, next) {
+  if (req.body) sanitizeObject(req.body);
+  next();
+}
 
 // configure env
 dotenv.config();
@@ -48,7 +65,7 @@ app.use(cors({
   credentials: true,
 }));
 app.use(express.json());
-app.use(mongoSanitize());
+app.use(mongoSanitizeBody);
 app.use(morgan("dev"));
 
 //routes
