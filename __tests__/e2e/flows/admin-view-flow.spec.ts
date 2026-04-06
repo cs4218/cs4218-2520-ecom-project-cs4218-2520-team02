@@ -67,7 +67,11 @@ test.describe("Admin View", () => {
 
   test("admin can see real orders placed by E2E User", async ({ page }) => {
     // Act
+    const ordersResponsePromise = page.waitForResponse(
+      (resp) => resp.url().includes("/api/v1/auth/all-orders") && resp.ok()
+    );
     await page.goto("/dashboard/admin/orders");
+    await ordersResponsePromise;
 
     // Assert - real order placed by E2E User exists in DB
     await expect(

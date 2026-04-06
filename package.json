@@ -20,7 +20,12 @@
     "test:dast": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.dast.config.js --runInBand",
     "test:security": "npm run test:sast && npm run test:dast",
     "test:unit": "npm run test:backend && npm run test:frontend",
-    "test:integration": "npm run test:backend-integration && npm run test:frontend-integration"
+    "test:integration": "npm run test:backend-integration && npm run test:frontend-integration",
+    "test:performance:stress": "node __tests__/performance/stress/scripts/runAllStressFlows.js",
+    "test:performance:stress:auth": "node __tests__/performance/stress/scripts/runStressFlow.js auth",
+    "test:performance:stress:browsing": "node __tests__/performance/stress/scripts/runStressFlow.js browsing",
+    "test:performance:stress:orders": "node __tests__/performance/stress/scripts/runStressFlow.js orders",
+    "test:performance:stress:payment": "node __tests__/performance/stress/scripts/runStressFlow.js payment"
   },
   "keywords": [],
   "author": "RP",

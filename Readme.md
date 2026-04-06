@@ -323,12 +323,14 @@ To begin unit testing with Jest in your project, follow these steps:
 - Add input validation to `productListController()`
 - Add input validation to `productFiltersController()` and escape regex characters
 - Fix comments and typos
+- Fix redundant fragments
 - Set up Mockingoose to test mongoose models
 - Add GitHub Actions CI workflows to run frontend and backend tests on pull requests
 
 **Bugs Identified and Fixed**
 - Fix `CategoryProduct.js` deprecated attribute
 - Fix `UpdateProduct.js` issues
+- Fix `Private.js` unused imports
 - Fix missing and extra imports in `AdminRoutes.js`
 - Fix missing key prop and incorrect `class` usage instead of `className` in `Search.js`
 - Fix missing React import and wrong state variable name in `search.js` context
@@ -337,7 +339,6 @@ To begin unit testing with Jest in your project, follow these steps:
 - Fix `CreateCategory.js` elements not having unique key when in loop
 - Fix duplicate ids in `Prices.js`
 - Fix `HomePage.js` crash when "Load more" button is visible due to missing React package
-- Fix controller mock scopes
 - Fix `Register.js` tests failing to run
 - Fix `Login.js` tests failing to run
 - Fix `SearchInput.js` Axios error when searching with empty term
