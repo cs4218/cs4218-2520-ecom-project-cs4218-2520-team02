@@ -25,9 +25,10 @@ The default stress profile is intentionally short and aggressive:
 |-------|----------|------------------|
 | Warmup | 20s | 20 |
 | Ramp 1 | 30s | 100 |
-| Ramp 2 | 30s | 200 |
-| Ramp 3 | 30s | 350 |
-| Peak | 30s | 500 |
+| Ramp 2 | 30s | 250 |
+| Ramp 3 | 30s | 500 |
+| Ramp 4 | 30s | 750 |
+| Peak | 30s | 1000 |
 | Cooldown | 20s | 0 |
 
 This profile is used by default across the stress suite, but it can still be overridden through environment variables when a higher or lower limit is needed.
@@ -130,12 +131,12 @@ Cleanup runs after the test even when the stress flow fails under normal excepti
 - baseline and moderate phases remain stable
 - no crashes occur
 - error rate stays low
-- the system remains responsive through the higher-stress phases
+- the system remains responsive through the 500-1000 VU phases
 
 ### MARGINAL
 
 - noticeable slowdown appears under high stress
-- some errors occur in later phases
+- some errors occur in the 500-1000 VU phases
 - the system degrades but remains usable and recoverable
 
 ### FAIL

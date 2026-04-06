@@ -1,4 +1,5 @@
 import { spawnSync } from "child_process";
+import fs from "fs";
 import path from "path";
 import {
   cleanupStressData,
@@ -19,14 +20,27 @@ if (!supportedFlows.has(flow)) {
 const runId = `${flow}-${Date.now()}`;
 const projectRoot = getProjectRoot();
 const scriptPath = path.join("__tests__", "performance", "stress", `${flow}.stress.js`);
+const reportsDir = path.join(
+  projectRoot,
+  "__tests__",
+  "performance",
+  "stress",
+  "reports"
+);
 
 let exitCode = 1;
 
 try {
   const seedResult = await prepareStressData(flow, runId);
+  fs.mkdirSync(reportsDir, { recursive: true });
+
   const childEnv = {
     ...process.env,
     STRESS_TEST_RUN_ID: runId,
+    K6_WEB_DASHBOARD: process.env.K6_WEB_DASHBOARD || "true",
+    K6_WEB_DASHBOARD_EXPORT:
+      process.env.K6_WEB_DASHBOARD_EXPORT ||
+      path.join(reportsDir, `${runId}.html`),
   };
 
   if (seedResult.userPool.length > 0) {
