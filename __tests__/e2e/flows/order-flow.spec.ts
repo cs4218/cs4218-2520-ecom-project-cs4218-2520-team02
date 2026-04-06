@@ -138,22 +138,29 @@ test.describe("Order Flow for Users", () => {
 
     test("admin can update an order status", async ({ page }) => {
       // Arrange
+      const ordersResponsePromise = page.waitForResponse(
+        (resp) => resp.url().includes("/api/v1/auth/all-orders") && resp.ok()
+      );
       await page.goto("/dashboard/admin/orders");
+      await ordersResponsePromise;
 
-      const firstOrderStatusSelect = page.locator("select").first();
+      const firstStatusDropdown = page.locator(".ant-select-selector").first();
 
       // Only proceed if there is at least one order
-      const orderCount = await firstOrderStatusSelect.count();
+      const orderCount = await firstStatusDropdown.count();
       test.skip(orderCount === 0, "No orders to update");
 
-      const currentStatus = await firstOrderStatusSelect.inputValue();
+      const currentStatus = await firstStatusDropdown.textContent();
 
       // Act - change to a different status
-      const newStatus = currentStatus === "Processing" ? "Shipped" : "Processing";
-      await firstOrderStatusSelect.selectOption(newStatus);
+      const newStatus = currentStatus?.includes("Processing") ? "Shipped" : "Processing";
+      await firstStatusDropdown.click();
+      await page.getByTitle(newStatus).locator("div").click();
 
       // Assert
-      await expect(firstOrderStatusSelect).toHaveValue(newStatus);
+      await expect(
+        page.locator(`span.ant-select-selection-item[title="${newStatus}"]`).first()
+      ).toBeVisible();
     });
 
     test("admin can navigate to orders from admin dashboard", async ({
