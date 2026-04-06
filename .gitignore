@@ -3,6 +3,7 @@ node_modules
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+/__tests__/performance/stress/reports/
 
 .env
 coverage
