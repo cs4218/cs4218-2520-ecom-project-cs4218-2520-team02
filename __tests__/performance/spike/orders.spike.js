@@ -7,71 +7,62 @@ import { getBaseUrl, getNumberEnv } from "./helpers/env.js";
 import { recordTransaction, trackResponse } from "./helpers/metrics.js";
 
 const baseUrl = getBaseUrl();
-let cachedSession = null;
-
 export const options = createSpikeOptions({ flow: "orders" });
 
 export function setup() {
   const users = getSpikeUserPool();
-  const validUsers = [];
-
-  for (const user of users) {
-    const loginResult = loginUser(user.email, user.password, {
-      phase: "setup",
-    });
-
-    if (!loginResult.ok || !loginResult.token) {
-      continue;
-    }
-
-    const ordersResponse = http.get(`${baseUrl}/api/v1/auth/orders`, {
-      headers: buildAuthHeaders(loginResult.token),
-      tags: { flow: "orders", action: "validate_orders", phase: "setup" },
-    });
-
-    const ordersResult = trackResponse(ordersResponse, {
-      name: "orders_validate_history",
-      expectedStatuses: [200],
-      requireSuccess: true,
-      tags: { flow: "orders", action: "validate_orders", phase: "setup" },
-    });
-
-    if (Array.isArray(ordersResult.body?.orders) && ordersResult.body.orders.length > 0) {
-      validUsers.push(user);
-    }
+  if (users.length === 0) {
+    throw new Error("Orders spike test requires at least one user.");
   }
 
-  if (validUsers.length === 0) {
-    throw new Error("Order tracking spike test requires at least one valid user with existing orders.");
+  const loggedInUsersWithOrders = users
+    .map(user => {
+      const loginResult = loginUser(user.email, user.password, {
+        phase: "setup",
+        user_label: user.label,
+      });
+
+      if (!loginResult.ok || !loginResult.token) return null;
+
+      // Fetch orders during setup
+      const ordersResponse = http.get(`${baseUrl}/api/v1/auth/orders`, {
+        headers: buildAuthHeaders(loginResult.token),
+        tags: { flow: "orders", action: "setup_validate_orders" },
+      });
+
+      const ordersResult = trackResponse(ordersResponse, {
+        name: "orders_validate_history",
+        expectedStatuses: [200],
+        requireSuccess: true,
+        tags: { flow: "orders", action: "setup_validate_orders" },
+      });
+
+      const hasOrders =
+        Array.isArray(ordersResult.body?.orders) && ordersResult.body.orders.length > 0;
+
+      return hasOrders ? { ...user, token: loginResult.token } : null;
+    })
+    .filter(Boolean);
+
+  if (loggedInUsersWithOrders.length === 0) {
+    throw new Error(
+      "Order tracking spike test requires at least one valid user with existing orders."
+    );
   }
 
-  return { users: validUsers };
+  return { users: loggedInUsersWithOrders };
 }
 
 export default function (data) {
   const user = pickUserForVu(data.users);
 
-  if (!cachedSession || cachedSession.label !== user.label) {
-    const loginResult = loginUser(user.email, user.password, {
-      phase: "vu_session",
-    });
-
-    if (!loginResult.ok || !loginResult.token) {
-      recordTransaction(false, {
-        flow: "orders",
-        outcome: "login_failed",
-      });
-      return;
-    }
-
-    cachedSession = {
-      label: user.label,
-      token: loginResult.token,
-    };
+  if (!user?.token) {
+    recordTransaction(false, { flow: "orders", user_label: user?.label || "unknown" });
+    return;
   }
 
   const response = http.get(`${baseUrl}/api/v1/auth/orders`, {
-    headers: buildAuthHeaders(cachedSession.token),
+    headers: buildAuthHeaders(user.token),
     tags: { flow: "orders", action: "get_orders" },
   });
 
@@ -82,12 +73,11 @@ export default function (data) {
     tags: { flow: "orders", action: "get_orders" },
   });
 
-  const hasOrders =
-    Array.isArray(result.body?.orders) && result.body.orders.length > 0;
+  const hasOrders = Array.isArray(result.body?.orders) && result.body.orders.length > 0;
 
   recordTransaction(result.ok && hasOrders, {
     flow: "orders",
-    outcome: hasOrders ? "has_orders" : "no_orders",
+    user_label: user.label,
   });
 
   sleep(getNumberEnv("THINK_TIME_SECONDS", 1));

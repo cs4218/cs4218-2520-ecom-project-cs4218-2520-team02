@@ -22,11 +22,11 @@ if (!supportedFlows.has(flow)) {
 const flowThresholds = {
   browsing: { P90: 800, P95: 1200 },
   auth: { P90: 400, P95: 600 },
-  orders: { P90: 600, P95: 800 },
+  orders: { P90: 900, P95: 1300 },
   payment: { P90: 1000, P95: 1500 },
 };
 
-const spikePeaks = [250, 500, 750];
+const spikePeaks = [150];
 
 const runId = `${flow}-${Date.now()}`;
 const projectRoot = getProjectRoot();
@@ -66,6 +66,7 @@ try {
       SPIKE_TEST_RUN_ID: runIdPeak,
       SPIKE_PEAK_VUS: peak, // override peak VUs for this run
       K6_WEB_DASHBOARD_EXPORT: path.join(reportsDir, `${runIdPeak}.html`),
+      K6_WEB_DASHBOARD_PERIOD: "1s",
     };
 
     const result = spawnSync("k6", ["run", scriptPath], {

@@ -8,8 +8,6 @@ import { recordTransaction, trackResponse } from "./helpers/metrics.js";
 import { buildCart } from "./helpers/payloads.js";
 
 const baseUrl = getBaseUrl();
-let cachedSession = null;
-
 export const options = createSpikeOptions({ flow: "payment" });
 
 export function setup() {
@@ -18,21 +16,19 @@ export function setup() {
     throw new Error("Payment spike test requires at least one valid user.");
   }
 
-  const validUsers = [];
-  for (const user of users) {
+  const loggedInUsers = users.map(user => {
     const loginResult = loginUser(user.email, user.password, {
       phase: "setup",
+      user_label: user.label,
     });
 
-    if (loginResult.ok && loginResult.token) {
-      validUsers.push(user);
-    }
-  }
+    return { ...user, token: loginResult.token };
+  }).filter(Boolean);
 
-  if (validUsers.length === 0) {
+  if (loggedInUsers.length === 0)
     throw new Error("Payment spike test requires at least one user with valid login credentials.");
-  }
 
+  // Fetch products once
   const productsResponse = http.get(`${baseUrl}/api/v1/product/product-list/1`, {
     tags: { flow: "payment", action: "get_products" },
   });
@@ -45,39 +41,26 @@ export function setup() {
   });
 
   const products = productsResult.body?.products || [];
-  if (products.length === 0) {
+  if (products.length === 0)
     throw new Error("The payment spike test needs at least one product in the catalogue.");
-  }
 
-  return {
-    users: validUsers,
-    products,
-  };
+  // Return cached tokens and product catalog
+  return { users: loggedInUsers, products };
 }
 
 export default function (data) {
+  
+  // Pick a user for this VU
   const user = pickUserForVu(data.users);
 
-  if (!cachedSession || cachedSession.label !== user.label) {
-    const loginResult = loginUser(user.email, user.password, {
-      phase: "vu_session",
-    });
-
-    if (!loginResult.ok || !loginResult.token) {
-      recordTransaction(false, {
-        flow: "payment",
-        outcome: "login_failed",
-      });
-      return;
-    }
-
-    cachedSession = {
-      label: user.label,
-      token: loginResult.token,
-    };
+  if (!user?.token) {
+    recordTransaction(false, { flow: "payment", user_label: user?.label || "unknown" });
+    return;
   }
 
+  // Get Braintree token
   const tokenResponse = http.get(`${baseUrl}/api/v1/product/braintree/token`, {
+    headers: buildAuthHeaders(user.token),
     tags: { flow: "payment", action: "get_braintree_token" },
   });
 
@@ -88,18 +71,17 @@ export default function (data) {
     tags: { flow: "payment", action: "get_braintree_token" },
   });
 
+  // Build cart
   const cartSize = getNumberEnv("PAYMENT_CART_SIZE", 2);
   const cart = buildCart(data.products, cartSize);
   const paymentNonce = getOptionalEnv("PAYMENT_NONCE", "fake-valid-nonce");
 
+  // Submit payment
   const paymentResponse = http.post(
     `${baseUrl}/api/v1/product/braintree/payment`,
-    JSON.stringify({
-      nonce: paymentNonce,
-      cart,
-    }),
+    JSON.stringify({ nonce: paymentNonce, cart }),
     {
-      headers: buildAuthHeaders(cachedSession.token),
+      headers: buildAuthHeaders(user.token),
       tags: { flow: "payment", action: "submit_payment" },
     }
   );
@@ -111,9 +93,10 @@ export default function (data) {
     tags: { flow: "payment", action: "submit_payment" },
   });
 
+  // Record transaction
   recordTransaction(tokenResult.ok && paymentResult.ok, {
     flow: "payment",
-    outcome: paymentResult.ok ? "success" : "failure",
+    user_label: user.label,
   });
 
   sleep(getNumberEnv("THINK_TIME_SECONDS", 1));

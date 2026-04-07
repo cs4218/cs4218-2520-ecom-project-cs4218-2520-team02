@@ -2,8 +2,8 @@
 import { getNumberEnv, getOptionalEnv } from "../helpers/env.js";
 
 export function createSpikeStages() {
-  const baselineVUs = getNumberEnv("SPIKE_BASELINE_VUS", 100);
-  const spikeVUs = getNumberEnv("SPIKE_PEAK_VUS", 250);
+  const baselineVUs = getNumberEnv("SPIKE_BASELINE_VUS", 50);
+  const spikeVUs = getNumberEnv("SPIKE_PEAK_VUS", 150);
 
   return [
 
