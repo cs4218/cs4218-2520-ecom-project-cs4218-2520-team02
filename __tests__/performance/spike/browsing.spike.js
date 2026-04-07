@@ -19,6 +19,7 @@ export function setup() {
   const categoriesResponse = http.get(`${baseUrl}/api/v1/category/get-category`, {
     tags: { flow: "browsing", action: "get_categories" },
   });
+
   const categoriesResult = trackResponse(categoriesResponse, {
     name: "browse_get_categories",
     expectedStatuses: [200],
@@ -29,6 +30,7 @@ export function setup() {
   const productsResponse = http.get(`${baseUrl}/api/v1/product/product-list/1`, {
     tags: { flow: "browsing", action: "get_product_list" },
   });
+
   const productsResult = trackResponse(productsResponse, {
     name: "browse_product_list_page_1",
     expectedStatuses: [200],
@@ -185,7 +187,7 @@ function runLoadMoreJourney(page) {
   return ok;
 }
 
-export default function (data) {
+export default function(data) {
   const iteration = exec.scenario.iterationInTest;
   const category = pickByIteration(data.categories, iteration);
   const product = pickByIteration(data.products, iteration);

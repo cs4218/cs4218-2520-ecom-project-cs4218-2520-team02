@@ -22,7 +22,6 @@ export function setup() {
   for (const user of users) {
     const loginResult = loginUser(user.email, user.password, {
       phase: "setup",
-      user_label: user.label,
     });
 
     if (loginResult.ok && loginResult.token) {
@@ -37,6 +36,7 @@ export function setup() {
   const productsResponse = http.get(`${baseUrl}/api/v1/product/product-list/1`, {
     tags: { flow: "payment", action: "get_products" },
   });
+
   const productsResult = trackResponse(productsResponse, {
     name: "payment_get_products",
     expectedStatuses: [200],
@@ -61,13 +61,12 @@ export default function (data) {
   if (!cachedSession || cachedSession.label !== user.label) {
     const loginResult = loginUser(user.email, user.password, {
       phase: "vu_session",
-      user_label: user.label,
     });
 
     if (!loginResult.ok || !loginResult.token) {
       recordTransaction(false, {
         flow: "payment",
-        user_label: user.label,
+        outcome: "login_failed",
       });
       return;
     }
@@ -81,6 +80,7 @@ export default function (data) {
   const tokenResponse = http.get(`${baseUrl}/api/v1/product/braintree/token`, {
     tags: { flow: "payment", action: "get_braintree_token" },
   });
+
   const tokenResult = trackResponse(tokenResponse, {
     name: "payment_get_braintree_token",
     expectedStatuses: [200],
@@ -113,7 +113,7 @@ export default function (data) {
 
   recordTransaction(tokenResult.ok && paymentResult.ok, {
     flow: "payment",
-    user_label: user.label,
+    outcome: paymentResult.ok ? "success" : "failure",
   });
 
   sleep(getNumberEnv("THINK_TIME_SECONDS", 1));

@@ -18,6 +18,14 @@ if (!supportedFlows.has(flow)) {
   process.exit(1);
 }
 
+// Set default thresholds per flow
+const flowThresholds = {
+  browsing: { P90: 800, P95: 1200 },
+  auth: { P90: 400, P95: 600 },
+  orders: { P90: 600, P95: 800 },
+  payment: { P90: 1000, P95: 1500 },
+};
+
 const spikePeaks = [250, 500, 750];
 
 const runId = `${flow}-${Date.now()}`;
@@ -40,6 +48,9 @@ try {
   const baseChildEnv = {
     ...process.env,
     K6_WEB_DASHBOARD: process.env.K6_WEB_DASHBOARD || "true",
+    FLOW_TYPE: flow,
+    P90_THRESHOLD_MS: flowThresholds[flow].P90,
+    P95_THRESHOLD_MS: flowThresholds[flow].P95,
   };
 
   if (seedResult.userPool.length > 0) {

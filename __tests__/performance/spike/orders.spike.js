@@ -18,7 +18,6 @@ export function setup() {
   for (const user of users) {
     const loginResult = loginUser(user.email, user.password, {
       phase: "setup",
-      user_label: user.label,
     });
 
     if (!loginResult.ok || !loginResult.token) {
@@ -29,6 +28,7 @@ export function setup() {
       headers: buildAuthHeaders(loginResult.token),
       tags: { flow: "orders", action: "validate_orders", phase: "setup" },
     });
+
     const ordersResult = trackResponse(ordersResponse, {
       name: "orders_validate_history",
       expectedStatuses: [200],
@@ -54,13 +54,12 @@ export default function (data) {
   if (!cachedSession || cachedSession.label !== user.label) {
     const loginResult = loginUser(user.email, user.password, {
       phase: "vu_session",
-      user_label: user.label,
     });
 
     if (!loginResult.ok || !loginResult.token) {
       recordTransaction(false, {
         flow: "orders",
-        user_label: user.label,
+        outcome: "login_failed",
       });
       return;
     }
@@ -83,10 +82,12 @@ export default function (data) {
     tags: { flow: "orders", action: "get_orders" },
   });
 
-  const hasOrders = Array.isArray(result.body?.orders) && result.body.orders.length > 0;
+  const hasOrders =
+    Array.isArray(result.body?.orders) && result.body.orders.length > 0;
+
   recordTransaction(result.ok && hasOrders, {
     flow: "orders",
-    user_label: user.label,
+    outcome: hasOrders ? "has_orders" : "no_orders",
   });
 
   sleep(getNumberEnv("THINK_TIME_SECONDS", 1));
