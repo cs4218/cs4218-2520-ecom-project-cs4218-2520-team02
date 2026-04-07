@@ -1,4 +1,4 @@
-import { getNumberEnv, getOptionalEnv } from "../../stress/helpers/env.js";
+import { getNumberEnv, getOptionalEnv } from "../helpers/env.js";
 
 export function createLoadStages() {
   return [

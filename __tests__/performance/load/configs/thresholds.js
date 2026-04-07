@@ -1,5 +1,5 @@
 import { createLoadStages } from "./stages.js";
-import { getNumberEnv } from "../../stress/helpers/env.js";
+import { getNumberEnv } from "../helpers/env.js";
 
 export function createLoadThresholds() {
   return {
