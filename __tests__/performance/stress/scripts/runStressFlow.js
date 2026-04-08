@@ -39,6 +39,7 @@ try {
 
   const childEnv = {
     ...process.env,
+    NODE_ENV: "test",
     STRESS_TEST_RUN_ID: runId,
     K6_WEB_DASHBOARD: process.env.K6_WEB_DASHBOARD || "true",
     K6_WEB_DASHBOARD_EXPORT:
