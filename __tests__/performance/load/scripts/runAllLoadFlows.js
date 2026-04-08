@@ -2,7 +2,7 @@ import { spawnSync } from "child_process";
 import path from "path";
 import { getProjectRoot } from "./loadDataManager.js";
 
-const flows = ["browsing"];
+const flows = ["browsing", "auth", "orders", "payment"];
 const projectRoot = getProjectRoot();
 const runnerPath = path.join(
   "__tests__",

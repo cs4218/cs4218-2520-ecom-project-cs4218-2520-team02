@@ -9,7 +9,7 @@ import {
 } from "./loadDataManager.js";
 
 const flow = process.argv[2];
-const supportedFlows = new Set(["browsing"]);
+const supportedFlows = new Set(["browsing", "auth", "payment", "orders"]);
 const flowsWithDatabaseFixtures = new Set(["auth", "orders", "payment"]);
 
 if (!supportedFlows.has(flow)) {

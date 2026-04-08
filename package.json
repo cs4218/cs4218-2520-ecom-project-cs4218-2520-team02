@@ -27,7 +27,10 @@
     "test:performance:stress:orders": "node __tests__/performance/stress/scripts/runStressFlow.js orders",
     "test:performance:stress:payment": "node __tests__/performance/stress/scripts/runStressFlow.js payment",
     "test:performance:load": "node __tests__/performance/load/scripts/runAllLoadFlows.js",
-    "test:performance:load:browsing": "node __tests__/performance/load/scripts/runLoadFlow.js browsing"
+    "test:performance:load:browsing": "node __tests__/performance/load/scripts/runLoadFlow.js browsing",
+    "test:performance:load:auth": "node __tests__/performance/load/scripts/runLoadFlow.js auth",
+    "test:performance:load:payment": "node __tests__/performance/load/scripts/runLoadFlow.js payment",
+    "test:performance:load:orders": "node __tests__/performance/load/scripts/runLoadFlow.js orders"
   },
   "keywords": [],
   "author": "RP",
