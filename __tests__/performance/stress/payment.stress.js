@@ -8,7 +8,6 @@ import { recordTransaction, trackResponse } from "./helpers/metrics.js";
 import { buildCart } from "./helpers/payloads.js";
 
 const baseUrl = getBaseUrl();
-let cachedSession = null;
 
 export const options = createStressOptions({ flow: "payment" });
 
@@ -18,19 +17,22 @@ export function setup() {
     throw new Error("Payment stress test requires at least one valid user.");
   }
 
-  const validUsers = [];
-  for (const user of users) {
-    const loginResult = loginUser(user.email, user.password, {
-      phase: "setup",
-      user_label: user.label,
-    });
+  const loggedInUsers = users
+    .map((user) => {
+      const loginResult = loginUser(user.email, user.password, {
+        phase: "setup",
+        user_label: user.label,
+      });
 
-    if (loginResult.ok && loginResult.token) {
-      validUsers.push(user);
-    }
-  }
+      if (!loginResult.ok || !loginResult.token) {
+        return null;
+      }
 
-  if (validUsers.length === 0) {
+      return { ...user, token: loginResult.token };
+    })
+    .filter(Boolean);
+
+  if (loggedInUsers.length === 0) {
     throw new Error("Payment stress test requires at least one user with valid login credentials.");
   }
 
@@ -50,7 +52,7 @@ export function setup() {
   }
 
   return {
-    users: validUsers,
+    users: loggedInUsers,
     products,
   };
 }
@@ -58,27 +60,16 @@ export function setup() {
 export default function (data) {
   const user = pickUserForVu(data.users);
 
-  if (!cachedSession || cachedSession.label !== user.label) {
-    const loginResult = loginUser(user.email, user.password, {
-      phase: "vu_session",
-      user_label: user.label,
+  if (!user?.token) {
+    recordTransaction(false, {
+      flow: "payment",
+      user_label: user?.label || "unknown",
     });
-
-    if (!loginResult.ok || !loginResult.token) {
-      recordTransaction(false, {
-        flow: "payment",
-        user_label: user.label,
-      });
-      return;
-    }
-
-    cachedSession = {
-      label: user.label,
-      token: loginResult.token,
-    };
+    return;
   }
 
   const tokenResponse = http.get(`${baseUrl}/api/v1/product/braintree/token`, {
+    headers: buildAuthHeaders(user.token),
     tags: { flow: "payment", action: "get_braintree_token" },
   });
   const tokenResult = trackResponse(tokenResponse, {
@@ -99,7 +90,7 @@ export default function (data) {
       cart,
     }),
     {
-      headers: buildAuthHeaders(cachedSession.token),
+      headers: buildAuthHeaders(user.token),
       tags: { flow: "payment", action: "submit_payment" },
     }
   );
