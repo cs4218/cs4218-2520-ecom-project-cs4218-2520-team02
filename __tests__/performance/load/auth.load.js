@@ -1,9 +1,10 @@
+// Jovin Ang Yusheng, A0273460H
 import { sleep } from "k6";
 import { createLoadStages } from "./configs/stages.js";
 import { createLoadOptions } from "./configs/thresholds.js";
 import { buildUniqueUser, getLoadUserPool, loginUser, pickUserForVu, registerUser } from "./helpers/auth.js";
-import { getNumberEnv } from "./helpers/env.js";
-import { recordTransaction } from "./helpers/metrics.js";
+import { getNumberEnv } from "../common/k6/env.js";
+import { recordTransaction } from "../common/k6/metrics.js";
 
 /*
  * Load Test — Registration & Login

@@ -1,9 +1,10 @@
+// Jovin Ang Yusheng, A0273460H
 import http from "k6/http";
 import { sleep } from "k6";
 import { createLoadOptions } from "./configs/thresholds.js";
 import { buildAuthHeaders, getLoadUserPool, loginUser, pickUserForVu } from "./helpers/auth.js";
-import { getBaseUrl, getNumberEnv } from "./helpers/env.js";
-import { recordTransaction, trackResponse } from "./helpers/metrics.js";
+import { getBaseUrl, getNumberEnv } from "../common/k6/env.js";
+import { recordTransaction, trackResponse } from "../common/k6/metrics.js";
 
 /*
  * Load Test — Order Tracking
