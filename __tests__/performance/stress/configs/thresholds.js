@@ -1,5 +1,5 @@
 import { createStressStages } from "./stages.js";
-import { getNumberEnv } from "../helpers/env.js";
+import { getNumberEnv } from "../../common/k6/env.js";
 
 export function createStressThresholds() {
   return {
@@ -27,7 +27,7 @@ export function createStressTags(tags = {}) {
 export function createStressOptions(tags = {}, overrides = {}) {
   const options = {
     thresholds: createStressThresholds(),
-    summaryTrendStats: ["avg", "min", "med", "p(90)", "p(95)", "max"],
+    summaryTrendStats: ["p(90)", "p(95)"],
     tags: createStressTags(tags),
     userAgent: "k6-stress-suite",
   };

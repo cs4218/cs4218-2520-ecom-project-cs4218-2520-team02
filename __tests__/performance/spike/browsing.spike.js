@@ -1,8 +1,8 @@
-// Censon Lee Lemuel John Alejo, A0273436B
+// Yap Zhao Yi, A0277540B
 import http from "k6/http";
 import exec from "k6/execution";
 import { sleep } from "k6";
-import { createStressOptions } from "./configs/thresholds.js";
+import { createSpikeOptions } from "./configs/thresholds.js";
 import { getBaseUrl, getBooleanEnv, getNumberEnv } from "../common/k6/env.js";
 import { pickByIteration, recordTransaction, trackResponse } from "../common/k6/metrics.js";
 import {
@@ -13,12 +13,13 @@ import {
 
 const baseUrl = getBaseUrl();
 
-export const options = createStressOptions({ flow: "browsing" });
+export const options = createSpikeOptions({ flow: "browsing" });
 
 export function setup() {
   const categoriesResponse = http.get(`${baseUrl}/api/v1/category/get-category`, {
     tags: { flow: "browsing", action: "get_categories" },
   });
+
   const categoriesResult = trackResponse(categoriesResponse, {
     name: "browse_get_categories",
     expectedStatuses: [200],
@@ -29,6 +30,7 @@ export function setup() {
   const productsResponse = http.get(`${baseUrl}/api/v1/product/product-list/1`, {
     tags: { flow: "browsing", action: "get_product_list" },
   });
+
   const productsResult = trackResponse(productsResponse, {
     name: "browse_product_list_page_1",
     expectedStatuses: [200],
@@ -37,11 +39,11 @@ export function setup() {
   });
 
   if ((categoriesResult.body?.categories || []).length === 0) {
-    throw new Error("Browsing stress test requires at least one category.");
+    throw new Error("Browsing spike test requires at least one category.");
   }
 
   if ((productsResult.body?.products || []).length === 0) {
-    throw new Error("Browsing stress test requires at least one product.");
+    throw new Error("Browsing spike test requires at least one product.");
   }
 
   return {
@@ -185,7 +187,7 @@ function runLoadMoreJourney(page) {
   return ok;
 }
 
-export default function (data) {
+export default function(data) {
   const iteration = exec.scenario.iterationInTest;
   const category = pickByIteration(data.categories, iteration);
   const product = pickByIteration(data.products, iteration);
