@@ -14,7 +14,7 @@ const projectRoot = path.resolve(__dirname, "../../../../");
 dotenv.config({ path: path.resolve(projectRoot, ".env") });
 
 function getPoolSize(flow) {
-  const flowKey = `${flow.toUpperCase()}_USER_POOL_SIZE`;
+  const flowKey = `${flow.replace(/[^a-zA-Z0-9]+/g, "_").toUpperCase()}_USER_POOL_SIZE`;
   const rawValue = process.env[flowKey] || process.env.STRESS_USER_POOL_SIZE || "8";
   const parsed = Number(rawValue);
 
@@ -121,7 +121,7 @@ async function ensureOrderHistory(users) {
 }
 
 export async function prepareStressData(flow, runId) {
-  const seededFlows = new Set(["auth", "orders", "payment"]);
+  const seededFlows = new Set(["auth.login", "orders", "payment"]);
   if (!seededFlows.has(flow)) {
     return {
       runId,

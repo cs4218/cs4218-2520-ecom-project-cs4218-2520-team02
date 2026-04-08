@@ -9,8 +9,8 @@ import {
 } from "./stressDataManager.js";
 
 const flow = process.argv[2];
-const supportedFlows = new Set(["browsing", "auth", "orders", "payment"]);
-const flowsWithDatabaseFixtures = new Set(["auth", "orders", "payment"]);
+const supportedFlows = new Set(["browsing", "auth.login", "auth.register", "orders", "payment"]);
+const flowsWithDatabaseFixtures = new Set(["auth.login", "auth.register", "orders", "payment"]);
 
 if (!supportedFlows.has(flow)) {
   console.error(`Unsupported stress-test flow "${flow}".`);
