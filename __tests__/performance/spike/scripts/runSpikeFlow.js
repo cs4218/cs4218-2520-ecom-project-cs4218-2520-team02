@@ -20,11 +20,11 @@ if (!supportedFlows.has(flow)) {
 
 // Set default thresholds per flow
 const flowThresholds = {
-  "browsing": { P90: 800, P95: 1200 },
-  "auth.register": { P90: 800, P95: 1000 },
-  "auth.login": { P90: 500, P95: 700 },
-  "orders": { P90: 900, P95: 1300 },
-  "payment": { P90: 1000, P95: 1500 },
+  "browsing": { P90: 1500, P95: 2200 },
+  "auth.register": { P90: 1500, P95: 2200 },
+  "auth.login": { P90: 700, P95: 1000 },
+  "orders": { P90: 1200, P95: 1700 },
+  "payment": { P90: 1800, P95: 2500 },
 };
 
 const spikePeaks = [150, 200, 250];

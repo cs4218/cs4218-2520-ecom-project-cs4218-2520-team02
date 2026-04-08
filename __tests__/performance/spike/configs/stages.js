@@ -15,7 +15,7 @@ export function createSpikeStages() {
 
     // Maintain baseline
     {
-      duration: getOptionalEnv("SPIKE_BASELINE_DURATION", "1m"),
+      duration: getOptionalEnv("SPIKE_BASELINE_DURATION", "1m"), // For baseline testing 30. Real testing 1m.
       target: baselineVUs,
     },
 
@@ -36,7 +36,7 @@ export function createSpikeStages() {
       duration: getOptionalEnv("SPIKE_RAMP_DOWN_DURATION", "1s"),
       target: baselineVUs,
     },
-
+    
     // Recovery
     {
       duration: getOptionalEnv("SPIKE_RECOVERY_DURATION", "30s"),

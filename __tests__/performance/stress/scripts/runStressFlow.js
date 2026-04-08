@@ -12,6 +12,13 @@ import {
 const flow = process.argv[2];
 const supportedFlows = new Set(["browsing", "auth.login", "auth.register", "orders", "payment"]);
 const flowsWithDatabaseFixtures = new Set(["auth.login", "auth.register", "orders", "payment"]);
+const flowThresholds = {
+  "browsing": { P90: 6000, P95: 8800 },
+  "auth.register": { P90: 6000, P95: 8800 },
+  "auth.login": { P90: 2800, P95: 4000 },
+  "orders": { P90: 4800, P95: 6800 },
+  "payment": { P90: 7200, P95: 10000 },
+};
 
 if (!supportedFlows.has(flow)) {
   console.error(`Unsupported stress-test flow "${flow}".`);
@@ -38,19 +45,26 @@ try {
   }
   fs.mkdirSync(reportsDir, { recursive: true });
 
-  const childEnv = {
+  const baseChildEnv = {
     ...process.env,
     NODE_ENV: "test",
-    STRESS_TEST_RUN_ID: runId,
     K6_WEB_DASHBOARD: process.env.K6_WEB_DASHBOARD || "true",
+    FLOW_TYPE: flow,
+    P90_THRESHOLD_MS: flowThresholds[flow].P90,
+    P95_THRESHOLD_MS: flowThresholds[flow].P95,
+  };
+
+  if (seedResult.userPool.length > 0) {
+    baseChildEnv.STRESS_USER_POOL = JSON.stringify(seedResult.userPool);
+  }
+
+  const childEnv = {
+    ...baseChildEnv,
+    STRESS_TEST_RUN_ID: runId,
     K6_WEB_DASHBOARD_EXPORT:
       process.env.K6_WEB_DASHBOARD_EXPORT ||
       path.join(reportsDir, `${runId}.html`),
   };
-
-  if (seedResult.userPool.length > 0) {
-    childEnv.STRESS_USER_POOL = JSON.stringify(seedResult.userPool);
-  }
 
   const result = spawnSync("k6", ["run", scriptPath], {
     cwd: projectRoot,
