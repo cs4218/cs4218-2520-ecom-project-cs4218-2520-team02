@@ -1,4 +1,4 @@
-// Censon Lee Lemuel John Alejo, A0273436B
+// Yap Zhao Yi, A0277540B
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import path from "path";
@@ -15,8 +15,8 @@ const projectRoot = path.resolve(__dirname, "../../../../");
 dotenv.config({ path: path.resolve(projectRoot, ".env") });
 
 function getPoolSize(flow) {
-  const flowKey = `${flow.replace(/[^a-zA-Z0-9]+/g, "_").toUpperCase()}_USER_POOL_SIZE`;
-  const rawValue = process.env[flowKey] || process.env.STRESS_USER_POOL_SIZE || "8";
+  const flowKey = `${flow.toUpperCase()}_USER_POOL_SIZE`;
+  const rawValue = process.env[flowKey] || process.env.SPIKE_USER_POOL_SIZE || "8";
   const parsed = Number(rawValue);
 
   if (Number.isNaN(parsed) || parsed < 1) {
@@ -27,36 +27,36 @@ function getPoolSize(flow) {
 }
 
 function getSeedPassword() {
-  return process.env.STRESS_SEEDED_USER_PASSWORD || "Stress1234!";
+  return process.env.SPIKE_SEEDED_USER_PASSWORD || "Spike1234!";
 }
 
-function buildStressEmail(runId, flow, index) {
-  return `stress-${runId}-${flow}-seed-${index + 1}@example.com`;
+function buildSpikeEmail(runId, flow, index) {
+  return `spike-${runId}-${flow}-seed-${index + 1}@example.com`;
 }
 
-function buildStressPrefix(runId) {
-  return `stress-${runId}-`;
+function buildSpikePrefix(runId) {
+  return `spike-${runId}-`;
 }
 
 function escapeRegex(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function buildStressEmailMatcher(runId) {
+function buildSpikeEmailMatcher(runId) {
   if (!runId) {
-    return { $regex: /^stress-/ };
+    return { $regex: /^spike-/ };
   }
 
-  const prefix = buildStressPrefix(runId);
+  const prefix = buildSpikePrefix(runId);
   return { $regex: new RegExp(`^${escapeRegex(prefix)}`) };
 }
 
 function buildUserPool(flow, runId, count) {
   return Array.from({ length: count }, (_, index) => ({
     label: `${flow}-user-${index + 1}`,
-    email: buildStressEmail(runId, flow, index),
+    email: buildSpikeEmail(runId, flow, index),
     password: getSeedPassword(),
-    name: `Stress ${flow} User ${index + 1}`,
+    name: `Spike ${flow} User ${index + 1}`,
   }));
 }
 
@@ -67,7 +67,7 @@ async function connectToDatabase() {
 
   const mongoUrl = process.env.MONGO_URL;
   if (!mongoUrl) {
-    throw new Error("MONGO_URL is required to seed stress-test data.");
+    throw new Error("MONGO_URL is required to seed spike-test data.");
   }
 
   await mongoose.connect(mongoUrl);
@@ -85,7 +85,7 @@ async function ensureUsersExist(userPool) {
           email: user.email,
           password: hashedPassword,
           phone: "91234567",
-          address: "123 Stress Street",
+          address: "123 Spike Street",
           answer: "Soccer",
           role: 0,
         },
@@ -101,7 +101,7 @@ async function ensureOrderHistory(users) {
   const products = await productModel.find({}).select("_id").limit(3);
 
   if (products.length === 0) {
-    throw new Error("At least one product is required to seed order-history stress users.");
+    throw new Error("At least one product is required to seed order-history spike users.");
   }
 
   const productIds = products.map((product) => product._id);
@@ -112,7 +112,7 @@ async function ensureOrderHistory(users) {
       payment: {
         success: true,
         transaction: {
-          id: `stress-order-${user._id.toString()}`,
+          id: `spike-order-${user._id.toString()}`,
         },
       },
       buyer: user._id,
@@ -121,8 +121,8 @@ async function ensureOrderHistory(users) {
   }
 }
 
-export async function prepareStressData(flow, runId) {
-  const seededFlows = new Set(["auth.login", "orders", "payment"]);
+export async function prepareSpikeData(flow, runId) {
+  const seededFlows = new Set(["auth", "orders", "payment"]);
   if (!seededFlows.has(flow)) {
     return {
       runId,
@@ -132,7 +132,7 @@ export async function prepareStressData(flow, runId) {
   }
 
   await connectToDatabase();
-  await cleanupStressData();
+  await cleanupSpikeData();
 
   const userPool = buildUserPool(flow, runId, getPoolSize(flow));
   const users = await ensureUsersExist(userPool);
@@ -148,10 +148,10 @@ export async function prepareStressData(flow, runId) {
   };
 }
 
-export async function cleanupStressData(runId) {
+export async function cleanupSpikeData(runId) {
   await connectToDatabase();
 
-  const users = await userModel.find({ email: buildStressEmailMatcher(runId) }).select("_id email");
+  const users = await userModel.find({ email: buildSpikeEmailMatcher(runId) }).select("_id email");
   const userIds = users.map((user) => user._id);
   let deletedOrders = 0;
   let deletedUsers = 0;
@@ -169,7 +169,7 @@ export async function cleanupStressData(runId) {
   };
 }
 
-export async function disconnectStressDatabase() {
+export async function disconnectSpikeDatabase() {
   if (mongoose.connection.readyState !== 0) {
     await mongoose.disconnect();
   }

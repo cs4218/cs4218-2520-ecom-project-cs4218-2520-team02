@@ -4,6 +4,7 @@ node_modules
 /blob-report/
 /playwright/.cache/
 /__tests__/performance/stress/reports/
+/__tests__/performance/spike/reports/
 
 .env
 coverage
