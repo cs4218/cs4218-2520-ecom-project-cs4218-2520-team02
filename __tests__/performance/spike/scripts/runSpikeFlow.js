@@ -27,7 +27,7 @@ const flowThresholds = {
   "payment": { P90: 1000, P95: 1500 },
 };
 
-const spikePeaks = [150];
+const spikePeaks = [150, 200, 250];
 
 const runId = `${flow}-${Date.now()}`;
 const projectRoot = getProjectRoot();
