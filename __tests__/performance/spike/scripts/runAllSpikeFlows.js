@@ -3,7 +3,7 @@ import { spawnSync } from "child_process";
 import path from "path";
 import { getProjectRoot } from "./spikeDataManager.js";
 
-const flows = ["browsing", "auth", "orders", "payment"];
+const flows = ["browsing", "auth.login", "auth.register", "orders", "payment"];
 const projectRoot = getProjectRoot();
 const runnerPath = path.join(
   "__tests__",

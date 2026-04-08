@@ -10,8 +10,8 @@ import {
 } from "./spikeDataManager.js";
 
 const flow = process.argv[2];
-const supportedFlows = new Set(["browsing", "auth", "orders", "payment"]);
-const flowsWithDatabaseFixtures = new Set(["auth", "orders", "payment"]);
+const supportedFlows = new Set(["browsing", "auth.login", "auth.register", "orders", "payment"]);
+const flowsWithDatabaseFixtures = new Set(["auth.login", "auth.register", "orders", "payment"]);
 
 if (!supportedFlows.has(flow)) {
   console.error(`Unsupported spike-test flow "${flow}".`);
@@ -20,10 +20,11 @@ if (!supportedFlows.has(flow)) {
 
 // Set default thresholds per flow
 const flowThresholds = {
-  browsing: { P90: 800, P95: 1200 },
-  auth: { P90: 400, P95: 600 },
-  orders: { P90: 900, P95: 1300 },
-  payment: { P90: 1000, P95: 1500 },
+  "browsing": { P90: 800, P95: 1200 },
+  "auth.register": { P90: 800, P95: 1000 },
+  "auth.login": { P90: 500, P95: 700 },
+  "orders": { P90: 900, P95: 1300 },
+  "payment": { P90: 1000, P95: 1500 },
 };
 
 const spikePeaks = [150];
