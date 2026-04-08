@@ -2,8 +2,8 @@
 import { sleep } from "k6";
 import { createStressOptions } from "./configs/thresholds.js";
 import { buildUniqueUser, registerUser } from "./helpers/auth.js";
-import { getNumberEnv } from "./helpers/env.js";
-import { recordTransaction } from "./helpers/metrics.js";
+import { getNumberEnv } from "../common/k6/env.js";
+import { recordTransaction } from "../common/k6/metrics.js";
 
 export const options = createStressOptions({ flow: "auth.register" });
 

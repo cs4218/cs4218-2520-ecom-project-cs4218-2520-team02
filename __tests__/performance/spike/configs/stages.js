@@ -1,5 +1,5 @@
 // Yap Zhao Yi, A0277540B
-import { getNumberEnv, getOptionalEnv } from "../helpers/env.js";
+import { getNumberEnv, getOptionalEnv } from "../../common/k6/env.js";
 
 export function createSpikeStages() {
   const baselineVUs = getNumberEnv("SPIKE_BASELINE_VUS", 50);

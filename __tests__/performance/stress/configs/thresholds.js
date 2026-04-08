@@ -1,5 +1,5 @@
 import { createStressStages } from "./stages.js";
-import { getNumberEnv } from "../helpers/env.js";
+import { getNumberEnv } from "../../common/k6/env.js";
 
 export function createStressThresholds() {
   return {

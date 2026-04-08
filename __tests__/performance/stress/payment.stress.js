@@ -3,9 +3,9 @@ import http from "k6/http";
 import { sleep } from "k6";
 import { createStressOptions } from "./configs/thresholds.js";
 import { buildAuthHeaders, getStressUserPool, loginUser, pickUserForVu } from "./helpers/auth.js";
-import { getBaseUrl, getNumberEnv, getOptionalEnv } from "./helpers/env.js";
-import { recordTransaction, trackResponse } from "./helpers/metrics.js";
-import { buildCart } from "./helpers/payloads.js";
+import { getBaseUrl, getNumberEnv, getOptionalEnv } from "../common/k6/env.js";
+import { recordTransaction, trackResponse } from "../common/k6/metrics.js";
+import { buildCart } from "../common/k6/payloads.js";
 
 const baseUrl = getBaseUrl();
 

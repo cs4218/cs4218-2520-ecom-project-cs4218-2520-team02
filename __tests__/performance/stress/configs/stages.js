@@ -1,4 +1,4 @@
-import { getNumberEnv, getOptionalEnv } from "../helpers/env.js";
+import { getNumberEnv, getOptionalEnv } from "../../common/k6/env.js";
 
 export function createStressStages() {
   return [

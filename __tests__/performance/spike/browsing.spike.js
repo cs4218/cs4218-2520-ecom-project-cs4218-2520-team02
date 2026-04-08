@@ -3,13 +3,13 @@ import http from "k6/http";
 import exec from "k6/execution";
 import { sleep } from "k6";
 import { createSpikeOptions } from "./configs/thresholds.js";
-import { getBaseUrl, getBooleanEnv, getNumberEnv } from "./helpers/env.js";
-import { pickByIteration, recordTransaction, trackResponse } from "./helpers/metrics.js";
+import { getBaseUrl, getBooleanEnv, getNumberEnv } from "../common/k6/env.js";
+import { pickByIteration, recordTransaction, trackResponse } from "../common/k6/metrics.js";
 import {
   SEARCH_KEYWORDS,
   PRICE_RANGES,
   buildProductFilterPayload,
-} from "./helpers/payloads.js";
+} from "../common/k6/payloads.js";
 
 const baseUrl = getBaseUrl();
 

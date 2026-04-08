@@ -1,6 +1,6 @@
 // Yap Zhao Yi, A0277540B
 import { createSpikeStages } from "./stages.js";
-import { getNumberEnv, getRequiredEnv } from "../helpers/env.js";
+import { getNumberEnv, getRequiredEnv } from "../../common/k6/env.js";
 
 export function createSpikeThresholds() {
   const flow = getRequiredEnv("FLOW_TYPE", "auth");
