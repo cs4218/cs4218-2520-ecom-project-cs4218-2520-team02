@@ -48,6 +48,7 @@ try {
   // Base environment variables for k6
   const baseChildEnv = {
     ...process.env,
+    NODE_ENV: "test",
     K6_WEB_DASHBOARD: process.env.K6_WEB_DASHBOARD || "true",
     FLOW_TYPE: flow,
     P90_THRESHOLD_MS: flowThresholds[flow].P90,
