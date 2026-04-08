@@ -1,4 +1,4 @@
-// Capacity test for registration and login flows.
+// Gavin Sin Fu Chen, A0273285X
 import exec from "k6/execution";
 import { sleep } from "k6";
 import { Counter } from "k6/metrics";

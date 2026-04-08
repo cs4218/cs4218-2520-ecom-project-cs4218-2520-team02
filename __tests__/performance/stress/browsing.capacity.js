@@ -119,11 +119,11 @@ function createCapacityThresholds() {
 }
 
 function createCapacityStages() {
-  const startUsers = Math.max(1, getNumberEnv("CAPACITY_START_VUS", 25));
-  const stepUsers = Math.max(1, getNumberEnv("CAPACITY_STEP_VUS", 25));
+  const startUsers = Math.max(1, getNumberEnv("CAPACITY_START_VUS", 50));
+  const stepUsers = Math.max(1, getNumberEnv("CAPACITY_STEP_VUS", 50));
   const maxUsers = Math.max(startUsers, getNumberEnv("CAPACITY_MAX_VUS", 250));
   const rampDuration = getOptionalEnv("CAPACITY_RAMP_DURATION", "20s");
-  const holdDuration = getOptionalEnv("CAPACITY_HOLD_DURATION", "1m");
+  const holdDuration = getOptionalEnv("CAPACITY_HOLD_DURATION", "30s");
   const cooldownDuration = getOptionalEnv("CAPACITY_COOLDOWN_DURATION", "20s");
   const stages = [];
 

@@ -1,4 +1,4 @@
-// Capacity test for authenticated order-history browsing.
+// Gavin Sin Fu Chen, A0273285X
 import http from "k6/http";
 import exec from "k6/execution";
 import { sleep } from "k6";
