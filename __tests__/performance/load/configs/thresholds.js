@@ -1,9 +1,10 @@
 import { createLoadStages } from "./stages.js";
-import { getNumberEnv } from "../helpers/env.js";
+import { getNumberEnv } from "../../common/k6/env.js";
 
 export function createLoadThresholds() {
   return {
     http_req_duration: [
+      `p(90)<${getNumberEnv("LOAD_P90_THRESHOLD_MS", 800)}`,
       `p(95)<${getNumberEnv("LOAD_P95_THRESHOLD_MS", 1000)}`,
     ],
     http_req_failed: [`rate<${getNumberEnv("LOAD_HTTP_ERROR_RATE_THRESHOLD", 0.05)}`],
