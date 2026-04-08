@@ -2,7 +2,7 @@
 import { getNumberEnv, getOptionalEnv } from "../../common/k6/env.js";
 
 export function createStressStages() {
-  const warmupVUs = getNumberEnv("STRESS_WARMUP_VUS", 20);
+  const warmupVUs = getNumberEnv("STRESS_WARMUP_VUS", 50);
   const ramp1VUs = getNumberEnv("STRESS_RAMP_1_VUS", 100);
   const ramp2VUs = getNumberEnv("STRESS_RAMP_2_VUS", 250);
   const ramp3VUs = getNumberEnv("STRESS_RAMP_3_VUS", 500);
