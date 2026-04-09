@@ -122,7 +122,7 @@ async function ensureOrderHistory(users) {
 }
 
 export async function prepareLoadData(flow, runId) {
-  const seededFlows = new Set(["auth", "orders", "payment"]);
+  const seededFlows = new Set(["auth.login", "orders", "payment"]);
   if (!seededFlows.has(flow)) {
     return {
       runId,

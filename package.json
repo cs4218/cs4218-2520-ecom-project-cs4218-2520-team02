@@ -35,7 +35,8 @@
     "test:performance:spike:payment": "node __tests__/performance/spike/scripts/runSpikeFlow.js payment",
     "test:performance:load": "node __tests__/performance/load/scripts/runAllLoadFlows.js",
     "test:performance:load:browsing": "node __tests__/performance/load/scripts/runLoadFlow.js browsing",
-    "test:performance:load:auth": "node __tests__/performance/load/scripts/runLoadFlow.js auth",
+    "test:performance:load:auth-login": "node __tests__/performance/load/scripts/runLoadFlow.js auth.login",
+    "test:performance:load:auth-register": "node __tests__/performance/load/scripts/runLoadFlow.js auth.register",
     "test:performance:load:payment": "node __tests__/performance/load/scripts/runLoadFlow.js payment",
     "test:performance:load:orders": "node __tests__/performance/load/scripts/runLoadFlow.js orders"
   },

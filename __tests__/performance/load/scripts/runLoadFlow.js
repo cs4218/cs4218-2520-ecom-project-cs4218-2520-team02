@@ -10,8 +10,8 @@ import {
 } from "./loadDataManager.js";
 
 const flow = process.argv[2];
-const supportedFlows = new Set(["browsing", "auth", "payment", "orders"]);
-const flowsWithDatabaseFixtures = new Set(["auth", "orders", "payment"]);
+const supportedFlows = new Set(["browsing", "auth.login", "auth.register", "payment", "orders"]);
+const flowsWithDatabaseFixtures = new Set(["auth.login", "auth.register", "orders", "payment"]);
 
 if (!supportedFlows.has(flow)) {
   console.error(`Unsupported load-test flow "${flow}".`);
