@@ -81,9 +81,9 @@ function buildCapacityStages() {
           startUsers: 50,
           stepUsers: 100,
           maxUsers: 450,
-          rampDuration: "30s",
-          holdDuration: "1m",
-          cooldownDuration: "30s",
+          rampDuration: "20s",
+          holdDuration: "30s",
+          cooldownDuration: "20s",
         };
   const startUsers = Math.max(1, getNumberEnv("CAPACITY_START_VUS", defaultStageConfig.startUsers));
   const stepUsers = Math.max(1, getNumberEnv("CAPACITY_STEP_VUS", defaultStageConfig.stepUsers));
@@ -527,6 +527,7 @@ try {
 
   const childEnv = {
     ...process.env,
+    NODE_ENV: "test",
     CAPACITY_TEST_RUN_ID: runId,
     K6_WEB_DASHBOARD: process.env.K6_WEB_DASHBOARD || "true",
     K6_WEB_DASHBOARD_PERIOD: process.env.K6_WEB_DASHBOARD_PERIOD || "1s",

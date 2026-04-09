@@ -6,9 +6,9 @@ export function createCapacityStages(defaults = {}) {
     startVUs = 50,
     stepVUs = 100,
     maxVUs = 450,
-    rampDuration = "30s",
-    holdDuration = "1m",
-    cooldownDuration = "30s",
+    rampDuration = "20s",
+    holdDuration = "30s",
+    cooldownDuration = "20s",
   } = defaults;
 
   const startUsers = Math.max(1, getNumberEnv("CAPACITY_START_VUS", startVUs));
