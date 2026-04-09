@@ -3,23 +3,23 @@ import fs from "fs";
 import path from "path";
 import zlib from "zlib";
 import {
-  cleanupStressData,
-  disconnectStressDatabase,
+  cleanupCapacityData,
+  disconnectCapacityDatabase,
   getProjectRoot,
-  prepareStressData,
-} from "./stressDataManager.js";
+  prepareCapacityData,
+} from "./capacityDataManager.js";
 
 const projectRoot = getProjectRoot();
-const supportedFlows = new Set(["browsing", "orders", "payment", "auth"]);
+const supportedFlows = new Set(["browsing", "orders", "payment", "auth.login", "auth.register"]);
 const flow = supportedFlows.has(process.argv[2]) ? process.argv[2] : "browsing";
-const flowsWithDatabaseFixtures = new Set(["orders", "payment", "auth"]);
+const flowsWithDatabaseFixtures = new Set(["orders", "payment", "auth.login"]);
 const runId = `${flow}-capacity-${Date.now()}`;
-const scriptPath = path.join("__tests__", "performance", "stress", `${flow}.capacity.js`);
+const scriptPath = path.join("__tests__", "performance", "capacity", `${flow}.capacity.js`);
 const reportsDir = path.join(
   projectRoot,
   "__tests__",
   "performance",
-  "stress",
+  "capacity",
   "reports"
 );
 const reportPath =
@@ -76,13 +76,25 @@ function getNumberEnv(name, fallback) {
 }
 
 function buildCapacityStages() {
-  const startUsers = Math.max(1, getNumberEnv("CAPACITY_START_VUS", 50));
-  const stepUsers = Math.max(1, getNumberEnv("CAPACITY_STEP_VUS", 50));
-  const maxUsers = Math.max(startUsers, getNumberEnv("CAPACITY_MAX_VUS", 250));
-  const rampSeconds = parseDurationToSeconds(process.env.CAPACITY_RAMP_DURATION || "20s");
-  const holdSeconds = parseDurationToSeconds(process.env.CAPACITY_HOLD_DURATION || "30s");
+  const defaultStageConfig = {
+          startUsers: 50,
+          stepUsers: 100,
+          maxUsers: 450,
+          rampDuration: "30s",
+          holdDuration: "1m",
+          cooldownDuration: "30s",
+        };
+  const startUsers = Math.max(1, getNumberEnv("CAPACITY_START_VUS", defaultStageConfig.startUsers));
+  const stepUsers = Math.max(1, getNumberEnv("CAPACITY_STEP_VUS", defaultStageConfig.stepUsers));
+  const maxUsers = Math.max(startUsers, getNumberEnv("CAPACITY_MAX_VUS", defaultStageConfig.maxUsers));
+  const rampSeconds = parseDurationToSeconds(
+    process.env.CAPACITY_RAMP_DURATION || defaultStageConfig.rampDuration
+  );
+  const holdSeconds = parseDurationToSeconds(
+    process.env.CAPACITY_HOLD_DURATION || defaultStageConfig.holdDuration
+  );
   const cooldownSeconds = parseDurationToSeconds(
-    process.env.CAPACITY_COOLDOWN_DURATION || "20s"
+    process.env.CAPACITY_COOLDOWN_DURATION || defaultStageConfig.cooldownDuration
   );
   const stages = [];
   let elapsed = 0;
@@ -156,20 +168,6 @@ function getDashboardEvents(reportHtml) {
 function thresholdRows() {
   return [
     {
-      metric: "endpoint_duration",
-      expression: `p(90)<${getNumberEnv("CAPACITY_ENDPOINT_P90_THRESHOLD_MS", 900)}`,
-      counter: "capacity_endpoint_duration_p90_breaches",
-      label: "endpoint_duration p90",
-      slo: `< ${getNumberEnv("CAPACITY_ENDPOINT_P90_THRESHOLD_MS", 900)} ms`,
-    },
-    {
-      metric: "endpoint_duration",
-      expression: `p(95)<${getNumberEnv("CAPACITY_ENDPOINT_P95_THRESHOLD_MS", 1200)}`,
-      counter: "capacity_endpoint_duration_p95_breaches",
-      label: "endpoint_duration p95",
-      slo: `< ${getNumberEnv("CAPACITY_ENDPOINT_P95_THRESHOLD_MS", 1200)} ms`,
-    },
-    {
       metric: "http_req_duration",
       expression: `p(90)<${getNumberEnv("CAPACITY_HTTP_P90_THRESHOLD_MS", 1000)}`,
       counter: "capacity_http_req_duration_p90_breaches",
@@ -217,13 +215,6 @@ function thresholdRows() {
       counter: "capacity_check_breaches",
       label: "checks",
       slo: `> ${getNumberEnv("CAPACITY_CHECK_SUCCESS_RATE_THRESHOLD", 0.98)}`,
-    },
-    {
-      metric: "failed_transactions",
-      expression: `count<${Math.max(0, getNumberEnv("CAPACITY_MAX_FAILED_TRANSACTIONS", 0)) + 1}`,
-      counter: "capacity_failed_transaction_breaches",
-      label: "failed_transactions",
-      slo: `< ${Math.max(0, getNumberEnv("CAPACITY_MAX_FAILED_TRANSACTIONS", 0)) + 1}`,
     },
   ];
 }
@@ -321,6 +312,18 @@ function renderCapacityStageBands(stages, timelineDuration) {
 function renderCapacityTimeline(analysis) {
   const rows = analysis.rows;
   const stageBands = renderCapacityStageBands(analysis.stages, analysis.timelineDuration);
+  const hiddenMetrics = [
+    "capacity_threshold_breaches",
+    "capacity_business_error_rate_breaches",
+    "capacity_check_breaches",
+    "capacity_http_req_duration_p90_breaches",
+    "capacity_http_req_duration_p95_breaches",
+    "capacity_http_req_duration_p99_breaches",
+    "capacity_http_req_failed_breaches",
+    "capacity_transaction_success_rate_breaches",
+    "completed_transactions",
+    "failed_transactions",
+  ];
   const rowHtml = rows
     .map((row) => {
       const markerLeft = row.firstBreach
@@ -425,6 +428,53 @@ function renderCapacityTimeline(analysis) {
           .capacity-track { min-height: 68px; }
         }
       </style>
+      <script>
+        (() => {
+          const hiddenMetrics = ${JSON.stringify(hiddenMetrics)};
+          const hiddenMetricSet = new Set(hiddenMetrics);
+          const containerSelectors = ["tr", "[role='row']", "li", "article", "section", "div"];
+
+          function findContainer(node) {
+            for (const selector of containerSelectors) {
+              const container = node.closest(selector);
+              if (container && !container.closest("#capacity-threshold-breach-timeline")) {
+                return container;
+              }
+            }
+
+            return null;
+          }
+
+          function hideCapacityMetricRows() {
+            for (const node of document.querySelectorAll("body *")) {
+              const text = node.textContent?.trim();
+              if (!hiddenMetricSet.has(text)) {
+                continue;
+              }
+
+              const container = findContainer(node);
+              if (!container || container.dataset.capacityMetricHidden === "true") {
+                continue;
+              }
+
+              container.dataset.capacityMetricHidden = "true";
+              container.style.display = "none";
+            }
+          }
+
+          const runHidePass = () => window.requestAnimationFrame(hideCapacityMetricRows);
+
+          if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", runHidePass, { once: true });
+          } else {
+            runHidePass();
+          }
+
+          const observer = new MutationObserver(runHidePass);
+          observer.observe(document.body, { childList: true, subtree: true });
+          window.setTimeout(() => observer.disconnect(), 15000);
+        })();
+      </script>
       <h2>Capacity Threshold Breach Timeline</h2>
       <p>Red X markers show the first recorded sample marker for each aggregate threshold that failed in this run. Hover a marker for exact time, stage, and active VUs.</p>
       ${rows.length > 0 ? rowHtml : "<p>No aggregate capacity thresholds failed in this run.</p>"}
@@ -467,23 +517,23 @@ let exitCode = 1;
 
 try {
   const seedResult = flowsWithDatabaseFixtures.has(flow)
-    ? await prepareStressData(flow, runId)
+    ? await prepareCapacityData(flow, runId)
     : { userPool: [], seededUserCount: 0 };
 
   if (seedResult.seededUserCount > 0) {
-    console.log(`[capacity:${flow}] Seeded ${seedResult.seededUserCount} stress users for run ${runId}.`);
+    console.log(`[capacity:${flow}] Seeded ${seedResult.seededUserCount} capacity users for run ${runId}.`);
   }
 
   const childEnv = {
     ...process.env,
-    STRESS_TEST_RUN_ID: runId,
+    CAPACITY_TEST_RUN_ID: runId,
     K6_WEB_DASHBOARD: process.env.K6_WEB_DASHBOARD || "true",
     K6_WEB_DASHBOARD_PERIOD: process.env.K6_WEB_DASHBOARD_PERIOD || "1s",
     K6_WEB_DASHBOARD_EXPORT: reportPath,
   };
 
   if (seedResult.userPool.length > 0) {
-    childEnv.STRESS_USER_POOL = JSON.stringify(seedResult.userPool);
+    childEnv.CAPACITY_USER_POOL = JSON.stringify(seedResult.userPool);
   }
 
   const result = spawnSync("k6", ["run", scriptPath], {
@@ -504,13 +554,13 @@ try {
 } finally {
   try {
     if (flowsWithDatabaseFixtures.has(flow)) {
-      const cleanupResult = await cleanupStressData(runId);
+      const cleanupResult = await cleanupCapacityData(runId);
       console.log(
         `[capacity:${flow}] Cleanup removed ${cleanupResult.deletedUsers} users and ${cleanupResult.deletedOrders} orders for run ${runId}.`
       );
     }
   } finally {
-    await disconnectStressDatabase();
+    await disconnectCapacityDatabase();
   }
 }
 

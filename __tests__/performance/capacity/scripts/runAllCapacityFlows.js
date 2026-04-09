@@ -1,14 +1,14 @@
 import { spawnSync } from "child_process";
 import fs from "fs";
 import path from "path";
-import { getProjectRoot } from "./stressDataManager.js";
+import { getProjectRoot } from "./capacityDataManager.js";
 
-const flows = ["browsing", "auth", "orders", "payment"];
+const flows = ["browsing", "auth.login", "auth.register", "orders", "payment"];
 const projectRoot = getProjectRoot();
 const runnerPath = path.join(
   "__tests__",
   "performance",
-  "stress",
+  "capacity",
   "scripts",
   "runCapacityFlow.js"
 );
@@ -16,7 +16,7 @@ const reportsDir = path.join(
   projectRoot,
   "__tests__",
   "performance",
-  "stress",
+  "capacity",
   "reports"
 );
 const runId = `all-capacity-${Date.now()}`;
