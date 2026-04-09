@@ -10,14 +10,15 @@ import {
 } from "./loadDataManager.js";
 
 const flow = process.argv[2];
-const supportedFlows = new Set(["browsing", "auth.login", "auth.register", "payment", "orders"]);
-const flowsWithDatabaseFixtures = new Set(["auth.login", "auth.register", "orders", "payment"]);
+const supportedFlows = new Set(["browsing", "auth.login", "auth.register", "admin-product", "payment", "orders"]);
+const flowsWithDatabaseFixtures = new Set(["auth.login", "auth.register", "admin-product", "orders", "payment"]);
 const flowThresholds = {
-  "browsing": { P90: 1200, P95: 1600 },
-  "auth.register": { P90: 1200, P95: 1600 },
-  "auth.login": { P90: 600, P95: 800 },
-  "orders": { P90: 1000, P95: 1400 },
-  "payment": { P90: 1500, P95: 2000 },
+  "browsing": { P90: 100, P95: 150 },
+  "auth.register": { P90: 700, P95: 900 },
+  "auth.login": { P90: 100, P95: 150 },
+  "admin-product": { P90: 1200, P95: 1600 },
+  "orders": { P90: 900, P95: 1100 },
+  "payment": { P90: 800, P95: 1000 },
 };
 
 if (!supportedFlows.has(flow)) {
@@ -82,9 +83,11 @@ try {
   try {
     if (flowsWithDatabaseFixtures.has(flow)) {
       const cleanupResult = await cleanupLoadData(runId);
-      console.log(
-        `[load:${flow}] Cleanup removed ${cleanupResult.deletedUsers} users and ${cleanupResult.deletedOrders} orders for run ${runId}.`
-      );
+      const parts = [`${cleanupResult.deletedUsers} users`, `${cleanupResult.deletedOrders} orders`];
+      if (cleanupResult.deletedProducts > 0) {
+        parts.push(`${cleanupResult.deletedProducts} products`);
+      }
+      console.log(`[load:${flow}] Cleanup removed ${parts.join(", ")} for run ${runId}.`);
     }
   } finally {
     await disconnectLoadDatabase();

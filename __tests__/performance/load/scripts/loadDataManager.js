@@ -73,7 +73,7 @@ async function connectToDatabase() {
   await mongoose.connect(mongoUrl);
 }
 
-async function ensureUsersExist(userPool) {
+async function ensureUsersExist(userPool, { role = 0 } = {}) {
   const hashedPassword = await hashPassword(getSeedPassword());
 
   for (const user of userPool) {
@@ -87,7 +87,7 @@ async function ensureUsersExist(userPool) {
           phone: "91234567",
           address: "123 Load Street",
           answer: "Soccer",
-          role: 0,
+          role,
         },
       },
       { upsert: true }
@@ -122,7 +122,9 @@ async function ensureOrderHistory(users) {
 }
 
 export async function prepareLoadData(flow, runId) {
-  const seededFlows = new Set(["auth.login", "orders", "payment"]);
+  const seededFlows = new Set(["auth.login", "admin-product", "orders", "payment"]);
+  const adminFlows = new Set(["admin-product"]);
+
   if (!seededFlows.has(flow)) {
     return {
       runId,
@@ -135,7 +137,8 @@ export async function prepareLoadData(flow, runId) {
   await cleanupLoadData();
 
   const userPool = buildUserPool(flow, runId, getPoolSize(flow));
-  const users = await ensureUsersExist(userPool);
+  const role = adminFlows.has(flow) ? 1 : 0;
+  const users = await ensureUsersExist(userPool, { role });
 
   if (flow === "orders") {
     await ensureOrderHistory(users);
@@ -155,6 +158,7 @@ export async function cleanupLoadData(runId) {
   const userIds = users.map((user) => user._id);
   let deletedOrders = 0;
   let deletedUsers = 0;
+  let deletedProducts;
 
   if (userIds.length > 0) {
     const orderResult = await orderModel.deleteMany({ buyer: { $in: userIds } });
@@ -163,9 +167,16 @@ export async function cleanupLoadData(runId) {
     deletedUsers = userResult.deletedCount || 0;
   }
 
+  // Clean up any leftover products created by load tests
+  const productResult = await productModel.deleteMany({
+    name: { $regex: /^Load Product / },
+  });
+  deletedProducts = productResult.deletedCount || 0;
+
   return {
     deletedUsers,
     deletedOrders,
+    deletedProducts,
   };
 }
 

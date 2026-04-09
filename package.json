@@ -37,6 +37,7 @@
     "test:performance:load:browsing": "node __tests__/performance/load/scripts/runLoadFlow.js browsing",
     "test:performance:load:auth-login": "node __tests__/performance/load/scripts/runLoadFlow.js auth.login",
     "test:performance:load:auth-register": "node __tests__/performance/load/scripts/runLoadFlow.js auth.register",
+    "test:performance:load:admin-product": "node __tests__/performance/load/scripts/runLoadFlow.js admin-product",
     "test:performance:load:payment": "node __tests__/performance/load/scripts/runLoadFlow.js payment",
     "test:performance:load:orders": "node __tests__/performance/load/scripts/runLoadFlow.js orders"
   },
