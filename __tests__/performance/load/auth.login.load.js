@@ -5,7 +5,6 @@ import { getLoadUserPool, loginUser, pickUserForVu } from "./helpers/auth.js";
 import { getNumberEnv } from "../common/k6/env.js";
 import { recordTransaction } from "../common/k6/metrics.js";
 
-let cachedSession = null;
 export const options = createLoadOptions({ flow: "auth.login" });
 
 export function setup() {
@@ -21,27 +20,12 @@ export function setup() {
 export default function (data) {
   const user = pickUserForVu(data.users);
 
-  if (!cachedSession || cachedSession.label !== user.label) {
-    const loginResult = loginUser(user.email, user.password, {
-      auth_scenario: "login",
-      user_label: user.label,
-    });
+  const loginResult = loginUser(user.email, user.password, {
+    auth_scenario: "login",
+    user_label: user.label,
+  });
 
-    if (!loginResult.ok) {
-      recordTransaction(false, {
-        flow: "auth.login",
-        user_label: user.label,
-      });
-      return;
-    }
-
-    cachedSession = {
-      label: user.label,
-      token: loginResult.token,
-    };
-  }
-
-  recordTransaction(true, {
+  recordTransaction(loginResult.ok, {
     flow: "auth.login",
     user_label: user.label,
   });
