@@ -12,6 +12,13 @@ import {
 const flow = process.argv[2];
 const supportedFlows = new Set(["browsing", "auth.login", "auth.register", "payment", "orders"]);
 const flowsWithDatabaseFixtures = new Set(["auth.login", "auth.register", "orders", "payment"]);
+const flowThresholds = {
+  "browsing": { P90: 1200, P95: 1600 },
+  "auth.register": { P90: 1200, P95: 1600 },
+  "auth.login": { P90: 600, P95: 800 },
+  "orders": { P90: 1000, P95: 1400 },
+  "payment": { P90: 1500, P95: 2000 },
+};
 
 if (!supportedFlows.has(flow)) {
   console.error(`Unsupported load-test flow "${flow}".`);
@@ -41,7 +48,11 @@ try {
 
   const childEnv = {
     ...process.env,
+    NODE_ENV: "test",
     LOAD_TEST_RUN_ID: runId,
+    FLOW_TYPE: flow,
+    LOAD_P90_THRESHOLD_MS: flowThresholds[flow].P90,
+    LOAD_P95_THRESHOLD_MS: flowThresholds[flow].P95,
     K6_WEB_DASHBOARD: process.env.K6_WEB_DASHBOARD || "true",
     K6_WEB_DASHBOARD_EXPORT:
       process.env.K6_WEB_DASHBOARD_EXPORT ||
