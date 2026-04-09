@@ -1,3 +1,4 @@
+// Gavin Sin Fu Chen, A0273285X
 import { sleep } from "k6";
 import { buildUniqueUser, registerUser } from "./helpers/auth.js";
 import { getNumberEnv } from "../common/k6/env.js";

@@ -1,3 +1,4 @@
+// Gavin Sin Fu Chen, A0273285X
 import { createSuiteAuthHelpers } from "../../common/k6/auth.js";
 
 const capacityAuthHelpers = createSuiteAuthHelpers({
