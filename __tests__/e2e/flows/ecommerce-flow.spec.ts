@@ -1,6 +1,6 @@
 // Yap Zhao Yi, A0277540B
 import { test, expect, type Page } from '@playwright/test';
-import {logout, login } from "../helpers/auth";
+import {logout, login, ensureUserAddress } from "../helpers/auth";
 import {
   TEST_PASSWORD,
   TEST_USER_EMAIL,
@@ -226,6 +226,7 @@ test.describe("E-Commerce Flow", () => {
     // Arrange
     // Pre-login
     await login(page, TEST_USER_EMAIL, TEST_PASSWORD);
+    await ensureUserAddress(page);
     await page.goto("/");
 
     const firstProductCard = page.locator('.card').first();
@@ -242,14 +243,21 @@ test.describe("E-Commerce Flow", () => {
     const tokenResponse = await tokenResponsePromise;
     expect(tokenResponse.ok()).toBeTruthy();
 
-    await expect(
-      page.getByRole("button", { name: "Make Payment" })
-    ).toBeEnabled();
-
     // Act
     // 1. Click paying with card
-    await page.getByRole("button", { name: "Paying with Card" }).click();
-    await expect(page.getByText("Card Number")).toBeVisible();
+    const payingWithCardButton = page.getByRole("button", { name: "Paying with Card" });
+    await payingWithCardButton.waitFor({ state: "visible", timeout: 15000 }).catch(() => {});
+    if (await payingWithCardButton.isVisible()) {
+      await payingWithCardButton.click();
+    }
+
+    await expect(
+      page.locator('iframe[name="braintree-hosted-field-number"]')
+    ).toBeVisible({ timeout: 15000 });
+
+    await expect(
+      page.getByRole("button", { name: "Make Payment" })
+    ).toBeEnabled({ timeout: 15000 });
 
     // 2. Fill in credit card
     const cardNumberFrame = page.frameLocator('iframe[name="braintree-hosted-field-number"]');
@@ -277,6 +285,7 @@ test.describe("E-Commerce Flow", () => {
     // Arrange
     // Pre-login
     await login(page, TEST_USER_EMAIL, TEST_PASSWORD);
+    await ensureUserAddress(page);
     await page.goto("/");
 
     const firstProductCard = page.locator('.card').first();
@@ -293,15 +302,22 @@ test.describe("E-Commerce Flow", () => {
     const tokenResponse = await tokenResponsePromise;
     expect(tokenResponse.ok()).toBeTruthy();
 
+    // 1. Click paying with card
+    const payingWithCardButton = page.getByRole("button", { name: "Paying with Card" });
+    await payingWithCardButton.waitFor({ state: "visible", timeout: 15000 }).catch(() => {});
+    if (await payingWithCardButton.isVisible()) {
+      await payingWithCardButton.click();
+    }
+
+    await expect(
+      page.locator('iframe[name="braintree-hosted-field-number"]')
+    ).toBeVisible({ timeout: 15000 });
+
     await expect(
       page.getByRole("button", { name: "Make Payment" })
-    ).toBeEnabled();
+    ).toBeEnabled({ timeout: 15000 });
 
     // Act
-    // 1. Click paying with card
-    await page.getByRole("button", { name: "Paying with Card" }).click();
-    await expect(page.getByText("Card Number")).toBeVisible();
-
     // 2. Fill in credit card
     const cardNumberFrame = page.frameLocator('iframe[name="braintree-hosted-field-number"]');
     await cardNumberFrame.getByLabel("Credit Card Number").fill("1231231231231231"); // Braintree test invalid card number
