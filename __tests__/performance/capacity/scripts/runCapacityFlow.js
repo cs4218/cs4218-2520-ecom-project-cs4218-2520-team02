@@ -528,10 +528,14 @@ try {
   const childEnv = {
     ...process.env,
     NODE_ENV: "test",
+    PERFORMANCE_TEST: "true",
     CAPACITY_TEST_RUN_ID: runId,
     K6_WEB_DASHBOARD: process.env.K6_WEB_DASHBOARD || "true",
     K6_WEB_DASHBOARD_PERIOD: process.env.K6_WEB_DASHBOARD_PERIOD || "1s",
     K6_WEB_DASHBOARD_EXPORT: reportPath,
+    // Braintree sandbox test nonce — always succeeds in sandbox mode.
+    // Override with e.g. "fake-processor-declined-visa-nonce" to test failure paths.
+    PAYMENT_NONCE: process.env.PAYMENT_NONCE || "fake-valid-nonce",
   };
 
   if (seedResult.userPool.length > 0) {
