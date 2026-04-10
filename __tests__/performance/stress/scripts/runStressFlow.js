@@ -8,6 +8,7 @@ import {
   getProjectRoot,
   prepareStressData,
 } from "./stressDataManager.js";
+import { injectOverviewMetrics } from "../../common/node/reportUtils.js";
 
 const flow = process.argv[2];
 const supportedFlows = new Set(["browsing", "auth.login", "auth.register", "orders", "payment"]);
@@ -48,22 +49,28 @@ try {
   const baseChildEnv = {
     ...process.env,
     NODE_ENV: "test",
+    PERFORMANCE_TEST: "true",
     K6_WEB_DASHBOARD: process.env.K6_WEB_DASHBOARD || "true",
     FLOW_TYPE: flow,
     P90_THRESHOLD_MS: flowThresholds[flow].P90,
     P95_THRESHOLD_MS: flowThresholds[flow].P95,
+    // Braintree sandbox test nonce — always succeeds in sandbox mode.
+    // Override with e.g. "fake-processor-declined-visa-nonce" to test failure paths.
+    PAYMENT_NONCE: process.env.PAYMENT_NONCE || "fake-valid-nonce",
   };
 
   if (seedResult.userPool.length > 0) {
     baseChildEnv.STRESS_USER_POOL = JSON.stringify(seedResult.userPool);
   }
 
+  const reportFilePath =
+    process.env.K6_WEB_DASHBOARD_EXPORT ||
+    path.join(reportsDir, `${runId}.html`);
+
   const childEnv = {
     ...baseChildEnv,
     STRESS_TEST_RUN_ID: runId,
-    K6_WEB_DASHBOARD_EXPORT:
-      process.env.K6_WEB_DASHBOARD_EXPORT ||
-      path.join(reportsDir, `${runId}.html`),
+    K6_WEB_DASHBOARD_EXPORT: reportFilePath,
   };
 
   const result = spawnSync("k6", ["run", scriptPath], {
@@ -71,6 +78,8 @@ try {
     stdio: "inherit",
     env: childEnv,
   });
+
+  injectOverviewMetrics(reportFilePath, { suiteLabel: `stress:${flow}` });
 
   if (typeof result.status === "number") {
     exitCode = result.status;

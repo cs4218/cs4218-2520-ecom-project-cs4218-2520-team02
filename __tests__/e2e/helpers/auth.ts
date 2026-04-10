@@ -71,6 +71,27 @@ export async function logout(page: Page, userName: string) {
   await page.waitForURL("/login", { timeout: 60000 });
 }
 
+export async function ensureUserAddress(
+  page: Page,
+  address = "123 Test Street",
+  phone = "1234567890"
+) {
+  await page.goto("/dashboard/user/profile");
+  await expect(page.getByText("USER PROFILE")).toBeVisible();
+
+  const addressInput = page.getByPlaceholder("Enter Your Address");
+  const currentAddress = (await addressInput.inputValue()).trim();
+  if (currentAddress) {
+    return;
+  }
+
+  await page.getByPlaceholder("Enter Your Phone").fill(phone);
+  await addressInput.fill(address);
+  await page.getByText("UPDATE").click();
+  await expect(page.getByText(/Profile updated successfully/i)).toBeVisible();
+  await expect(addressInput).toHaveValue(address);
+}
+
 export async function deleteUserByEmail(email: string): Promise<void> {
   const conn = await mongoose.connect(process.env.MONGO_URL!);
   await conn.connection.collection("users").deleteOne({ email });

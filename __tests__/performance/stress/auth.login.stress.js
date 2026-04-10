@@ -5,7 +5,6 @@ import { getStressUserPool, loginUser, pickUserForVu } from "./helpers/auth.js";
 import { getNumberEnv } from "../common/k6/env.js";
 import { recordTransaction } from "../common/k6/metrics.js";
 
-let cachedSession = null;
 export const options = createStressOptions({ flow: "auth.login" });
 
 export function setup() {
@@ -21,24 +20,21 @@ export function setup() {
 export default function (data) {
   const user = pickUserForVu(data.users);
 
-  if (!cachedSession || cachedSession.label !== user.label) {
-    const loginResult = loginUser(user.email, user.password, {
-      auth_scenario: "login",
+  // Always perform the login on every iteration — this is a login stress test,
+  // so every iteration must exercise the login endpoint. Caching the session
+  // would suppress all HTTP requests after the first iteration per VU, causing
+  // the request rate to spike only during ramp phases and drop to zero on holds.
+  const loginResult = loginUser(user.email, user.password, {
+    auth_scenario: "login",
+    user_label: user.label,
+  });
+
+  if (!loginResult.ok) {
+    recordTransaction(false, {
+      flow: "auth.login",
       user_label: user.label,
     });
-
-    if (!loginResult.ok) {
-      recordTransaction(false, {
-        flow: "auth.login",
-        user_label: user.label,
-      });
-      return;
-    }
-
-    cachedSession = {
-      label: user.label,
-      token: loginResult.token,
-    };
+    return;
   }
 
   recordTransaction(true, {

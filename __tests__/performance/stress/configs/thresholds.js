@@ -25,16 +25,27 @@ export function createStressTags(tags = {}) {
 }
 
 export function createStressOptions(tags = {}, overrides = {}) {
+  // Use explicit scenarios so gracefulStop can be set at the scenario level.
+  // The stages shorthand creates an implicit scenario that ignores any top-level
+  // gracefulStop, causing k6 to pad endOffset by 30 s and leave a blank gap on
+  // every chart. gracefulRampDown is kept at 30 s so in-flight iterations finish
+  // cleanly when VUs are stepped down between stages.
+  const scenarios = overrides.scenarios || {
+    default: {
+      executor: "ramping-vus",
+      stages: createStressStages(),
+      gracefulStop: "0s",
+      gracefulRampDown: "30s",
+    },
+  };
+
   const options = {
     thresholds: createStressThresholds(),
     summaryTrendStats: ["p(90)", "p(95)"],
     tags: createStressTags(tags),
     userAgent: "k6-stress-suite",
+    scenarios,
   };
-
-  if (!overrides.scenarios) {
-    options.stages = createStressStages();
-  }
 
   if (overrides.tags) {
     options.tags = {
@@ -43,9 +54,5 @@ export function createStressOptions(tags = {}, overrides = {}) {
     };
   }
 
-  return {
-    ...options,
-    ...overrides,
-    tags: options.tags,
-  };
+  return options;
 }

@@ -6,7 +6,7 @@ export function createSpikeThresholds() {
   const flow = getRequiredEnv("FLOW_TYPE", "auth");
   const p90 = getNumberEnv("P90_THRESHOLD_MS", 800);
   const p95 = getNumberEnv("P95_THRESHOLD_MS", 1000);
-  
+
   return {
     http_req_duration: [
       `p(90)<${p90}`,
@@ -36,16 +36,27 @@ export function createSpikeTags(tags = {}) {
 }
 
 export function createSpikeOptions(tags = {}, overrides = {}) {
+  // Use explicit scenarios so gracefulStop can be set at the scenario level.
+  // The stages shorthand creates an implicit scenario that ignores any top-level
+  // gracefulStop, causing k6 to pad endOffset by 30 s and leave a blank gap on
+  // every chart. gracefulRampDown is kept at 30 s so in-flight iterations finish
+  // cleanly when VUs ramp down from spike back to baseline.
+  const scenarios = overrides.scenarios || {
+    default: {
+      executor: "ramping-vus",
+      stages: createSpikeStages(),
+      gracefulStop: "0s",
+      gracefulRampDown: "30s",
+    },
+  };
+
   const options = {
     thresholds: createSpikeThresholds(),
     summaryTrendStats: ["p(90)", "p(95)"],
     tags: createSpikeTags(tags),
     userAgent: "k6-spike-suite",
+    scenarios,
   };
-
-  if (!overrides.scenarios) {
-    options.stages = createSpikeStages();
-  }
 
   if (overrides.tags) {
     options.tags = {
@@ -54,9 +65,5 @@ export function createSpikeOptions(tags = {}, overrides = {}) {
     };
   }
 
-  return {
-    ...options,
-    ...overrides,
-    tags: options.tags,
-  };
+  return options;
 }
