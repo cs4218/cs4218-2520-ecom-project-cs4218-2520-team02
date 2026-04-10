@@ -87,6 +87,9 @@ try {
       if (cleanupResult.deletedProducts > 0) {
         parts.push(`${cleanupResult.deletedProducts} products`);
       }
+      if (cleanupResult.deletedCategories > 0) {
+        parts.push(`${cleanupResult.deletedCategories} categories`);
+      }
       console.log(`[load:${flow}] Cleanup removed ${parts.join(", ")} for run ${runId}.`);
     }
   } finally {

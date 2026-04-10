@@ -45,7 +45,7 @@ export function setup() {
     tags: { flow: "admin-product", action: "get_categories", phase: "setup" },
   });
 
-  const categories = categoriesResult.body?.category || [];
+  const categories = categoriesResult.body?.categories || [];
   if (categories.length === 0) {
     throw new Error("Admin product load test requires at least one category.");
   }

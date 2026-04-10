@@ -2,11 +2,15 @@
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import path from "path";
+import slugify from "slugify";
 import { fileURLToPath } from "url";
 import { hashPassword } from "../../../../helpers/authHelper.js";
+import categoryModel from "../../../../models/categoryModel.js";
 import orderModel from "../../../../models/orderModel.js";
 import productModel from "../../../../models/productModel.js";
 import userModel from "../../../../models/userModel.js";
+
+const LOAD_CATEGORY_NAME_PREFIX = "Load Category ";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -97,6 +101,15 @@ async function ensureUsersExist(userPool, { role = 0 } = {}) {
   return userModel.find({ email: { $in: userPool.map((user) => user.email) } });
 }
 
+async function ensureLoadCategory(runId) {
+  const name = `${LOAD_CATEGORY_NAME_PREFIX}${runId}`;
+  await categoryModel.updateOne(
+    { name },
+    { $set: { name, slug: slugify(name, { lower: true }) } },
+    { upsert: true }
+  );
+}
+
 async function ensureOrderHistory(users) {
   const products = await productModel.find({}).select("_id").limit(3);
 
@@ -140,6 +153,10 @@ export async function prepareLoadData(flow, runId) {
   const role = adminFlows.has(flow) ? 1 : 0;
   const users = await ensureUsersExist(userPool, { role });
 
+  if (flow === "admin-product") {
+    await ensureLoadCategory(runId);
+  }
+
   if (flow === "orders") {
     await ensureOrderHistory(users);
   }
@@ -158,7 +175,6 @@ export async function cleanupLoadData(runId) {
   const userIds = users.map((user) => user._id);
   let deletedOrders = 0;
   let deletedUsers = 0;
-  let deletedProducts;
 
   if (userIds.length > 0) {
     const orderResult = await orderModel.deleteMany({ buyer: { $in: userIds } });
@@ -171,12 +187,19 @@ export async function cleanupLoadData(runId) {
   const productResult = await productModel.deleteMany({
     name: { $regex: /^Load Product / },
   });
-  deletedProducts = productResult.deletedCount || 0;
+  const deletedProducts = productResult.deletedCount || 0;
+
+  // Clean up any leftover categories seeded for load tests
+  const categoryResult = await categoryModel.deleteMany({
+    name: { $regex: new RegExp(`^${escapeRegex(LOAD_CATEGORY_NAME_PREFIX)}`) },
+  });
+  const deletedCategories = categoryResult.deletedCount || 0;
 
   return {
     deletedUsers,
     deletedOrders,
     deletedProducts,
+    deletedCategories,
   };
 }
 
