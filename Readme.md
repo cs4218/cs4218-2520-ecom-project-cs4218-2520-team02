@@ -379,6 +379,14 @@ To begin unit testing with Jest in your project, follow these steps:
 - `__tests__/e2e/flows/category-product-browsing.spec.ts`
 - `__tests__/e2e/flows/auth-flow.spec.ts`
 
+**Non-Functional Testing (Load Testing)**:
+- `__tests__/performance/load/admin-product.load.js`
+- `__tests__/performance/load/auth.login.load.js`
+- `__tests__/performance/load/auth.register.load.js`
+- `__tests__/performance/load/browsing.load.js`
+- `__tests__/performance/load/orders.load.js`
+- `__tests__/performance/load/payment.load.js`
+
 **Enhancements**:
 - Implemented **Add to Cart** on `CategoryProduct.js` and `ProductDetails.js`.
 - Clearer error messaging when product/category fetches fail on admin **Products** and **UpdateProduct**; user feedback when categories are missing or product load fails.
