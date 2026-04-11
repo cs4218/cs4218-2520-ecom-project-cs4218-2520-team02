@@ -18,21 +18,26 @@ test.describe("Category to Product Browsing Flow", () => {
   test.describe("With active category and product", () => {
     let categoryName: string;
     let productName: string;
+    let productCreated: boolean;
 
     test.beforeEach(async ({ page }) => {
       categoryName = uniqueName("Cat");
       productName = uniqueName("Prod");
+      productCreated = false;
       await createCategory(page, categoryName);
       await createProduct(page, categoryName, productName);
+      productCreated = true;
       await logout(page, TEST_ADMIN_NAME);
     });
 
     test.afterEach(async ({ page }) => {
       // Cleanup Product
-      await gotoProductsList(page);
-      await openProductFromList(page, productName);
-      await deleteProduct(page);
-      await logout(page, TEST_ADMIN_NAME);
+      if (productCreated) {
+        await gotoProductsList(page);
+        await openProductFromList(page, productName);
+        await deleteProduct(page);
+        await logout(page, TEST_ADMIN_NAME);
+      }
 
       // Cleanup Category
       await deleteCategory(page, categoryName);

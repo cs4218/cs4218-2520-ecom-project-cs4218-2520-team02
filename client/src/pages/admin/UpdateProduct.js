@@ -111,10 +111,12 @@ const UpdateProduct = () => {
             <h1>Update Product</h1>
             <div className="m-1 w-75">
               <Select
+                data-testid="product-category-select"
                 bordered={false}
                 placeholder="Select a category"
                 size="large"
                 showSearch
+                optionFilterProp="children"
                 className="form-select mb-3"
                 onChange={(value) => {
                   setCategory(value);
@@ -199,10 +201,12 @@ const UpdateProduct = () => {
               </div>
               <div className="mb-3">
                 <Select
+                  data-testid="product-shipping-select"
                   variant="borderless"
                   placeholder="Select shipping"
                   size="large"
                   showSearch
+                  optionFilterProp="children"
                   className="form-select mb-3"
                   onChange={(value) => {
                     setShipping(value === "1");

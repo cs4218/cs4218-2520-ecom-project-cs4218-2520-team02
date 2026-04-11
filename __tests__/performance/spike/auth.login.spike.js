@@ -5,7 +5,6 @@ import { loginUser, getSpikeUserPool, pickUserForVu } from "./helpers/auth.js";
 import { getNumberEnv } from "../common/k6/env.js";
 import { recordTransaction } from "../common/k6/metrics.js";
 
-let cachedSession = null;
 export const options = createSpikeOptions({ flow: "auth.login" });
 
 export function setup() {
@@ -21,25 +20,22 @@ export function setup() {
 export default function (data) {
   const user = pickUserForVu(data.users);
 
-  // Only login once per VU
-  if (!cachedSession || cachedSession.label !== user.label) {
-    const loginResult = loginUser(user.email, user.password, {
-      auth_scenario: "login",
+  // Always perform the login on every iteration — this is a login spike test,
+  // so every iteration must exercise the login endpoint. Caching the session
+  // would suppress HTTP requests after the first iteration per VU, causing the
+  // request rate to spike only when new VUs are created rather than continuously
+  // throughout the test.
+  const loginResult = loginUser(user.email, user.password, {
+    auth_scenario: "login",
+    user_label: user.label,
+  });
+
+  if (!loginResult.ok) {
+    recordTransaction(false, {
+      flow: "auth.login",
       user_label: user.label,
     });
-
-    if (!loginResult.ok) {
-      recordTransaction(false, {
-        flow: "auth.login",
-        user_label: user.label,
-      });
-      return;
-    }
-
-    cachedSession = {
-      label: user.label,
-      token: loginResult.token,
-    };
+    return;
   }
 
   recordTransaction(true, {

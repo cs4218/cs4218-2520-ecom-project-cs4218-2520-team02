@@ -8,6 +8,7 @@ import {
   getProjectRoot,
   prepareSpikeData,
 } from "./spikeDataManager.js";
+import { injectOverviewMetrics } from "../../common/node/reportUtils.js";
 
 const flow = process.argv[2];
 const supportedFlows = new Set(["browsing", "auth.login", "auth.register", "orders", "payment"]);
@@ -49,10 +50,14 @@ try {
   const baseChildEnv = {
     ...process.env,
     NODE_ENV: "test",
+    PERFORMANCE_TEST: "true",
     K6_WEB_DASHBOARD: process.env.K6_WEB_DASHBOARD || "true",
     FLOW_TYPE: flow,
     P90_THRESHOLD_MS: flowThresholds[flow].P90,
     P95_THRESHOLD_MS: flowThresholds[flow].P95,
+    // Braintree sandbox test nonce — always succeeds in sandbox mode.
+    // Override with e.g. "fake-processor-declined-visa-nonce" to test failure paths.
+    PAYMENT_NONCE: process.env.PAYMENT_NONCE || "fake-valid-nonce",
   };
 
   if (seedResult.userPool.length > 0) {
@@ -63,11 +68,12 @@ try {
     const runIdPeak = `${runId}-${peak}`;
     console.log(`[spike:${flow}] Running spike with ${peak} VUs (run ID: ${runIdPeak})...`);
 
+    const reportFilePath = path.join(reportsDir, `${runIdPeak}.html`);
     const childEnvPeak = {
       ...baseChildEnv,
       SPIKE_TEST_RUN_ID: runIdPeak,
       SPIKE_PEAK_VUS: peak, // override peak VUs for this run
-      K6_WEB_DASHBOARD_EXPORT: path.join(reportsDir, `${runIdPeak}.html`),
+      K6_WEB_DASHBOARD_EXPORT: reportFilePath,
       K6_WEB_DASHBOARD_PERIOD: "1s",
     };
 
@@ -76,6 +82,8 @@ try {
       stdio: "inherit",
       env: childEnvPeak,
     });
+
+    injectOverviewMetrics(reportFilePath, { suiteLabel: `spike:${flow}` });
 
     if (typeof result.status === "number") {
       exitCode = result.status;

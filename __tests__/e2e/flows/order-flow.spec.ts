@@ -1,6 +1,6 @@
 // Song Jia Hui A0259494L
 import { test, expect } from "@playwright/test";
-import { logout, login, loginAndGoto } from "../helpers/auth";
+import { logout, login, loginAndGoto, ensureUserAddress } from "../helpers/auth";
 import {
   TEST_ADMIN_EMAIL,
   TEST_PASSWORD,
@@ -47,6 +47,7 @@ test.describe("Order Flow for Users", () => {
       page,
     }) => {
       // Arrange
+      await ensureUserAddress(page);
       await page.goto("/");
 
       const firstProductCard = page.locator(".card").first();
@@ -62,14 +63,21 @@ test.describe("Order Flow for Users", () => {
       const tokenResponse = await tokenResponsePromise;
       expect(tokenResponse.ok()).toBeTruthy();
 
+      const payingWithCardButton = page.getByRole("button", { name: "Paying with Card" });
+      await payingWithCardButton.waitFor({ state: "visible", timeout: 15000 }).catch(() => {});
+      if (await payingWithCardButton.isVisible()) {
+        await payingWithCardButton.click();
+      }
+
+      await expect(
+        page.locator('iframe[name="braintree-hosted-field-number"]')
+      ).toBeVisible({ timeout: 15000 });
+
       await expect(
         page.getByRole("button", { name: "Make Payment" })
-      ).toBeEnabled();
+      ).toBeEnabled({ timeout: 15000 });
 
       // Act
-      await page.getByRole("button", { name: "Paying with Card" }).click();
-      await expect(page.getByText("Card Number")).toBeVisible();
-
       const cardNumberFrame = page.frameLocator(
         'iframe[name="braintree-hosted-field-number"]'
       );

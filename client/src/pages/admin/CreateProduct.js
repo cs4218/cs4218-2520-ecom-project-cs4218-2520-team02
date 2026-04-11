@@ -104,10 +104,12 @@ const CreateProduct = () => {
             <h1>Create Product</h1>
             <div className="m-1 w-75">
               <Select
+                data-testid="product-category-select"
                 variant="borderless"
                 placeholder="Select a category"
                 size="large"
                 showSearch
+                optionFilterProp="children"
                 className="form-select mb-3"
                 onChange={(value) => {
                   setCategory(value);
@@ -182,10 +184,12 @@ const CreateProduct = () => {
               </div>
               <div className="mb-3">
                 <Select
+                  data-testid="product-shipping-select"
                   bordered={false}
                   placeholder="Select shipping"
                   size="large"
                   showSearch
+                  optionFilterProp="children"
                   className="form-select mb-3"
                   onChange={(value) => {
                     setShipping(value);

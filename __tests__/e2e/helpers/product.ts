@@ -2,7 +2,15 @@ import { expect, type Page } from "@playwright/test";
 import { loginAndGoto, TEST_ADMIN_EMAIL, TEST_PASSWORD } from "./auth";
 
 export async function gotoCreateProduct(page: Page): Promise<void> {
+  const categoriesResponsePromise = page.waitForResponse(
+    (resp) =>
+      resp.url().includes("/api/v1/category/get-category") &&
+      resp.request().method() === "GET" &&
+      resp.ok()
+  );
+
   await loginAndGoto(page, "/dashboard/admin/create-product", TEST_ADMIN_EMAIL, TEST_PASSWORD);
+  await categoriesResponsePromise;
   await expect(page.locator("h1:has-text('Create Product')")).toBeVisible();
 }
 
@@ -13,18 +21,23 @@ export async function gotoProductsList(page: Page): Promise<void> {
 
 export async function selectAntdOption(
   page: Page,
-  placeholderText: string,
+  selectTestId: string,
   optionText: string
 ): Promise<void> {
-  const select = page.locator(".ant-select").filter({
-    has: page.getByText(placeholderText, { exact: true }),
-  }).first();
+  const select = page.getByTestId(selectTestId);
 
+  await expect(select).toBeVisible();
   await select.scrollIntoViewIfNeeded();
   await select.locator(".ant-select-selector").click({ force: true });
+  const searchInput = select.locator("input.ant-select-selection-search-input");
+  await expect(searchInput).toBeVisible();
+  await searchInput.fill(optionText);
 
-  const option = page.locator(".ant-select-item-option", { hasText: optionText }).first();
-  await option.waitFor({ state: "visible", timeout: 15000 });
+  const option = page
+    .locator(".ant-select-dropdown .ant-select-item-option")
+    .filter({ hasText: optionText })
+    .first();
+  await expect(option).toBeVisible({ timeout: 15000 });
   await option.click();
 }
 
@@ -46,14 +59,14 @@ export async function createProduct(
 ): Promise<void> {
   await gotoCreateProduct(page);
 
-  await selectAntdOption(page, "Select a category", categoryName);
+  await selectAntdOption(page, "product-category-select", categoryName);
   await uploadTinyPng(page);
 
   await page.getByPlaceholder("Enter product name").fill(productName);
   await page.getByPlaceholder("Enter product description").fill("E2E description");
   await page.getByPlaceholder("Enter product price").fill("10.99");
   await page.getByPlaceholder("Enter product quantity").fill("3");
-  await selectAntdOption(page, "Select shipping", "Yes");
+  await selectAntdOption(page, "product-shipping-select", "Yes");
 
   await page.getByText("CREATE PRODUCT", { exact: true }).click();
 

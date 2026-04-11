@@ -58,13 +58,12 @@ export function trackResponse(
 
 export function recordTransaction(success, tags = {}) {
   transactionSuccessRate.add(success ? 1 : 0, tags);
-
-  if (success) {
-    completedTransactions.add(1, tags);
-    return;
-  }
-
-  failedTransactions.add(1, tags);
+  // Always add to both counters (adding 0 is a no-op on the value) so that both
+  // metrics are registered in the same k6 metric event from the very first call.
+  // If only one branch is ever hit early on, the other counter gets registered late
+  // mid-run, causing a metric index shift that corrupts the VU chart in the report.
+  completedTransactions.add(success ? 1 : 0, tags);
+  failedTransactions.add(success ? 0 : 1, tags);
 }
 
 export function pickByIteration(items, iteration) {
