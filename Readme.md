@@ -207,6 +207,12 @@ To begin unit testing with Jest in your project, follow these steps:
 - \_\_tests\_\_/e2e/flows/admin-view-flow.spec.ts
 - \_\_tests\_\_/e2e/flows/order-flow.spec.ts
 
+**Non Functional Testing (Security Testing)**:
+- security/dast/auth-endpoints.test.js
+- security/dast/idor.test.js
+- security/dast/injection.test.js
+- security/sast/sast.test.js
+
 **Enhancements:**
 - authMiddleware (requireSignIn): Added missing header guard returning 401 when Authorization is absent; strips Bearer prefix before verification; wraps JWT.verify in try/catch to return 401 on invalid or expired tokens.
 - authMiddleware (isAdmin) and order controllers: Added input validation with 400 responses for missing parameters; standardised status codes (400, 401, 403, 404, 500) with consistent { success, message } payloads; added try/catch blocks with descriptive error messages throughout.
@@ -226,6 +232,17 @@ To begin unit testing with Jest in your project, follow these steps:
 - CartPage.js (duplicate items): Changed cart .map() key from p._id to `${p._id}-${i}`. Since duplicate products shared the same key, React might incorrectly remove both items when only one was deleted.
 - Homepage.js and CategoryProduct.js: Fixed race conditions on fast double clicks when user adds to cart 
 - Homepage.js, cart.js, CategoryProduct.js: Fixed shared cart issue to allow for users to have carts specific to their account. Guest user will have their carts transferred to the first user that logs in.
+- sonar-project.properties: Fixed hardcoded SonarQube token; replaced with `${SONAR_TOKEN}` environment variable reference.
+- authController.js: Fixed no email format validation; added EMAIL_REGEX check in registerController and forgotPasswordController.
+- server.js: Fixed cors() that was configured to allow all origins; restricted to CLIENT_URL environment variable (default: localhost:3000).
+- server.js: Fixed incomplete CSP directives missing no-fallback directives (base-uri, form-action, navigate-to, etc.); configured helmet() with useDefaults:false and all directives explicitly set.
+- server.js: Fixed no NoSQL injection protection on request bodies; replaced incompatible express-mongo-sanitize with a custom body sanitizer compatible with Express 5.
+- routes/authRoute.js: Fixed no rate limiting on the login endpoint; added loginLimiter (20 req / 15 min) using express-rate-limit.
+- authController.js: Fixed raw error objects that returned in 500 responses leaked internal details; removed error key from all catch block responses.
+- server.js: Fixed no security response headers set; added helmet() middleware.
+- authController.js: loginController returned HTTP 500 on MongoDB operator payloads ($gt, $ne); mongoSanitize stripped the value to an empty object which passed the !email check and crashed findOne(); fixed by adding typeof email !== "string" guard.
+- productController.js: productFiltersController leaked the raw error object in the catch block response, exposing schema internals on malformed input; removed error key from the catch response.
+- productController.js: productFiltersController had no Array.isArray validation on checked and radio inputs; Mongoose CastError details (field names, types, paths) were leaked when operators were passed; added type guards before any array operations.
 
 
 ### Yap Zhao Yi (A0277540B)
