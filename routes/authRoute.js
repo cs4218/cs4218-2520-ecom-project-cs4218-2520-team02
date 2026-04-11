@@ -28,7 +28,7 @@ const router = express.Router();
 
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: isDASTEnv || isTestEnv ? 10000 : 20,
+  max: isDASTEnv || isTestEnv ? 30000 : 20,
   message: { success: false, message: "Too many login attempts, please try again later." },
   validate: { xForwardedForHeader: false },
   skip: () => isPerformanceTest,

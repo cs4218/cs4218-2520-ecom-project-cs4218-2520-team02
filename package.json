@@ -38,7 +38,14 @@
     "test:performance:capacity:orders": "node __tests__/performance/capacity/scripts/runCapacityFlow.js orders",
     "test:performance:capacity:payment": "node __tests__/performance/capacity/scripts/runCapacityFlow.js payment",
     "test:performance:capacity:auth-login": "node __tests__/performance/capacity/scripts/runCapacityFlow.js auth.login",
-    "test:performance:capacity:auth-register": "node __tests__/performance/capacity/scripts/runCapacityFlow.js auth.register"
+    "test:performance:capacity:auth-register": "node __tests__/performance/capacity/scripts/runCapacityFlow.js auth.register",
+    "test:performance:load": "node __tests__/performance/load/scripts/runAllLoadFlows.js",
+    "test:performance:load:browsing": "node __tests__/performance/load/scripts/runLoadFlow.js browsing",
+    "test:performance:load:auth-login": "node __tests__/performance/load/scripts/runLoadFlow.js auth.login",
+    "test:performance:load:auth-register": "node __tests__/performance/load/scripts/runLoadFlow.js auth.register",
+    "test:performance:load:admin-product": "node __tests__/performance/load/scripts/runLoadFlow.js admin-product",
+    "test:performance:load:payment": "node __tests__/performance/load/scripts/runLoadFlow.js payment",
+    "test:performance:load:orders": "node __tests__/performance/load/scripts/runLoadFlow.js orders"
   },
   "keywords": [],
   "author": "RP",
