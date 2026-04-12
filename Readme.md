@@ -205,6 +205,16 @@ To begin unit testing with Jest in your project, follow these steps:
      npm run test:security
      ```
 
+      Note: This runs ```npm run test:sast``` and ```npm run test:dast```. However, in order for DAST tests to pass, run the following commands:
+      ```bash
+      npm run dev
+      ```
+       and 
+      ```bash
+      docker run -u zap -p 8080:8080 zaproxy/zap-stable zap.sh -daemon -host 0.0.0.0 -port 8080 -config api.key=${ZAP_API_KEY} -config 'api.addrs.addr.name=.*' -config api.addrs.addr.regex=true
+      ```
+
+
 ## 6. Project Member Contributions
 ### Song Jia Hui (A0259494L)
 
@@ -489,6 +499,13 @@ To begin unit testing with Jest in your project, follow these steps:
 
 **E2E Tests**:
 - \_\_tests\_\_/e2e/profile-crud.spec.ts
+
+**Non-Functional Testing (Capacity Testing)**:
+- \_\_tests\_\_/performance/capacity/auth.login.capacity.js
+- \_\_tests\_\_/performance/capacity/auth.register.capacity.js
+- \_\_tests\_\_/performance/capacity/browsing.capacity.js
+- \_\_tests\_\_/performance/capacity/orders.capacity.js
+- \_\_tests\_\_/performance/capacity/payment.capacity.js
 
 **Enhancements**
 - Added input type string validation for `comparePassword` function
