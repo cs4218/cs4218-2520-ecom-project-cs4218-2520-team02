@@ -453,6 +453,13 @@ To begin unit testing with Jest in your project, follow these steps:
 **E2E Tests**:
 - \_\_tests\_\_/e2e/profile-crud.spec.ts
 
+**Non-Functional Testing (Capacity Testing)**:
+- \_\_tests\_\_/performance/capacity/auth.login.capacity.js
+- \_\_tests\_\_/performance/capacity/auth.register.capacity.js
+- \_\_tests\_\_/performance/capacity/browsing.capacity.js
+- \_\_tests\_\_/performance/capacity/orders.capacity.js
+- \_\_tests\_\_/performance/capacity/payment.capacity.js
+
 **Enhancements**
 - Added input type string validation for `comparePassword` function
 - Added try catch error early and modify to keep return behavior consistent in `comparePassword` (part of authentication logic) for security reason
