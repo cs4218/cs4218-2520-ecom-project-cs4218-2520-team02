@@ -49,7 +49,7 @@ jobs:
     if: |-
       (
         github.event_name == 'pull_request' &&
-        github.event.pull_request.head.repo.fork == false
+        github.event.action == 'opened'
       ) || (
         github.event_name == 'issues' &&
         contains(fromJSON('["opened", "reopened"]'), github.event.action)
@@ -127,8 +127,7 @@ jobs:
 
   review:
     needs: 'dispatch'
-    if: |-
-      ${{ needs.dispatch.outputs.command == 'review' }}
+    if: needs.dispatch.outputs.command == 'review'
     uses: './.github/workflows/gemini-review.yml'
     permissions:
       contents: 'read'
@@ -141,8 +140,7 @@ jobs:
 
   triage:
     needs: 'dispatch'
-    if: |-
-      ${{ needs.dispatch.outputs.command == 'triage' }}
+    if: needs.dispatch.outputs.command == 'triage'
     uses: './.github/workflows/gemini-triage.yml'
     permissions:
       contents: 'read'
@@ -155,8 +153,7 @@ jobs:
 
   invoke:
     needs: 'dispatch'
-    if: |-
-      ${{ needs.dispatch.outputs.command == 'invoke' }}
+    if: needs.dispatch.outputs.command == 'invoke'
     uses: './.github/workflows/gemini-invoke.yml'
     permissions:
       contents: 'read'
@@ -169,8 +166,7 @@ jobs:
 
   plan-execute:
     needs: 'dispatch'
-    if: |-
-      ${{ needs.dispatch.outputs.command == 'approve' }}
+    if: needs.dispatch.outputs.command == 'approve'
     uses: './.github/workflows/gemini-plan-execute.yml'
     permissions:
       contents: 'write'
@@ -188,8 +184,7 @@ jobs:
       - 'triage'
       - 'invoke'
       - 'plan-execute'
-    if: |-
-      ${{ always() && !cancelled() && (failure() || needs.dispatch.outputs.command == 'fallthrough') }}
+    if: always() && !cancelled() && (failure() || needs.dispatch.outputs.command == 'fallthrough')
     runs-on: 'ubuntu-latest'
     permissions:
       contents: 'read'
