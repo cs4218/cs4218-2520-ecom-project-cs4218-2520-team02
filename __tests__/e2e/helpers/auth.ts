@@ -25,7 +25,7 @@ type User = {
 export async function registerAndLogin(page: Page, user: User) {
   await page.goto("/register");
 
-  await page.getByPlaceholder('Enter Your Name').fill(user.name);
+  await page.getByPlaceholder("Enter Your Name").fill(user.name);
   await page.getByPlaceholder("Enter Your Email").fill(user.email);
   await page.getByPlaceholder("Enter Your Password").fill(user.password);
   await page.getByPlaceholder("Enter Your Phone").fill(user.phone);
@@ -36,8 +36,8 @@ export async function registerAndLogin(page: Page, user: User) {
   await page.locator('button:has-text("REGISTER")').click();
   await page.waitForURL("/login");
 
-  await page.getByPlaceholder('Enter Your Email').fill(user.email);
-  await page.getByPlaceholder('Enter Your Password').fill(user.password);
+  await page.getByPlaceholder("Enter Your Email").fill(user.email);
+  await page.getByPlaceholder("Enter Your Password").fill(user.password);
   await page.locator('button:has-text("LOGIN")').click();
 
   await page.waitForURL("/");
@@ -66,15 +66,15 @@ export async function loginAndGoto(
 }
 
 export async function logout(page: Page, userName: string) {
-  await page.getByRole('button', { name: userName }).click();
-  await page.getByRole('link', { name: 'Logout' }).click();
+  await page.getByRole("button", { name: userName }).click();
+  await page.getByRole("link", { name: "Logout" }).click();
   await page.waitForURL("/login", { timeout: 60000 });
 }
 
 export async function ensureUserAddress(
   page: Page,
   address = "123 Test Street",
-  phone = "1234567890"
+  phone = "1234567890",
 ) {
   await page.goto("/dashboard/user/profile");
   await expect(page.getByText("USER PROFILE")).toBeVisible();
@@ -97,4 +97,3 @@ export async function deleteUserByEmail(email: string): Promise<void> {
   await conn.connection.collection("users").deleteOne({ email });
   await mongoose.disconnect();
 }
-
