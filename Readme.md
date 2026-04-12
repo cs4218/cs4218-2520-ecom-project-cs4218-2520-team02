@@ -381,6 +381,13 @@ To begin unit testing with Jest in your project, follow these steps:
 - \_\_tests\_\_/e2e/flows/product-crud.spec.ts
 - \_\_tests\_\_/e2e/flows/search.spec.ts
 
+**Non-Functional Testing (Stress Testing)**:
+- \_\_tests\_\_/performance/stress/auth.login.stress.js
+- \_\_tests\_\_/performance/stress/auth.register.stress.js
+- \_\_tests\_\_/performance/stress/browsing.stress.js
+- \_\_tests\_\_/performance/stress/orders.stress.js
+- \_\_tests\_\_/performance/stress/payment.stress.js
+
 **Enhancements**
 - Enhance `HomePage.js` reset filter to not refresh page
 - Enhance `HomePage.js` code to remove Eslint issues
