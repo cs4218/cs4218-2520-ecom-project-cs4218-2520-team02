@@ -169,10 +169,40 @@ To begin unit testing with Jest in your project, follow these steps:
      npm run test:integration
      ```
 
-   - **All the tests**
+   - **All the unit and integration tests**
   
      ```bash
      npm run test
+     ```
+
+   - **All the spike tests**
+  
+     ```bash
+     npm run test:performance:spike
+     ```
+
+   - **All the load tests**
+  
+     ```bash
+     npm run test:performance:load
+     ```
+
+   - **All the stress tests**
+  
+     ```bash
+     npm run test:performance:stress
+     ```
+
+   - **All the capacity tests**
+  
+     ```bash
+     npm run test:performance:capacity
+     ```
+
+   - **All the security tests**
+  
+     ```bash
+     npm run test:security
      ```
 
 ## 6. Project Member Contributions
@@ -277,6 +307,13 @@ To begin unit testing with Jest in your project, follow these steps:
 - \_\_tests\_\_/e2e/ecommerce-flow.spec.ts
 - \_\_tests\_\_/e2e/home-browsing.spec.ts
 - \_\_tests\_\_/e2e/product-exploration-flow.spec.ts
+
+**Non-Functional Testing (Spike Testing)**:
+- \_\_tests\_\_/performance/spike/auth.login.spike.js
+- \_\_tests\_\_/performance/spike/auth.register.spike.js
+- \_\_tests\_\_/performance/spike/browsing.spike.js
+- \_\_tests\_\_/performance/spike/orders.spike.js
+- \_\_tests\_\_/performance/spike/payment.spike.js
 
 **Enhancements:**
 - Added validation for parameters being supplied into `categoryController.js`

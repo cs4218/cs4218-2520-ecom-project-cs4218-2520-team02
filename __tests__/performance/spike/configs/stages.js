@@ -43,6 +43,6 @@ export function createSpikeStages() {
       target: baselineVUs,
     },
 
-    // K6 Grafana already includes a graceful ramp down and stop 
+    // Use built in K6 Grafana ramp down
   ];
 }
